@@ -18,4 +18,5 @@ Makefile
 Makefile.in
 TAGS
 mtbl/libmtbl.pc
+src/test-crc32c
 src/test-mtbl

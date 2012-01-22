@@ -17,8 +17,18 @@
 #ifndef MTBL_PRIVATE_H
 #define MTBL_PRIVATE_H
 
+#ifdef HAVE_ENDIAN_H
+# include <endian.h>
+#else
+# ifdef HAVE_SYS_ENDIAN_H
+#  include <sys/endian.h>
+# endif
+#endif
+
+#include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "mtbl.h"
 

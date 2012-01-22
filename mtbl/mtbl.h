@@ -21,6 +21,12 @@
 extern "C" {
 #endif
 
+#include <sys/types.h>
+#include <stdbool.h>
+#include <stdint.h>
+
+uint32_t mtbl_crc32c(const uint8_t *buffer, size_t length);
+
 #ifdef __cplusplus
 }
 #endif

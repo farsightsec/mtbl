@@ -30,6 +30,7 @@ include_HEADERS = mtbl/mtbl.h
 lib_LTLIBRARIES = mtbl/libmtbl.la
 
 mtbl_libmtbl_la_SOURCES = \
+	mtbl/crc32c.c \
 	mtbl/mtbl.h \
 	mtbl/mtbl-private.h
 
@@ -45,8 +46,10 @@ pkgconfig_DATA = mtbl/libmtbl.pc
 EXTRA_DIST += mtbl/libmtbl.pc.in
 CLEANFILES += mtbl/libmtbl.pc
 
-TESTS = src/test-mtbl
+TESTS = src/test-mtbl src/test-crc32c
 
-check_PROGRAMS = src/test-mtbl
+check_PROGRAMS = src/test-mtbl src/test-crc32c
 src_test_mtbl_SOURCES = src/test-mtbl.c
 src_test_mtbl_LDADD = mtbl/libmtbl.la
+src_test_crc32c_SOURCES = src/test-crc32c.c
+src_test_crc32c_LDADD = mtbl/libmtbl.la

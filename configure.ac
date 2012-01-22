@@ -23,6 +23,8 @@ AC_CONFIG_FILES([
         Makefile
 ])
 
+AC_CHECK_HEADERS([sys/endian.h endian.h])
+
 AC_OUTPUT
 AC_MSG_RESULT([
     $PACKAGE $VERSION
