@@ -32,4 +32,25 @@
 
 #include "mtbl.h"
 
+#define MTBL_MAGIC		0x77846676
+
+#define MTBL_COMP_NONE		0
+#define MTBL_COMP_SNAPPY	1
+
+#define MTBL_TRAILER_SIZE	512
+
+struct mtbl_trailer {
+	uint64_t	compression_algorithm;
+	uint64_t	count_data_blocks;
+	uint64_t	bytes_data_blocks_compressed;
+	uint64_t	bytes_data_blocks_uncompressed;
+	uint64_t	bytes_index_block;
+	uint64_t	count_entries;
+	uint64_t	bytes_keys;
+	uint64_t	bytes_values;
+};
+
+void	trailer_write(struct mtbl_trailer *t, uint8_t *buf);
+bool	trailer_read(const uint8_t *buf, struct mtbl_trailer *t);
+
 #endif /* MTBL_PRIVATE_H */

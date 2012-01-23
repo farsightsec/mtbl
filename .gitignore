@@ -21,4 +21,5 @@ mtbl/libmtbl.pc
 src/test-crc32c
 src/test-fixed
 src/test-mtbl
+src/test-trailer
 src/test-varint

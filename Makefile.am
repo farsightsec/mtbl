@@ -34,6 +34,7 @@ mtbl_libmtbl_la_SOURCES = \
 	mtbl/fixed.c \
 	mtbl/mtbl.h \
 	mtbl/mtbl-private.h \
+	mtbl/trailer.c \
 	mtbl/varint.c
 
 mtbl_libmtbl_la_LDFLAGS = $(AM_LDFLAGS) \
@@ -48,14 +49,27 @@ pkgconfig_DATA = mtbl/libmtbl.pc
 EXTRA_DIST += mtbl/libmtbl.pc.in
 CLEANFILES += mtbl/libmtbl.pc
 
-TESTS = src/test-mtbl src/test-crc32c src/test-fixed src/test-varint
+TESTS = \
+	src/test-mtbl \
+	src/test-crc32c \
+	src/test-fixed \
+	src/test-trailer \
+	src/test-varint
 
-check_PROGRAMS = src/test-mtbl src/test-crc32c src/test-fixed src/test-varint
+check_PROGRAMS = \
+	src/test-mtbl \
+	src/test-crc32c \
+	src/test-fixed \
+	src/test-trailer \
+	src/test-varint
+
 src_test_mtbl_SOURCES = src/test-mtbl.c
 src_test_mtbl_LDADD = mtbl/libmtbl.la
 src_test_crc32c_SOURCES = src/test-crc32c.c
 src_test_crc32c_LDADD = mtbl/libmtbl.la
 src_test_fixed_SOURCES = src/test-fixed.c
 src_test_fixed_LDADD = mtbl/libmtbl.la
+src_test_trailer_SOURCES = src/test-trailer.c
+src_test_trailer_LDADD = mtbl/libmtbl.la
 src_test_varint_SOURCES = src/test-varint.c
 src_test_varint_LDADD = mtbl/libmtbl.la
