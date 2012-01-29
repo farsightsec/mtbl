@@ -22,10 +22,8 @@ struct mtbl_block_builder {
 	size_t		block_size;
 
 	ubuf		*buf;
+	ubuf		*last_key;
 	uint32_vec	*restarts;
-
-	uint8_t		*last_key;
-	size_t		len_last_key;
 
 	bool		finished;
 	size_t		counter;
@@ -44,6 +42,7 @@ mtbl_block_builder_init(void)
 	b->block_size = 16384;
 
 	b->buf = ubuf_init(16384);
+	b->last_key = ubuf_init(256);
 
 	b->restarts = uint32_vec_init(64);
 	uint32_vec_add(b->restarts, 0);
@@ -57,7 +56,7 @@ mtbl_block_builder_destroy(struct mtbl_block_builder **b)
 	if (*b) {
 		uint32_vec_destroy(&((*b)->restarts));
 		ubuf_destroy(&((*b)->buf));
-		free((*b)->last_key);
+		ubuf_destroy(&((*b)->last_key));
 		free((*b));
 		*b = NULL;
 	}
@@ -67,12 +66,11 @@ void
 mtbl_block_builder_reset(struct mtbl_block_builder *b)
 {
 	ubuf_reset(b->buf);
+	ubuf_reset(b->last_key);
 	uint32_vec_reset(b->restarts);
 	uint32_vec_add(b->restarts, 0);
 	b->counter = 0;
 	b->finished = false;
-	free(b->last_key);
-	b->last_key = NULL;
 }
 
 size_t
@@ -116,10 +114,10 @@ mtbl_block_builder_add(struct mtbl_block_builder *b,
 	size_t shared = 0;
 
 	/* see how much sharing to do with previous key */
-	if (b->last_key != NULL && b->counter < b->block_restart_interval) {
-		const size_t min_length = (b->len_last_key > len_key) ?
-			(len_key) : (b->len_last_key);
-		while ((shared < min_length) && (b->last_key[shared] == key[shared]))
+	if (b->counter < b->block_restart_interval) {
+		const size_t min_length = (ubuf_size(b->last_key) > len_key) ?
+			(len_key) : (ubuf_size(b->last_key));
+		while ((shared < min_length) && (ubuf_value(b->last_key, shared) == key[shared]))
 			shared++;
 	} else {
 		/* restart compression */
@@ -151,10 +149,6 @@ mtbl_block_builder_add(struct mtbl_block_builder *b,
 	ubuf_advance(b->buf, len_val);
 
 	/* update state */
-	free(b->last_key);
-	b->len_last_key = len_key;
-	b->last_key = malloc(len_key);
-	assert(b->last_key != NULL);
-	memcpy(b->last_key, key, len_key);
+	ubuf_append(b->last_key, key + shared, non_shared);
 	b->counter += 1;
 }
