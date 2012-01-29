@@ -20,7 +20,7 @@
 typedef struct name##__vector {					\
 	type *		v;					\
 	type *		p;					\
-	unsigned	n, n_alloced;				\
+	unsigned	n, n_alloced, hint;			\
 } name;								\
 static inline name *						\
 name##_init(unsigned hint)					\
@@ -29,7 +29,7 @@ name##_init(unsigned hint)					\
 	vec = calloc(1, sizeof(name));				\
 	assert(vec != NULL);					\
 	if (hint == 0) hint = 1;				\
-	vec->n_alloced = hint;					\
+	vec->hint = vec->n_alloced = hint;			\
 	vec->v = malloc(vec->n_alloced * sizeof(void *));	\
 	assert(vec->v != NULL);					\
 	vec->p = &(vec->v[0]);					\
@@ -77,6 +77,12 @@ static inline void						\
 name##_reset(name *vec)						\
 {								\
 	(vec)->n = 0;						\
+	if ((vec)->n_alloced > (vec)->hint) {			\
+		(vec)->n_alloced = (vec)->hint;			\
+		(vec)->v = realloc((vec)->v, (vec)->n_alloced	\
+				   * sizeof(void *));		\
+		assert((vec)->v != NULL);			\
+	}							\
 	(vec)->p = &(vec->v[0]);				\
 }								\
 static inline size_t						\
