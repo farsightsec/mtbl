@@ -85,11 +85,11 @@ mtbl_varint_length_packed(const uint8_t *data)
 	return (i + 1);
 }
 
-void
-mtbl_varint_encode32(uint8_t **pptr, uint32_t v)
+size_t
+mtbl_varint_encode32(uint8_t *src_ptr, uint32_t v)
 {
 	static const unsigned B = 128;
-	uint8_t *ptr = *pptr;
+	uint8_t *ptr = src_ptr;
 	if (v < (1 << 7)) {
 		*(ptr++) = v;
 	} else if (v < (1 << 14)) {
@@ -111,27 +111,27 @@ mtbl_varint_encode32(uint8_t **pptr, uint32_t v)
 		*(ptr++) = (v >> 21) | B;
 		*(ptr++) = v >> 28;
 	}
-	*pptr = ptr;
+	return ((size_t) (ptr - src_ptr));
 }
 
-void
-mtbl_varint_encode64(uint8_t **pptr, uint64_t v)
+size_t
+mtbl_varint_encode64(uint8_t *src_ptr, uint64_t v)
 {
 	static const unsigned B = 128;
-	uint8_t *ptr = *pptr;
+	uint8_t *ptr = src_ptr;
 	while (v >= B) {
 		*(ptr++) = (v & (B - 1)) | B;
 		v >>= 7;
 	}
 	*(ptr++) = (uint8_t) v;
-	*pptr = ptr;
+	return ((size_t) (ptr - src_ptr));
 }
 
-uint32_t
-mtbl_varint_decode32(uint8_t **ptr)
+size_t
+mtbl_varint_decode32(uint8_t *src_ptr, uint32_t *value)
 {
-	uint8_t *data = *ptr;
-	unsigned len = mtbl_varint_length_packed(*ptr);
+	uint8_t *data = src_ptr;
+	unsigned len = mtbl_varint_length_packed(data);
 	uint32_t val = data[0] & 0x7f;
 	if (len > 1) {
 		val |= ((data[1] & 0x7f) << 7);
@@ -144,18 +144,23 @@ mtbl_varint_decode32(uint8_t **ptr)
 			}
 		}
 	}
-	*ptr = data + len;
-	return (val);
+	*value = val;
+	return ((size_t) len);
 }
 
-uint64_t
-mtbl_varint_decode64(uint8_t **ptr) {
-	uint8_t *data = *ptr;
+size_t
+mtbl_varint_decode64(uint8_t *src_ptr, uint64_t *value) {
+	uint8_t *data = src_ptr;
 	unsigned shift, i;
-	unsigned len = mtbl_varint_length_packed(*ptr);
+	unsigned len = mtbl_varint_length_packed(data);
 	uint64_t val;
-	if (len < 5)
-		return (mtbl_varint_decode32(ptr));
+	if (len < 5) {
+		size_t tmp_len;
+		uint32_t tmp;
+		tmp_len = mtbl_varint_decode32(src_ptr, &tmp);
+		*value = tmp;
+		return (tmp_len);
+	}
 	val = ((data[0] & 0x7f))
 		| ((data[1] & 0x7f) << 7)
 		| ((data[2] & 0x7f) << 14)
@@ -165,6 +170,6 @@ mtbl_varint_decode64(uint8_t **ptr) {
 		val |= (((uint64_t)(data[i] & 0x7f)) << shift);
 		shift += 7;
 	}
-	*ptr = data + len;
-	return (val);
+	*value = val;
+	return ((size_t) len);
 }

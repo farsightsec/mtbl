@@ -34,10 +34,10 @@ uint64_t	mtbl_fixed_decode64(const uint8_t *ptr);
 
 unsigned	mtbl_varint_length(uint64_t v);
 unsigned	mtbl_varint_length_packed(const uint8_t *buf);
-void		mtbl_varint_encode32(uint8_t **ptr, uint32_t value);
-void		mtbl_varint_encode64(uint8_t **ptr, uint64_t value);
-uint32_t	mtbl_varint_decode32(uint8_t **ptr);
-uint64_t	mtbl_varint_decode64(uint8_t **ptr);
+size_t		mtbl_varint_encode32(uint8_t *ptr, uint32_t value);
+size_t		mtbl_varint_encode64(uint8_t *ptr, uint64_t value);
+size_t		mtbl_varint_decode32(uint8_t *ptr, uint32_t *value);
+size_t		mtbl_varint_decode64(uint8_t *ptr, uint64_t *value);
 
 #ifdef __cplusplus
 }

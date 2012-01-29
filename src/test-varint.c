@@ -19,9 +19,9 @@ test2(void)
 	for (uint32_t i = 0; i < 64; i++) {
 		const uint64_t power = 1ull << i;
 
-		mtbl_varint_encode64(&p, power);
-		mtbl_varint_encode64(&p, power - 1);
-		mtbl_varint_encode64(&p, power + 1);
+		p += mtbl_varint_encode64(p, power);
+		p += mtbl_varint_encode64(p, power - 1);
+		p += mtbl_varint_encode64(p, power + 1);
 	}
 
 	end = p;
@@ -30,7 +30,7 @@ test2(void)
 		const uint64_t power = 1ull << i;
 		uint64_t actual, expected;
 
-		actual = mtbl_varint_decode64(&p);
+		p += mtbl_varint_decode64(p, &actual);
 		expected = power;
 		if (actual != expected) {
 			ret |= 1;
@@ -38,7 +38,7 @@ test2(void)
 				expected, actual, actual == expected);
 		}
 
-		actual = mtbl_varint_decode64(&p);
+		p += mtbl_varint_decode64(p, &actual);
 		expected = power - 1;
 		if (actual != expected) {
 			ret |= 1;
@@ -46,7 +46,7 @@ test2(void)
 				expected, actual, actual == expected);
 		}
 
-		actual = mtbl_varint_decode64(&p);
+		p += mtbl_varint_decode64(p, &actual);
 		expected = power + 1;
 		if (actual != expected) {
 			ret |= 1;
@@ -73,14 +73,16 @@ test1(void)
 
 	for (uint32_t i = 0; i < (32 * 32); i++) {
 		uint32_t v = (i / 32) << (i % 32);
-		mtbl_varint_encode32(&p, v);
+		p += mtbl_varint_encode32(p, v);
 	}
 
 	end = p;
 	p = buf;
 	for (uint32_t i = 0; i < (32 * 32); i++) {
 		uint32_t expected = (i / 32) << (i % 32);
-		uint32_t actual = mtbl_varint_decode32(&p);
+		uint32_t actual;
+
+		p += mtbl_varint_decode32(p, &actual);
 		if (expected != actual) {
 			ret |= 1;
 			fprintf(stderr, "expected= %u, actual= %u\n", expected, actual);
