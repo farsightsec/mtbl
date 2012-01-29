@@ -36,6 +36,16 @@ name##_init(unsigned hint)						\
 	return (vec);							\
 }									\
 static inline void							\
+name##_detach(name *vec, type **out, size_t *outsz)			\
+{									\
+	*(out) = (vec)->_v;						\
+	*(outsz) = (vec)->_n;						\
+	(vec)->_n_alloced = (vec)->_hint;				\
+	(vec)->_v = malloc((vec)->_n_alloced * sizeof(void *));		\
+	assert((vec)->_v != NULL);					\
+	(vec)->_p = &(vec->_v[0]);					\
+}									\
+static inline void							\
 name##_destroy(name **vec)						\
 {									\
 	free((*vec)->_v);						\
