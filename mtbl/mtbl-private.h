@@ -25,6 +25,8 @@
 # endif
 #endif
 
+#include <assert.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -38,6 +40,25 @@
 #define MTBL_COMP_SNAPPY	1
 
 #define MTBL_TRAILER_SIZE	512
+
+/*
+ * block builder
+ */
+
+struct mtbl_block_builder;
+
+struct mtbl_block_builder *
+mtbl_block_builder_init(void);
+
+size_t	mtbl_block_builder_current_size_estimate(struct mtbl_block_builder *);
+void	mtbl_block_builder_destroy(struct mtbl_block_builder **);
+void	mtbl_block_builder_finish(struct mtbl_block_builder *, uint8_t **, size_t *);
+void	mtbl_block_builder_reset(struct mtbl_block_builder *);
+void	mtbl_block_builder_add(struct mtbl_block_builder *, const uint8_t *, size_t, const uint8_t *, size_t);
+
+/*
+ * trailer
+ */
 
 struct mtbl_trailer {
 	uint64_t	compression_algorithm;
