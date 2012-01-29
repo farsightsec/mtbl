@@ -62,7 +62,8 @@ check_PROGRAMS = \
 	src/test-crc32c \
 	src/test-fixed \
 	src/test-trailer \
-	src/test-varint
+	src/test-varint \
+	src/test-vector
 
 src_test_mtbl_SOURCES = src/test-mtbl.c
 src_test_mtbl_LDADD = mtbl/libmtbl.la
@@ -74,3 +75,5 @@ src_test_trailer_SOURCES = src/test-trailer.c
 src_test_trailer_LDADD = mtbl/libmtbl.la
 src_test_varint_SOURCES = src/test-varint.c
 src_test_varint_LDADD = mtbl/libmtbl.la
+src_test_vector_SOURCES = src/test-vector.c
+src_test_vector_LDADD = mtbl/libmtbl.la
