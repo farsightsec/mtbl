@@ -89,4 +89,15 @@ static inline size_t						\
 name##_bytes(name *vec)						\
 {								\
 	return ((vec)->n * sizeof(type));			\
+}								\
+static inline size_t						\
+name##_size(name *vec)						\
+{								\
+	return ((vec)->n);					\
+}								\
+static inline type						\
+name##_value(name *vec, size_t i)				\
+{								\
+	assert(i < (vec)->n);					\
+	return ((vec)->v[i]);					\
 }
