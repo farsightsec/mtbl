@@ -22,22 +22,14 @@ trailer_write(struct mtbl_trailer *t, uint8_t *buf)
 	size_t padding;
 	uint8_t *p = buf;
 
-	mtbl_fixed_encode64(p, t->compression_algorithm);
-	p += 8;
-	mtbl_fixed_encode64(p, t->count_data_blocks);
-	p += 8;
-	mtbl_fixed_encode64(p, t->bytes_data_blocks_compressed);
-	p += 8;
-	mtbl_fixed_encode64(p, t->bytes_data_blocks_uncompressed);
-	p += 8;
-	mtbl_fixed_encode64(p, t->bytes_index_block);
-	p += 8;
-	mtbl_fixed_encode64(p, t->count_entries);
-	p += 8;
-	mtbl_fixed_encode64(p, t->bytes_keys);
-	p += 8;
-	mtbl_fixed_encode64(p, t->bytes_values);
-	p += 8;
+	p += mtbl_fixed_encode64(p, t->compression_algorithm);
+	p += mtbl_fixed_encode64(p, t->count_data_blocks);
+	p += mtbl_fixed_encode64(p, t->bytes_data_blocks_compressed);
+	p += mtbl_fixed_encode64(p, t->bytes_data_blocks_uncompressed);
+	p += mtbl_fixed_encode64(p, t->bytes_index_block);
+	p += mtbl_fixed_encode64(p, t->count_entries);
+	p += mtbl_fixed_encode64(p, t->bytes_keys);
+	p += mtbl_fixed_encode64(p, t->bytes_values);
 
 	padding = MTBL_TRAILER_SIZE - (p - buf) - sizeof(uint32_t);
 	while (padding-- != 0)
