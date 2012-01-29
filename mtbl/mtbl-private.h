@@ -61,6 +61,7 @@ void	mtbl_block_builder_add(struct mtbl_block_builder *, const uint8_t *, size_t
  */
 
 struct mtbl_trailer {
+	uint64_t	index_block_offset;
 	uint64_t	compression_algorithm;
 	uint64_t	count_data_blocks;
 	uint64_t	bytes_data_blocks_compressed;

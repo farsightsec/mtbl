@@ -22,6 +22,7 @@ trailer_write(struct mtbl_trailer *t, uint8_t *buf)
 	size_t padding;
 	uint8_t *p = buf;
 
+	p += mtbl_fixed_encode64(p, t->index_block_offset);
 	p += mtbl_fixed_encode64(p, t->compression_algorithm);
 	p += mtbl_fixed_encode64(p, t->count_data_blocks);
 	p += mtbl_fixed_encode64(p, t->bytes_data_blocks_compressed);
@@ -47,6 +48,8 @@ trailer_read(const uint8_t *buf, struct mtbl_trailer *t)
 	if (magic != MTBL_MAGIC)
 		return (false);
 
+	t->index_block_offset = mtbl_fixed_decode64(p);
+	p += 8;
 	t->compression_algorithm = mtbl_fixed_decode64(p);
 	p += 8;
 	t->count_data_blocks = mtbl_fixed_decode64(p);
