@@ -114,7 +114,7 @@ test1(void)
 		uint32_vec_add(v, i);
 	if (uint32_vec_bytes(v) != uint32_vec_size(v) * sizeof(uint32_t)) {
 		fprintf(stderr, "uint32_vec_bytes (%zd) != v->n * sizeof(uint32_t) (%zd)\n",
-			uint32_vec_bytes(v), v->n * sizeof(uint32_t));
+			uint32_vec_bytes(v), uint32_vec_size(v) * sizeof(uint32_t));
 		ret |= 1;
 	}
 	for (uint32_t i = 0; i < 1024; i++) {
