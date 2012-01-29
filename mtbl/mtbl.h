@@ -25,10 +25,13 @@ extern "C" {
 #include <stdbool.h>
 #include <stdint.h>
 
+struct mtbl_writer;
+struct mtbl_writer *	mtbl_writer_init(void);
+
 uint32_t	mtbl_crc32c(const uint8_t *buffer, size_t length);
 
-void		mtbl_fixed_encode32(uint8_t *dst, uint32_t value);
-void		mtbl_fixed_encode64(uint8_t *dst, uint64_t value);
+size_t		mtbl_fixed_encode32(uint8_t *dst, uint32_t value);
+size_t		mtbl_fixed_encode64(uint8_t *dst, uint64_t value);
 uint32_t	mtbl_fixed_decode32(const uint8_t *ptr);
 uint64_t	mtbl_fixed_decode64(const uint8_t *ptr);
 

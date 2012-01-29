@@ -46,18 +46,20 @@
 
 #include "mtbl-private.h"
 
-void
+size_t
 mtbl_fixed_encode32(uint8_t *dst, uint32_t value)
 {
 	value = htole32(value);
 	memcpy(dst, &value, sizeof(value));
+	return (sizeof(uint32_t));
 }
 
-void
+size_t
 mtbl_fixed_encode64(uint8_t *dst, uint64_t value)
 {
 	value = htole64(value);
 	memcpy(dst, &value, sizeof(value));
+	return (sizeof(uint64_t));
 }
 
 uint32_t
