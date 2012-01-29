@@ -15,10 +15,10 @@
  */
 
 #include "mtbl-private.h"
+#include "vector_types.h"
 
 #define bytes_used(b) ((b)->p - (b)->buf)
 
-static void	add_restart(struct mtbl_block_builder *b, uint32_t offset);
 static void	buffer_needs(struct mtbl_block_builder *b, size_t needed);
 
 struct mtbl_block_builder {
@@ -29,9 +29,7 @@ struct mtbl_block_builder {
 	uint8_t		*buf;
 	size_t		bufsz;
 
-	uint32_t	*restarts;
-	uint32_t	n_restarts;
-	uint32_t	n_restarts_alloced;
+	uint32_vec	*restarts;
 
 	uint8_t		*last_key;
 	size_t		len_last_key;
@@ -60,14 +58,8 @@ mtbl_block_builder_init(void)
 	}
 	b->p = b->buf;
 
-	b->n_restarts_alloced = 64;
-	b->restarts = calloc(b->n_restarts_alloced, sizeof(void *));
-	if (b->restarts == NULL) {
-		free(b->buf);
-		free(b);
-		return (NULL);
-	}
-	add_restart(b, 0);
+	b->restarts = uint32_vec_init(64);
+	uint32_vec_add(b->restarts, 0);
 
 	return (b);
 }
@@ -76,8 +68,8 @@ void
 mtbl_block_builder_destroy(struct mtbl_block_builder **b)
 {
 	if (*b) {
+		uint32_vec_destroy(&((*b)->restarts));
 		free((*b)->last_key);
-		free((*b)->restarts);
 		free((*b)->buf);
 		free((*b));
 		*b = NULL;
@@ -89,8 +81,8 @@ mtbl_block_builder_reset(struct mtbl_block_builder *b)
 {
 	b->p = b->buf;
 	b->bufsz = b->block_size;
-	b->n_restarts = 0;
-	add_restart(b, 0);
+	uint32_vec_reset(b->restarts);
+	uint32_vec_add(b->restarts, 0);
 	b->counter = 0;
 	b->finished = false;
 	free(b->last_key);
@@ -100,26 +92,26 @@ mtbl_block_builder_reset(struct mtbl_block_builder *b)
 size_t
 mtbl_block_builder_current_size_estimate(struct mtbl_block_builder *b)
 {
-	return (bytes_used(b) + b->n_restarts * sizeof(uint32_t) + sizeof(uint32_t));
+	return (bytes_used(b) + uint32_vec_bytes(b->restarts) + sizeof(uint32_t));
 }
 
 void
 mtbl_block_builder_finish(struct mtbl_block_builder *b, uint8_t **buf, size_t *bufsz)
 {
-	size_t needed = b->n_restarts * sizeof(uint32_t) + sizeof(uint32_t);
+	size_t needed = uint32_vec_bytes(b->restarts) + sizeof(uint32_t);
 
 	buffer_needs(b, needed);
 
-	for (size_t i = 0; i < b->n_restarts; i++) {
+	for (size_t i = 0; i < b->restarts->n; i++) {
 		fprintf(stderr, "%s:%d: writing restart value: %u\n", __func__, __LINE__,
-			(unsigned) b->restarts[i]);
-		mtbl_fixed_encode32(b->p, b->restarts[i]);
+			(unsigned) b->restarts->v[i]);
+		mtbl_fixed_encode32(b->p, b->restarts->v[i]);
 		b->p += sizeof(uint32_t);
 	}
 
 	fprintf(stderr, "%s:%d: writing number of restarts: %u\n", __func__, __LINE__,
-		(unsigned) b->n_restarts);
-	mtbl_fixed_encode32(b->p, b->n_restarts);
+		(unsigned) b->restarts->n);
+	mtbl_fixed_encode32(b->p, b->restarts->n);
 	b->p += sizeof(uint32_t);
 	
 	b->finished = true;
@@ -148,7 +140,7 @@ mtbl_block_builder_add(struct mtbl_block_builder *b,
 			shared++;
 	} else {
 		/* restart compression */
-		add_restart(b, (uint32_t) bytes_used(b));
+		uint32_vec_add(b->restarts, (uint32_t) bytes_used(b));
 		b->counter = 0;
 	}
 	const size_t non_shared = len_key - shared;
@@ -182,18 +174,6 @@ mtbl_block_builder_add(struct mtbl_block_builder *b,
 	assert(b->last_key != NULL);
 	memcpy(b->last_key, key, len_key);
 	b->counter += 1;
-}
-
-static void
-add_restart(struct mtbl_block_builder *b, uint32_t offset)
-{
-	if (b->n_restarts == b->n_restarts_alloced - 1) {
-		b->n_restarts_alloced *= 2;
-		b->restarts = realloc(b->restarts, b->n_restarts_alloced * sizeof(void *));
-		assert(b->restarts != NULL);
-	}
-	b->restarts[b->n_restarts] = offset;
-	b->n_restarts += 1;
 }
 
 static void
