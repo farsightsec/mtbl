@@ -100,4 +100,16 @@ name##_value(name *vec, size_t i)				\
 {								\
 	assert(i < (vec)->n);					\
 	return ((vec)->v[i]);					\
+}								\
+static inline type *						\
+name##_ptr(name *vec)						\
+{								\
+	return ((vec)->p);					\
+}								\
+static inline void						\
+name##_advance(name *vec, size_t x)				\
+{								\
+	assert(x < ((vec)->n_alloced - (vec)->n));		\
+	(vec)->n += x;						\
+	(vec)->p = &((vec)->v[(vec)->n]);			\
 }
