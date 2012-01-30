@@ -73,6 +73,12 @@ mtbl_block_builder_reset(struct mtbl_block_builder *b)
 	b->finished = false;
 }
 
+bool
+mtbl_block_builder_empty(struct mtbl_block_builder *b)
+{
+	return (ubuf_size(b->buf) == 0);
+}
+
 size_t
 mtbl_block_builder_current_size_estimate(struct mtbl_block_builder *b)
 {

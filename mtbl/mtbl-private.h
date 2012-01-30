@@ -55,6 +55,7 @@ void	mtbl_block_builder_destroy(struct mtbl_block_builder **);
 void	mtbl_block_builder_finish(struct mtbl_block_builder *, uint8_t **, size_t *);
 void	mtbl_block_builder_reset(struct mtbl_block_builder *);
 void	mtbl_block_builder_add(struct mtbl_block_builder *, const uint8_t *, size_t, const uint8_t *, size_t);
+bool	mtbl_block_builder_empty(struct mtbl_block_builder *);
 
 /*
  * trailer
