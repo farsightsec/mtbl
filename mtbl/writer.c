@@ -161,8 +161,9 @@ _mtbl_writer_flush(struct mtbl_writer *w)
 static size_t
 _mtbl_writer_writeblock(struct mtbl_writer *w, struct mtbl_block_builder *b)
 {
-	uint8_t *raw_contents = NULL, *block_contents = NULL;
-	size_t raw_contents_size = 0, block_contents_size = 0;
+	uint8_t *raw_contents = NULL, *block_contents = NULL, *comp_contents = NULL;
+	size_t raw_contents_size = 0, block_contents_size = 0, comp_contents_size = 0;
+	snappy_status res;
 
 	mtbl_block_builder_finish(b, &raw_contents, &raw_contents_size);
 	assert(raw_contents != NULL);
@@ -174,8 +175,15 @@ _mtbl_writer_writeblock(struct mtbl_writer *w, struct mtbl_block_builder *b)
 		w->t.bytes_data_blocks_uncompressed += raw_contents_size;
 		break;
 	case MTBL_COMP_SNAPPY:
-		/* XXX */
-		assert(0);
+		comp_contents_size = snappy_max_compressed_length(raw_contents_size);
+		comp_contents = malloc(comp_contents_size);
+		assert(comp_contents != NULL);
+		res = snappy_compress((const char *) raw_contents, raw_contents_size,
+				      (char *) comp_contents, &comp_contents_size);
+		assert(res == SNAPPY_OK);
+		block_contents = comp_contents;
+		block_contents_size = comp_contents_size;
+		w->t.bytes_data_blocks_compressed += comp_contents_size;
 		break;
 	}
 
@@ -195,6 +203,7 @@ _mtbl_writer_writeblock(struct mtbl_writer *w, struct mtbl_block_builder *b)
 
 	mtbl_block_builder_reset(b);
 	free(raw_contents);
+	free(comp_contents);
 
 	return (bytes_written);
 }
