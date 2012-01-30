@@ -91,14 +91,14 @@ mtbl_block_builder_finish(struct mtbl_block_builder *b, uint8_t **buf, size_t *b
 	ubuf_need(b->buf, uint32_vec_bytes(b->restarts) + sizeof(uint32_t));
 
 	for (size_t i = 0; i < uint32_vec_size(b->restarts); i++) {
-		//fprintf(stderr, "%s: writing restart value: %u\n", __func__,
-			//(unsigned) uint32_vec_value(b->restarts, i));
+		fprintf(stderr, "%s: writing restart value: %u\n", __func__,
+			(unsigned) uint32_vec_value(b->restarts, i));
 		mtbl_fixed_encode32(ubuf_ptr(b->buf), uint32_vec_value(b->restarts, i));
 		ubuf_advance(b->buf, sizeof(uint32_t));
 	}
 
-	//fprintf(stderr, "%s: writing number of restarts: %u\n", __func__,
-		//(unsigned) uint32_vec_size(b->restarts));
+	fprintf(stderr, "%s: writing number of restarts: %u\n", __func__,
+		(unsigned) uint32_vec_size(b->restarts));
 	mtbl_fixed_encode32(ubuf_ptr(b->buf), uint32_vec_size(b->restarts));
 	ubuf_advance(b->buf, sizeof(uint32_t));
 
@@ -114,11 +114,9 @@ mtbl_block_builder_add(struct mtbl_block_builder *b,
 	assert(b->counter <= b->block_restart_interval);
 	assert(b->finished == false);
 
-	/*
 	fprintf(stderr, "============================\n"
 			"%s: writing key= '%s' (%zd) val= '%s' (%zd)\n",
 			__func__, (char *) key, len_key, (char *) val, len_val);
-	*/
 
 	size_t shared = 0;
 
@@ -130,7 +128,7 @@ mtbl_block_builder_add(struct mtbl_block_builder *b,
 			shared++;
 	} else {
 		/* restart compression */
-		//fprintf(stderr, "%s: doing restart\n", __func__);
+		fprintf(stderr, "%s: doing restart\n", __func__);
 		uint32_vec_add(b->restarts, (uint32_t) ubuf_bytes(b->buf));
 		b->counter = 0;
 	}
@@ -140,21 +138,21 @@ mtbl_block_builder_add(struct mtbl_block_builder *b,
 	ubuf_need(b->buf, 5*3 + non_shared + len_val);
 
 	/* add "[shared][non-shared][value length]" to buffer */
-	//fprintf(stderr, "%s: writing value %u (shared)\n", __func__, (unsigned) shared);
+	fprintf(stderr, "%s: writing value %u (shared)\n", __func__, (unsigned) shared);
 	ubuf_advance(b->buf, mtbl_varint_encode32(ubuf_ptr(b->buf), shared));
 
-	//fprintf(stderr, "%s: writing value %u (non-shared)\n", __func__, (unsigned) non_shared);
+	fprintf(stderr, "%s: writing value %u (non-shared)\n", __func__, (unsigned) non_shared);
 	ubuf_advance(b->buf, mtbl_varint_encode32(ubuf_ptr(b->buf), non_shared));
 
-	//fprintf(stderr, "%s: writing value %u (value length)\n", __func__, (unsigned) len_val);
+	fprintf(stderr, "%s: writing value %u (value length)\n", __func__, (unsigned) len_val);
 	ubuf_advance(b->buf, mtbl_varint_encode32(ubuf_ptr(b->buf), len_val));
 
 	/* add key suffix to buffer followed by value */
-	//fprintf(stderr, "%s: writing %u bytes (key suffix)\n", __func__, (unsigned) non_shared);
+	fprintf(stderr, "%s: writing %u bytes (key suffix)\n", __func__, (unsigned) non_shared);
 	memcpy(ubuf_ptr(b->buf), key + shared, non_shared);
 	ubuf_advance(b->buf, non_shared);
 
-	//fprintf(stderr, "%s: writing %u bytes (value)\n", __func__, (unsigned) len_val);
+	fprintf(stderr, "%s: writing %u bytes (value)\n", __func__, (unsigned) len_val);
 	memcpy(ubuf_ptr(b->buf), val, len_val);
 	ubuf_advance(b->buf, len_val);
 
