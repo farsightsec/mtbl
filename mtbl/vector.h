@@ -120,7 +120,7 @@ name##_ptr(name *vec)							\
 static inline void							\
 name##_advance(name *vec, size_t x)					\
 {									\
-	assert(x < ((vec)->_n_alloced - (vec)->_n));			\
+	assert(x <= ((vec)->_n_alloced - (vec)->_n));			\
 	(vec)->_n += x;							\
 	(vec)->_p = &((vec)->_v[(vec)->_n]);				\
 }
