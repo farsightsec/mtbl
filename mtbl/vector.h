@@ -117,6 +117,11 @@ name##_ptr(name *vec)							\
 {									\
 	return ((vec)->_p);						\
 }									\
+static inline type *							\
+name##_array(name *vec)							\
+{									\
+	return ((vec)->_v);						\
+}									\
 static inline void							\
 name##_advance(name *vec, size_t x)					\
 {									\
