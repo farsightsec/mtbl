@@ -77,11 +77,11 @@ name##_need(name *vec, size_t n)					\
 	}								\
 }									\
 static inline void							\
-name##_append(name *vec, const type *elems, size_t n)			\
+name##_append(name *vec, const type *elems, size_t n_elems)		\
 {									\
-	name##_need(vec, n);						\
-	memcpy((vec)->_v + (vec)->_n, elems, (n)*sizeof(*elems));	\
-	(vec)->_n += (n) / sizeof(type);				\
+	name##_need(vec, n_elems * sizeof(*elems));			\
+	memcpy((vec)->_v + (vec)->_n, elems, (n_elems)*sizeof(*elems));	\
+	(vec)->_n += (n_elems);						\
 	(vec)->_p = &((vec)->_v[(vec)->_n]);				\
 }									\
 static inline void							\
