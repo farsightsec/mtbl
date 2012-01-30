@@ -66,7 +66,7 @@ name##_add(name *vec, type elem)					\
 	(vec)->_p = &((vec)->_v[(vec)->_n]);				\
 }									\
 static inline void							\
-name##_need(name *vec, size_t n)					\
+name##_reserve(name *vec, size_t n)					\
 {									\
 	while ((n) > ((vec)->_n_alloced - (vec)->_n)) {			\
 		(vec)->_n_alloced *= 2;					\
@@ -79,7 +79,7 @@ name##_need(name *vec, size_t n)					\
 static inline void							\
 name##_append(name *vec, type const *elems, size_t n_elems)		\
 {									\
-	name##_need(vec, n_elems * sizeof(*elems));			\
+	name##_reserve(vec, n_elems * sizeof(*elems));			\
 	memcpy((vec)->_v + (vec)->_n, elems, (n_elems)*sizeof(*elems));	\
 	(vec)->_n += (n_elems);						\
 	(vec)->_p = &((vec)->_v[(vec)->_n]);				\

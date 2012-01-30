@@ -88,7 +88,7 @@ mtbl_block_builder_current_size_estimate(struct mtbl_block_builder *b)
 void
 mtbl_block_builder_finish(struct mtbl_block_builder *b, uint8_t **buf, size_t *bufsz)
 {
-	ubuf_need(b->buf, uint32_vec_bytes(b->restarts) + sizeof(uint32_t));
+	ubuf_reserve(b->buf, uint32_vec_bytes(b->restarts) + sizeof(uint32_t));
 
 	for (size_t i = 0; i < uint32_vec_size(b->restarts); i++) {
 		//fprintf(stderr, "%s: writing restart value: %u\n", __func__,
@@ -137,7 +137,7 @@ mtbl_block_builder_add(struct mtbl_block_builder *b,
 	const size_t non_shared = len_key - shared;
 
 	/* ensure enough buffer space is available */
-	ubuf_need(b->buf, 5*3 + non_shared + len_val);
+	ubuf_reserve(b->buf, 5*3 + non_shared + len_val);
 
 	/* add "[shared][non-shared][value length]" to buffer */
 	//fprintf(stderr, "%s: writing value %u (shared)\n", __func__, (unsigned) shared);
