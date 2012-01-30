@@ -63,6 +63,7 @@ TESTS = \
 check_PROGRAMS = \
 	src/test-memtable \
 	src/test-mtbl \
+	src/test-block_builder \
 	src/test-crc32c \
 	src/test-fixed \
 	src/test-trailer \
@@ -72,6 +73,8 @@ check_PROGRAMS = \
 
 src_test_mtbl_SOURCES = src/test-mtbl.c
 src_test_mtbl_LDADD = mtbl/libmtbl.la
+src_test_block_builder_SOURCES = src/test-block_builder.c
+src_test_block_builder_LDADD = mtbl/libmtbl.la
 src_test_crc32c_SOURCES = src/test-crc32c.c
 src_test_crc32c_LDADD = mtbl/libmtbl.la
 src_test_fixed_SOURCES = src/test-fixed.c

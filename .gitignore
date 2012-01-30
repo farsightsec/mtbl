@@ -18,6 +18,7 @@ Makefile
 Makefile.in
 TAGS
 mtbl/libmtbl.pc
+src/test-block_builder
 src/test-crc32c
 src/test-fixed
 src/test-memtable
