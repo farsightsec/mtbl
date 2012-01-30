@@ -164,6 +164,8 @@ _mtbl_writer_writeblock(struct mtbl_writer *w, struct mtbl_block_builder *b)
 	uint8_t *raw_contents = NULL, *block_contents = NULL, *comp_contents = NULL;
 	size_t raw_contents_size = 0, block_contents_size = 0, comp_contents_size = 0;
 	snappy_status res;
+	int zret;
+	z_stream zs;
 
 	mtbl_block_builder_finish(b, &raw_contents, &raw_contents_size);
 	assert(raw_contents != NULL);
@@ -181,6 +183,30 @@ _mtbl_writer_writeblock(struct mtbl_writer *w, struct mtbl_block_builder *b)
 		res = snappy_compress((const char *) raw_contents, raw_contents_size,
 				      (char *) comp_contents, &comp_contents_size);
 		assert(res == SNAPPY_OK);
+		block_contents = comp_contents;
+		block_contents_size = comp_contents_size;
+		w->t.bytes_data_blocks_compressed += comp_contents_size;
+		break;
+	case MTBL_COMP_ZLIB:
+		comp_contents_size = 2 * raw_contents_size;
+		comp_contents = malloc(comp_contents_size);
+		assert(comp_contents != NULL);
+		memset(&zs, 0, sizeof(zs));
+		zs.zalloc = Z_NULL;
+		zs.zfree = Z_NULL;
+		zs.opaque = Z_NULL;
+		zret = deflateInit(&zs, Z_DEFAULT_COMPRESSION);
+		assert(zret == Z_OK);
+		zs.avail_in = raw_contents_size;
+		zs.next_in = raw_contents;
+		zs.avail_out = comp_contents_size;
+		zs.next_out = comp_contents;
+		zret = deflate(&zs, Z_FINISH);
+		assert(zret == Z_STREAM_END);
+		assert(zs.avail_in == 0);
+		comp_contents_size = zs.total_out;
+		zret = deflateEnd(&zs);
+		assert(zret == Z_OK);
 		block_contents = comp_contents;
 		block_contents_size = comp_contents_size;
 		w->t.bytes_data_blocks_compressed += comp_contents_size;

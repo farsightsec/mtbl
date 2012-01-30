@@ -48,6 +48,7 @@
 
 #define MTBL_COMP_NONE		0
 #define MTBL_COMP_SNAPPY	1
+#define MTBL_COMP_ZLIB		2
 
 #define MTBL_TRAILER_SIZE	512
 
