@@ -73,6 +73,7 @@ name##_need(name *vec, size_t n)					\
 		(vec)->_v = realloc((vec)->_v, (vec)->_n_alloced	\
 				   * sizeof(void *));			\
 		assert((vec)->_v != NULL);				\
+		(vec)->_p = &((vec)->_v[(vec)->_n]);			\
 	}								\
 }									\
 static inline void							\
