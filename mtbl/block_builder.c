@@ -159,6 +159,7 @@ mtbl_block_builder_add(struct mtbl_block_builder *b,
 	ubuf_advance(b->buf, len_val);
 
 	/* update state */
-	ubuf_append(b->last_key, key + shared, non_shared);
+	ubuf_reset(b->last_key);
+	ubuf_append(b->last_key, key, len_key);
 	b->counter += 1;
 }
