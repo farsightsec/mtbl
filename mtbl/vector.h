@@ -77,7 +77,7 @@ name##_need(name *vec, size_t n)					\
 	}								\
 }									\
 static inline void							\
-name##_append(name *vec, const type *elems, size_t n_elems)		\
+name##_append(name *vec, type const *elems, size_t n_elems)		\
 {									\
 	name##_need(vec, n_elems * sizeof(*elems));			\
 	memcpy((vec)->_v + (vec)->_n, elems, (n_elems)*sizeof(*elems));	\
