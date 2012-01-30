@@ -13,6 +13,7 @@
 #define NAME	"test-vector"
 
 const uint32_t u32_array[] = { 23, 17, 1, 2, 3, 4, 5, 4, 3, 2, 1, 17, 23 };
+#define NUM_U32_ARRAY 13
 
 const char str_array[] = "`1234567890[]',.PYFGCRL/=AOEUIDHTNS-;QJKXBMWVZ";
 
@@ -24,9 +25,12 @@ test5(void)
 
 	v = uint32_vec_init(0);
 	for (unsigned i = 0; i < 16; i++)
-		uint32_vec_append(v, u32_array, sizeof(u32_array));
-	//for (unsigned i = 0; i < v->n; i++)
-		//fprintf(stderr, "v->v[%d] = %u\n", i, v->v[i]);
+		uint32_vec_append(v, u32_array, sizeof(u32_array) / sizeof(uint32_t));
+	for (unsigned i = 0; i < uint32_vec_size(v); i++) {
+		//fprintf(stderr, "v->v[%d] = %u\n", i, uint32_vec_value(v, i));
+		if (uint32_vec_value(v, i) != u32_array[i % NUM_U32_ARRAY])
+			ret |= 1;
+	}
 	uint32_vec_reset(v);
 
 	for (uint32_t i = 0; i < 1024; i++)
@@ -92,12 +96,14 @@ test2(void)
 	uint32_vec *v;
 
 	v = uint32_vec_init(0);
-	uint32_vec_append(v, u32_array, sizeof(u32_array));
+	uint32_vec_append(v, u32_array, sizeof(u32_array) / sizeof(uint32_t));
 	for (uint32_t i = 0; i < uint32_vec_size(v); i++) {
 		if (uint32_vec_value(v, i) != u32_array[i])
 			ret |= 1;
 		//fprintf(stderr, "v->v[%d] = %u\n", i, v->v[i]);
 	}
+	if (uint32_vec_size(v) != NUM_U32_ARRAY)
+		ret |= 1;
 	uint32_vec_destroy(&v);
 
 	return (ret);
