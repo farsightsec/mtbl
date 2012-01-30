@@ -40,7 +40,7 @@ mtbl_libmtbl_la_SOURCES = \
 	mtbl/varint.c \
 	mtbl/writer.c
 
-mtbl_libmtbl_la_LIBADD = -lsnappy
+mtbl_libmtbl_la_LIBADD = -lsnappy -lz
 mtbl_libmtbl_la_LDFLAGS = $(AM_LDFLAGS) \
 	-version-info $(LIBMTBL_CURRENT):$(LIBMTBL_REVISION):$(LIBMTBL_AGE) \
 	-export-symbols-regex "^(mtbl_[a-z].*)"

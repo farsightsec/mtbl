@@ -42,6 +42,7 @@
 #include "mtbl.h"
 
 #include <snappy-c.h>
+#include <zlib.h>
 
 #define MTBL_MAGIC		0x77846676
 

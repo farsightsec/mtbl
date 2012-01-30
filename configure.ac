@@ -32,6 +32,13 @@ AC_CHECK_LIB([snappy], [snappy_compress], [], [
     AC_MSG_ERROR([required library not found])
 ])
 
+AC_CHECK_HEADER([zlib.h], [], [
+    AC_MSG_ERROR([required header file not found])
+])
+AC_CHECK_LIB([z], [deflate], [], [
+    AC_MSG_ERROR([required library not found])
+])
+
 AC_OUTPUT
 AC_MSG_RESULT([
     $PACKAGE $VERSION
