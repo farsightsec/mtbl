@@ -183,8 +183,8 @@ _mtbl_writer_writeblock(struct mtbl_writer *w, struct mtbl_block_builder *b)
 
 	w->t.count_data_blocks += 1;
 
-	const uint32_t crc = mtbl_crc32c(block_contents, block_contents_size);
-	const uint32_t len = block_contents_size;
+	const uint32_t crc = htole32(mtbl_crc32c(block_contents, block_contents_size));
+	const uint32_t len = htole32(block_contents_size);
 
 	_write_all(w->fd, (const uint8_t *) &len, sizeof(len));
 	_write_all(w->fd, (const uint8_t *) &crc, sizeof(crc));
