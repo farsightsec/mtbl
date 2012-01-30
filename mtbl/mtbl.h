@@ -26,7 +26,12 @@ extern "C" {
 #include <stdint.h>
 
 struct mtbl_writer;
-struct mtbl_writer *	mtbl_writer_init(void);
+struct mtbl_writer *	mtbl_writer_init(const char *fname);
+
+void		mtbl_writer_destroy(struct mtbl_writer **w);
+void		mtbl_writer_add(struct mtbl_writer *w,
+				const uint8_t *key, size_t len_key,
+				const uint8_t *val, size_t len_val);
 
 uint32_t	mtbl_crc32c(const uint8_t *buffer, size_t length);
 

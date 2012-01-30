@@ -36,7 +36,8 @@ mtbl_libmtbl_la_SOURCES = \
 	mtbl/mtbl.h \
 	mtbl/mtbl-private.h \
 	mtbl/trailer.c \
-	mtbl/varint.c
+	mtbl/varint.c \
+	mtbl/writer.c
 
 mtbl_libmtbl_la_LDFLAGS = $(AM_LDFLAGS) \
 	-version-info $(LIBMTBL_CURRENT):$(LIBMTBL_REVISION):$(LIBMTBL_AGE) \
