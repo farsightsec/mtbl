@@ -33,6 +33,7 @@ mtbl_libmtbl_la_SOURCES = \
 	mtbl/block_builder.c \
 	mtbl/crc32c.c \
 	mtbl/fixed.c \
+	mtbl/memtable.c \
 	mtbl/mtbl.h \
 	mtbl/mtbl-private.h \
 	mtbl/trailer.c \
@@ -52,6 +53,7 @@ EXTRA_DIST += mtbl/libmtbl.pc.in
 CLEANFILES += mtbl/libmtbl.pc
 
 TESTS = \
+	src/test-memtable \
 	src/test-mtbl \
 	src/test-crc32c \
 	src/test-fixed \
@@ -59,12 +61,14 @@ TESTS = \
 	src/test-varint
 
 check_PROGRAMS = \
+	src/test-memtable \
 	src/test-mtbl \
 	src/test-crc32c \
 	src/test-fixed \
 	src/test-trailer \
 	src/test-varint \
-	src/test-vector
+	src/test-vector \
+	src/test-writer
 
 src_test_mtbl_SOURCES = src/test-mtbl.c
 src_test_mtbl_LDADD = mtbl/libmtbl.la
@@ -78,3 +82,5 @@ src_test_varint_SOURCES = src/test-varint.c
 src_test_varint_LDADD = mtbl/libmtbl.la
 src_test_vector_SOURCES = src/test-vector.c
 src_test_vector_LDADD = mtbl/libmtbl.la
+src_test_memtable_SOURCES = src/test-memtable.c
+src_test_memtable_LDADD = mtbl/libmtbl.la
