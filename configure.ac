@@ -25,6 +25,13 @@ AC_CONFIG_FILES([
 
 AC_CHECK_HEADERS([sys/endian.h endian.h])
 
+AC_CHECK_HEADER([snappy-c.h], [], [
+    AC_MSG_ERROR([required header file not found])
+])
+AC_CHECK_LIB([snappy], [snappy_compress], [], [
+    AC_MSG_ERROR([required library not found])
+])
+
 AC_OUTPUT
 AC_MSG_RESULT([
     $PACKAGE $VERSION
