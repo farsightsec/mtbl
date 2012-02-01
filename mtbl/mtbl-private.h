@@ -53,7 +53,7 @@
  */
 
 struct block_builder;
-struct block_builder *block_builder_init(void);
+struct block_builder *block_builder_init(size_t block_restart_interval);
 size_t	block_builder_current_size_estimate(struct block_builder *);
 void	block_builder_destroy(struct block_builder **);
 void	block_builder_finish(struct block_builder *, uint8_t **, size_t *);

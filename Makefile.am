@@ -88,3 +88,5 @@ src_test_vector_SOURCES = src/test-vector.c
 src_test_vector_LDADD = mtbl/libmtbl.la
 src_test_memtable_SOURCES = src/test-memtable.c
 src_test_memtable_LDADD = mtbl/libmtbl.la
+src_test_writer_SOURCES = src/test-writer.c
+src_test_writer_LDADD = mtbl/libmtbl.la

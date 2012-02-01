@@ -19,7 +19,6 @@
 
 struct block_builder {
 	size_t		block_restart_interval;
-	size_t		block_size;
 
 	ubuf		*buf;
 	ubuf		*last_key;
@@ -30,7 +29,7 @@ struct block_builder {
 };
 
 struct block_builder *
-block_builder_init(void)
+block_builder_init(size_t block_restart_interval)
 {
 	struct block_builder *b;
 
@@ -38,10 +37,9 @@ block_builder_init(void)
 	if (b == NULL)
 		return (NULL);
 
-	b->block_restart_interval = 16;
-	b->block_size = 16384;
+	b->block_restart_interval = block_restart_interval;
 
-	b->buf = ubuf_init(16384);
+	b->buf = ubuf_init(65536);
 	b->last_key = ubuf_init(256);
 
 	b->restarts = uint32_vec_init(64);

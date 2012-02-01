@@ -35,10 +35,11 @@ struct mtbl_writer {
 	struct block_builder		*data;
 	struct block_builder		*index;
 
+	struct mtbl_writer_options	opt;
+
 	ubuf				*last_key;
 	uint64_t			last_offset;
 
-	size_t				block_size;
 	bool				closed;
 	bool				pending_index_entry;
 	uint64_t			pending_offset;
@@ -97,7 +98,7 @@ mtbl_writer_options_set_block_restart_interval(struct mtbl_writer_options *opt,
 }
 
 struct mtbl_writer *
-mtbl_writer_init(const char *fname)
+mtbl_writer_init(const char *fname, const struct mtbl_writer_options *opt)
 {
 	struct mtbl_writer *w;
 	int fd;
@@ -107,14 +108,19 @@ mtbl_writer_init(const char *fname)
 		return (NULL);
 	w = calloc(1, sizeof(*w));
 	assert(w != NULL);
+	if (opt == NULL) {
+		w->opt.comp_type = DEFAULT_COMP_TYPE;
+		w->opt.block_size = DEFAULT_BLOCK_SIZE;
+		w->opt.block_restart_interval = DEFAULT_BLOCK_RESTART_INTERVAL;
+	} else {
+		memcpy(&w->opt, opt, sizeof(*opt));
+	}
 	w->fd = fd;
 	w->fname = strdup(fname);
-	w->data = block_builder_init();
-	w->index = block_builder_init();
 	w->last_key = ubuf_init(256);
-	w->block_size = 16384;
-	w->t.compression_algorithm = MTBL_COMP_NONE;
-
+	w->t.compression_algorithm = w->opt.comp_type;
+	w->data = block_builder_init(w->opt.block_restart_interval);
+	w->index = block_builder_init(w->opt.block_restart_interval);
 	return (w);
 }
 
@@ -171,7 +177,7 @@ mtbl_writer_add(struct mtbl_writer *w,
 	block_builder_add(w->data, key, len_key, val, len_val);
 
 	const size_t estimated_block_size = block_builder_current_size_estimate(w->data);
-	if (estimated_block_size >= w->block_size)
+	if (estimated_block_size >= w->opt.block_size)
 		_mtbl_writer_flush(w);
 }
 

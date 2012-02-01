@@ -38,7 +38,7 @@ test1(void)
 	uint8_t *buf;
 	size_t bufsz;
 
-	b = block_builder_init();
+	b = block_builder_init(16);
 	assert(b != NULL);
 
 	fprintf(stderr, "block_builder_current_size_estimate(): %zd\n",

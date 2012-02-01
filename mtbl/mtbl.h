@@ -36,8 +36,9 @@ typedef enum {
 struct mtbl_writer_options;
 
 /* writer */
+
 struct mtbl_writer;
-struct mtbl_writer *	mtbl_writer_init(const char *fname);
+struct mtbl_writer *	mtbl_writer_init(const char *fname, const struct mtbl_writer_options *);
 void			mtbl_writer_destroy(struct mtbl_writer **w);
 void			mtbl_writer_add(struct mtbl_writer *w,
 					const uint8_t *key, size_t len_key,
