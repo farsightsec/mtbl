@@ -21,8 +21,8 @@ struct mtbl_writer {
 	char				*fname;
 	int				fd;
 	struct trailer			t;
-	struct mtbl_block_builder	*data;
-	struct mtbl_block_builder	*index;
+	struct block_builder		*data;
+	struct block_builder		*index;
 
 	ubuf				*last_key;
 	uint64_t			last_offset;
@@ -36,7 +36,7 @@ struct mtbl_writer {
 static void _mtbl_writer_finish(struct mtbl_writer *);
 static void _mtbl_writer_flush(struct mtbl_writer *);
 static void _write_all(int fd, const uint8_t *, size_t);
-static size_t _mtbl_writer_writeblock(struct mtbl_writer *, struct mtbl_block_builder *);
+static size_t _mtbl_writer_writeblock(struct mtbl_writer *, struct block_builder *);
 
 struct mtbl_writer *
 mtbl_writer_init(const char *fname)
@@ -51,8 +51,8 @@ mtbl_writer_init(const char *fname)
 	assert(w != NULL);
 	w->fd = fd;
 	w->fname = strdup(fname);
-	w->data = mtbl_block_builder_init();
-	w->index = mtbl_block_builder_init();
+	w->data = block_builder_init();
+	w->index = block_builder_init();
 	w->last_key = ubuf_init(256);
 	w->block_size = 16384;
 	w->t.compression_algorithm = MTBL_COMP_NONE;
@@ -69,8 +69,8 @@ mtbl_writer_destroy(struct mtbl_writer **w)
 	}
 	/* XXX */
 	if (*w != NULL) {
-		mtbl_block_builder_destroy(&((*w)->data));
-		mtbl_block_builder_destroy(&((*w)->index));
+		block_builder_destroy(&((*w)->data));
+		block_builder_destroy(&((*w)->index));
 		free((*w)->fname);
 		free(*w);
 		*w = NULL;
@@ -91,16 +91,16 @@ mtbl_writer_add(struct mtbl_writer *w,
 		/* XXX use shortest separator */
 		uint8_t enc[10];
 		size_t len_enc;
-		assert(mtbl_block_builder_empty(w->data));
+		assert(block_builder_empty(w->data));
 		len_enc = mtbl_varint_encode64(enc, w->pending_offset);
 		/*
 		fprintf(stderr, "%s: writing index entry, key= '%s' (%zd) val= %" PRIu64 "\n",
 			__func__,
 			w->last_key->_v, ubuf_size(w->last_key), w->pending_offset);
 		*/
-		mtbl_block_builder_add(w->index,
-				       ubuf_ptr(w->last_key), ubuf_size(w->last_key),
-				       enc, len_enc);
+		block_builder_add(w->index,
+				  ubuf_ptr(w->last_key), ubuf_size(w->last_key),
+				  enc, len_enc);
 		w->pending_index_entry = false;
 	}
 
@@ -110,9 +110,9 @@ mtbl_writer_add(struct mtbl_writer *w,
 	w->t.count_entries += 1;
 	w->t.bytes_keys += len_key;
 	w->t.bytes_values += len_val;
-	mtbl_block_builder_add(w->data, key, len_key, val, len_val);
+	block_builder_add(w->data, key, len_key, val, len_val);
 
-	const size_t estimated_block_size = mtbl_block_builder_current_size_estimate(w->data);
+	const size_t estimated_block_size = block_builder_current_size_estimate(w->data);
 	if (estimated_block_size >= w->block_size)
 		_mtbl_writer_flush(w);
 }
@@ -135,9 +135,9 @@ _mtbl_writer_finish(struct mtbl_writer *w)
 			__func__,
 			w->last_key->_v, ubuf_size(w->last_key), w->pending_offset);
 		*/
-		mtbl_block_builder_add(w->index,
-				       ubuf_ptr(w->last_key), ubuf_size(w->last_key),
-				       enc, len_enc);
+		block_builder_add(w->index,
+				  ubuf_ptr(w->last_key), ubuf_size(w->last_key),
+				  enc, len_enc);
 		w->pending_index_entry = false;
 	}
 	w->t.index_block_offset = w->pending_offset;
@@ -151,7 +151,7 @@ static void
 _mtbl_writer_flush(struct mtbl_writer *w)
 {
 	assert(!w->closed);
-	if (mtbl_block_builder_empty(w->data))
+	if (block_builder_empty(w->data))
 		return;
 	assert(!w->pending_index_entry);
 	_mtbl_writer_writeblock(w, w->data);
@@ -159,7 +159,7 @@ _mtbl_writer_flush(struct mtbl_writer *w)
 }
 
 static size_t
-_mtbl_writer_writeblock(struct mtbl_writer *w, struct mtbl_block_builder *b)
+_mtbl_writer_writeblock(struct mtbl_writer *w, struct block_builder *b)
 {
 	uint8_t *raw_contents = NULL, *block_contents = NULL, *comp_contents = NULL;
 	size_t raw_contents_size = 0, block_contents_size = 0, comp_contents_size = 0;
@@ -167,7 +167,7 @@ _mtbl_writer_writeblock(struct mtbl_writer *w, struct mtbl_block_builder *b)
 	int zret;
 	z_stream zs;
 
-	mtbl_block_builder_finish(b, &raw_contents, &raw_contents_size);
+	block_builder_finish(b, &raw_contents, &raw_contents_size);
 	assert(raw_contents != NULL);
 
 	switch (w->t.compression_algorithm) {
@@ -227,7 +227,7 @@ _mtbl_writer_writeblock(struct mtbl_writer *w, struct mtbl_block_builder *b)
 	const size_t bytes_written = (sizeof(len) + sizeof(crc) + block_contents_size);
 	w->pending_offset += bytes_written;
 
-	mtbl_block_builder_reset(b);
+	block_builder_reset(b);
 	free(raw_contents);
 	free(comp_contents);
 

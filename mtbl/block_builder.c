@@ -17,7 +17,7 @@
 #include "mtbl-private.h"
 #include "vector_types.h"
 
-struct mtbl_block_builder {
+struct block_builder {
 	size_t		block_restart_interval;
 	size_t		block_size;
 
@@ -29,10 +29,10 @@ struct mtbl_block_builder {
 	size_t		counter;
 };
 
-struct mtbl_block_builder *
-mtbl_block_builder_init(void)
+struct block_builder *
+block_builder_init(void)
 {
-	struct mtbl_block_builder *b;
+	struct block_builder *b;
 
 	b = calloc(1, sizeof(*b));
 	if (b == NULL)
@@ -51,7 +51,7 @@ mtbl_block_builder_init(void)
 }
 
 void
-mtbl_block_builder_destroy(struct mtbl_block_builder **b)
+block_builder_destroy(struct block_builder **b)
 {
 	if (*b) {
 		uint32_vec_destroy(&((*b)->restarts));
@@ -63,7 +63,7 @@ mtbl_block_builder_destroy(struct mtbl_block_builder **b)
 }
 
 void
-mtbl_block_builder_reset(struct mtbl_block_builder *b)
+block_builder_reset(struct block_builder *b)
 {
 	ubuf_reset(b->buf);
 	ubuf_reset(b->last_key);
@@ -74,19 +74,19 @@ mtbl_block_builder_reset(struct mtbl_block_builder *b)
 }
 
 bool
-mtbl_block_builder_empty(struct mtbl_block_builder *b)
+block_builder_empty(struct block_builder *b)
 {
 	return (ubuf_size(b->buf) == 0);
 }
 
 size_t
-mtbl_block_builder_current_size_estimate(struct mtbl_block_builder *b)
+block_builder_current_size_estimate(struct block_builder *b)
 {
 	return (ubuf_bytes(b->buf) + uint32_vec_bytes(b->restarts) + sizeof(uint32_t));
 }
 
 void
-mtbl_block_builder_finish(struct mtbl_block_builder *b, uint8_t **buf, size_t *bufsz)
+block_builder_finish(struct block_builder *b, uint8_t **buf, size_t *bufsz)
 {
 	ubuf_reserve(b->buf, uint32_vec_bytes(b->restarts) + sizeof(uint32_t));
 
@@ -107,9 +107,9 @@ mtbl_block_builder_finish(struct mtbl_block_builder *b, uint8_t **buf, size_t *b
 }
 
 void
-mtbl_block_builder_add(struct mtbl_block_builder *b,
-		       const uint8_t *key, size_t len_key,
-		       const uint8_t *val, size_t len_val)
+block_builder_add(struct block_builder *b,
+		  const uint8_t *key, size_t len_key,
+		  const uint8_t *val, size_t len_val)
 {
 	assert(b->counter <= b->block_restart_interval);
 	assert(b->finished == false);

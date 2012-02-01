@@ -34,62 +34,62 @@ static int
 test1(void)
 {
 	int ret = 0;
-	struct mtbl_block_builder *b;
+	struct block_builder *b;
 	uint8_t *buf;
 	size_t bufsz;
 
-	b = mtbl_block_builder_init();
+	b = block_builder_init();
 	assert(b != NULL);
 
-	fprintf(stderr, "mtbl_block_builder_current_size_estimate(): %zd\n",
-		mtbl_block_builder_current_size_estimate(b));
+	fprintf(stderr, "block_builder_current_size_estimate(): %zd\n",
+		block_builder_current_size_estimate(b));
 
-	mtbl_block_builder_add(b, (uint8_t *) "foobar1", 7, (uint8_t *) "42", 2);
-	mtbl_block_builder_add(b, (uint8_t *) "foobar2", 7, (uint8_t *) "43", 2);
-	mtbl_block_builder_add(b, (uint8_t *) "foobar2ZZ", 9, (uint8_t *) "44", 2);
-	mtbl_block_builder_add(b, (uint8_t *) "foobar3", 7, (uint8_t *) "45", 2);
-	mtbl_block_builder_add(b, (uint8_t *) "foobar1Y", 8, (uint8_t *) "46", 2);
-	mtbl_block_builder_add(b, (uint8_t *) "foobar1Y", 8, (uint8_t *) "47", 2);
-	mtbl_block_builder_add(b, (uint8_t *) "foobar1Y", 8, (uint8_t *) "48", 2);
-	mtbl_block_builder_add(b, (uint8_t *) "foobar1Y", 8, (uint8_t *) "49", 2);
-	mtbl_block_builder_add(b, (uint8_t *) "foobar1Y", 8, (uint8_t *) "50", 2);
-	mtbl_block_builder_add(b, (uint8_t *) "foobar1Y", 8, (uint8_t *) "51", 2);
-	mtbl_block_builder_add(b, (uint8_t *) "foobar1Y", 8, (uint8_t *) "52", 2);
-	mtbl_block_builder_add(b, (uint8_t *) "foobar1Y", 8, (uint8_t *) "53", 2);
-	mtbl_block_builder_add(b, (uint8_t *) "foobar1Y", 8, (uint8_t *) "54", 2);
-	mtbl_block_builder_add(b, (uint8_t *) "foobar1Y", 8, (uint8_t *) "55", 2);
-	mtbl_block_builder_add(b, (uint8_t *) "foobar1Y", 8, (uint8_t *) "56", 2);
-	mtbl_block_builder_add(b, (uint8_t *) "foobar1Y", 8, (uint8_t *) "57", 2);
-	mtbl_block_builder_add(b, (uint8_t *) "foobar1Y", 8, (uint8_t *) "58", 2);
-	mtbl_block_builder_add(b, (uint8_t *) "foobar1Y", 8, (uint8_t *) "59", 2);
-	mtbl_block_builder_add(b, (uint8_t *) "foobar1Y", 8, (uint8_t *) "60", 2);
-	mtbl_block_builder_add(b, (uint8_t *) "foobar1Y", 8, (uint8_t *) "61", 2);
-	mtbl_block_builder_add(b, (uint8_t *) "foobar1Y", 8, (uint8_t *) "62", 2);
-	mtbl_block_builder_add(b, (uint8_t *) "foobar1Y", 8, (uint8_t *) "63", 2);
-	mtbl_block_builder_add(b, (uint8_t *) "foobar1Y", 8, (uint8_t *) "64", 2);
-	mtbl_block_builder_add(b, (uint8_t *) "foobar1Y", 8, (uint8_t *) "ZA", 2);
-	mtbl_block_builder_add(b, (uint8_t *) "foobar1Y", 8, (uint8_t *) "ZB", 2);
-	mtbl_block_builder_add(b, (uint8_t *) "foobar1Y", 8, (uint8_t *) "ZC", 2);
-	mtbl_block_builder_add(b, (uint8_t *) "foobar1Y", 8, (uint8_t *) "ZD", 2);
-	mtbl_block_builder_add(b, (uint8_t *) "foobar1Y", 8, (uint8_t *) "ZE", 2);
-	mtbl_block_builder_add(b, (uint8_t *) "foobar1Y", 8, (uint8_t *) "ZF", 2);
-	mtbl_block_builder_add(b, (uint8_t *) "foobar1Y", 8, (uint8_t *) "ZG", 2);
-	mtbl_block_builder_add(b, (uint8_t *) "foobar1Y", 8, (uint8_t *) "ZH", 2);
-	mtbl_block_builder_add(b, (uint8_t *) "foobar1Y", 8, (uint8_t *) "ZI", 2);
-	mtbl_block_builder_add(b, (uint8_t *) "foobar1Y", 8, (uint8_t *) "ZJ", 2);
-	mtbl_block_builder_add(b, (uint8_t *) "foobar1Y", 8, (uint8_t *) "ZK", 2);
-	mtbl_block_builder_add(b, (uint8_t *) "foobar1Y", 8, (uint8_t *) "ZM", 2);
+	block_builder_add(b, (uint8_t *) "foobar1", 7, (uint8_t *) "42", 2);
+	block_builder_add(b, (uint8_t *) "foobar2", 7, (uint8_t *) "43", 2);
+	block_builder_add(b, (uint8_t *) "foobar2ZZ", 9, (uint8_t *) "44", 2);
+	block_builder_add(b, (uint8_t *) "foobar3", 7, (uint8_t *) "45", 2);
+	block_builder_add(b, (uint8_t *) "foobar1Y", 8, (uint8_t *) "46", 2);
+	block_builder_add(b, (uint8_t *) "foobar1Y", 8, (uint8_t *) "47", 2);
+	block_builder_add(b, (uint8_t *) "foobar1Y", 8, (uint8_t *) "48", 2);
+	block_builder_add(b, (uint8_t *) "foobar1Y", 8, (uint8_t *) "49", 2);
+	block_builder_add(b, (uint8_t *) "foobar1Y", 8, (uint8_t *) "50", 2);
+	block_builder_add(b, (uint8_t *) "foobar1Y", 8, (uint8_t *) "51", 2);
+	block_builder_add(b, (uint8_t *) "foobar1Y", 8, (uint8_t *) "52", 2);
+	block_builder_add(b, (uint8_t *) "foobar1Y", 8, (uint8_t *) "53", 2);
+	block_builder_add(b, (uint8_t *) "foobar1Y", 8, (uint8_t *) "54", 2);
+	block_builder_add(b, (uint8_t *) "foobar1Y", 8, (uint8_t *) "55", 2);
+	block_builder_add(b, (uint8_t *) "foobar1Y", 8, (uint8_t *) "56", 2);
+	block_builder_add(b, (uint8_t *) "foobar1Y", 8, (uint8_t *) "57", 2);
+	block_builder_add(b, (uint8_t *) "foobar1Y", 8, (uint8_t *) "58", 2);
+	block_builder_add(b, (uint8_t *) "foobar1Y", 8, (uint8_t *) "59", 2);
+	block_builder_add(b, (uint8_t *) "foobar1Y", 8, (uint8_t *) "60", 2);
+	block_builder_add(b, (uint8_t *) "foobar1Y", 8, (uint8_t *) "61", 2);
+	block_builder_add(b, (uint8_t *) "foobar1Y", 8, (uint8_t *) "62", 2);
+	block_builder_add(b, (uint8_t *) "foobar1Y", 8, (uint8_t *) "63", 2);
+	block_builder_add(b, (uint8_t *) "foobar1Y", 8, (uint8_t *) "64", 2);
+	block_builder_add(b, (uint8_t *) "foobar1Y", 8, (uint8_t *) "ZA", 2);
+	block_builder_add(b, (uint8_t *) "foobar1Y", 8, (uint8_t *) "ZB", 2);
+	block_builder_add(b, (uint8_t *) "foobar1Y", 8, (uint8_t *) "ZC", 2);
+	block_builder_add(b, (uint8_t *) "foobar1Y", 8, (uint8_t *) "ZD", 2);
+	block_builder_add(b, (uint8_t *) "foobar1Y", 8, (uint8_t *) "ZE", 2);
+	block_builder_add(b, (uint8_t *) "foobar1Y", 8, (uint8_t *) "ZF", 2);
+	block_builder_add(b, (uint8_t *) "foobar1Y", 8, (uint8_t *) "ZG", 2);
+	block_builder_add(b, (uint8_t *) "foobar1Y", 8, (uint8_t *) "ZH", 2);
+	block_builder_add(b, (uint8_t *) "foobar1Y", 8, (uint8_t *) "ZI", 2);
+	block_builder_add(b, (uint8_t *) "foobar1Y", 8, (uint8_t *) "ZJ", 2);
+	block_builder_add(b, (uint8_t *) "foobar1Y", 8, (uint8_t *) "ZK", 2);
+	block_builder_add(b, (uint8_t *) "foobar1Y", 8, (uint8_t *) "ZM", 2);
 
-	fprintf(stderr, "mtbl_block_builder_current_size_estimate(): %zd\n",
-		mtbl_block_builder_current_size_estimate(b));
+	fprintf(stderr, "block_builder_current_size_estimate(): %zd\n",
+		block_builder_current_size_estimate(b));
 
-	mtbl_block_builder_finish(b, &buf, &bufsz);
+	block_builder_finish(b, &buf, &bufsz);
 	fprintf(stderr, "buf= %p bufsz= %zd\n", buf, bufsz);
 
 	print_string(buf, bufsz, stderr);
 
-	mtbl_block_builder_reset(b);
-	mtbl_block_builder_destroy(&b);
+	block_builder_reset(b);
+	block_builder_destroy(&b);
 
 	return (ret);
 }

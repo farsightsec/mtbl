@@ -56,17 +56,14 @@
  * block builder
  */
 
-struct mtbl_block_builder;
-
-struct mtbl_block_builder *
-mtbl_block_builder_init(void);
-
-size_t	mtbl_block_builder_current_size_estimate(struct mtbl_block_builder *);
-void	mtbl_block_builder_destroy(struct mtbl_block_builder **);
-void	mtbl_block_builder_finish(struct mtbl_block_builder *, uint8_t **, size_t *);
-void	mtbl_block_builder_reset(struct mtbl_block_builder *);
-void	mtbl_block_builder_add(struct mtbl_block_builder *, const uint8_t *, size_t, const uint8_t *, size_t);
-bool	mtbl_block_builder_empty(struct mtbl_block_builder *);
+struct block_builder;
+struct block_builder *block_builder_init(void);
+size_t	block_builder_current_size_estimate(struct block_builder *);
+void	block_builder_destroy(struct block_builder **);
+void	block_builder_finish(struct block_builder *, uint8_t **, size_t *);
+void	block_builder_reset(struct block_builder *);
+void	block_builder_add(struct block_builder *, const uint8_t *, size_t, const uint8_t *, size_t);
+bool	block_builder_empty(struct block_builder *);
 
 /*
  * trailer
