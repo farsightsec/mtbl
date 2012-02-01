@@ -111,6 +111,8 @@ block_builder_add(struct block_builder *b,
 {
 	assert(b->counter <= b->block_restart_interval);
 	assert(b->finished == false);
+	assert(block_builder_empty(b) ||
+	       bytes_compare(key, len_key, ubuf_data(b->last_key), ubuf_size(b->last_key)) > 0);
 
 	/*
 	fprintf(stderr, "============================\n"
