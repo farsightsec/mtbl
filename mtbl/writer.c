@@ -135,6 +135,7 @@ mtbl_writer_destroy(struct mtbl_writer **w)
 	if (*w != NULL) {
 		block_builder_destroy(&((*w)->data));
 		block_builder_destroy(&((*w)->index));
+		ubuf_destroy(&(*w)->last_key);
 		free((*w)->fname);
 		free(*w);
 		*w = NULL;
