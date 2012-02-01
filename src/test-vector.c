@@ -18,6 +18,18 @@ const uint32_t u32_array[] = { 23, 17, 1, 2, 3, 4, 5, 4, 3, 2, 1, 17, 23 };
 const char str_array[] = "`1234567890[]',.PYFGCRL/=AOEUIDHTNS-;QJKXBMWVZ";
 
 static int
+test6(void)
+{
+	int ret = 0;
+	ubuf *v = ubuf_init(16);
+	ubuf_append(v, (uint8_t *) str_array, sizeof(str_array));
+	ubuf_clip(v, 17);
+	if (ubuf_size(v) != 17)
+		ret |= 1;
+	return (ret);
+}
+
+static int
 test5(void)
 {
 	int ret = 0;
@@ -153,6 +165,7 @@ main(int argc, char **argv)
 	ret |= check(test3(), "test3");
 	ret |= check(test4(), "test4");
 	ret |= check(test5(), "test5");
+	ret |= check(test6(), "test6");
 
 	if (ret)
 		return (EXIT_FAILURE);

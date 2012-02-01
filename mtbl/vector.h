@@ -91,10 +91,16 @@ name##_reset(name *vec)							\
 	if ((vec)->_n_alloced > (vec)->_hint) {				\
 		(vec)->_n_alloced = (vec)->_hint;			\
 		(vec)->_v = realloc((vec)->_v, (vec)->_n_alloced	\
-				   * sizeof(void *));			\
+				   * sizeof(type));			\
 		assert((vec)->_v != NULL);				\
 	}								\
 	(vec)->_p = &(vec->_v[0]);					\
+}									\
+static inline void							\
+name##_clip(name *vec, size_t n_elems)					\
+{									\
+	if (n_elems < (vec)->_n)					\
+		(vec)->_n = n_elems;					\
 }									\
 static inline size_t							\
 name##_bytes(name *vec)							\
