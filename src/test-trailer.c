@@ -39,13 +39,12 @@ test1(void)
 
 	t1.index_block_offset = 123;
 	t1.compression_algorithm = 1;
-	t1.count_data_blocks = 2;
-	t1.bytes_data_blocks_compressed = 3;
-	t1.bytes_data_blocks_uncompressed = 4;
+	t1.count_entries = 2;
+	t1.count_data_blocks = 3;
+	t1.bytes_data_blocks = 4;
 	t1.bytes_index_block = 5;
-	t1.count_entries = 6;
-	t1.bytes_keys = 7;
-	t1.bytes_values = 8;
+	t1.bytes_keys = 6;
+	t1.bytes_values = 7;
 
 	trailer_write(&t1, tbuf);
 	if (!trailer_read(tbuf, &t2)) {

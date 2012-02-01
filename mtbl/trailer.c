@@ -24,11 +24,10 @@ trailer_write(struct trailer *t, uint8_t *buf)
 
 	p += mtbl_fixed_encode64(p, t->index_block_offset);
 	p += mtbl_fixed_encode64(p, t->compression_algorithm);
-	p += mtbl_fixed_encode64(p, t->count_data_blocks);
-	p += mtbl_fixed_encode64(p, t->bytes_data_blocks_compressed);
-	p += mtbl_fixed_encode64(p, t->bytes_data_blocks_uncompressed);
-	p += mtbl_fixed_encode64(p, t->bytes_index_block);
 	p += mtbl_fixed_encode64(p, t->count_entries);
+	p += mtbl_fixed_encode64(p, t->count_data_blocks);
+	p += mtbl_fixed_encode64(p, t->bytes_data_blocks);
+	p += mtbl_fixed_encode64(p, t->bytes_index_block);
 	p += mtbl_fixed_encode64(p, t->bytes_keys);
 	p += mtbl_fixed_encode64(p, t->bytes_values);
 
@@ -48,24 +47,14 @@ trailer_read(const uint8_t *buf, struct trailer *t)
 	if (magic != MTBL_MAGIC)
 		return (false);
 
-	t->index_block_offset = mtbl_fixed_decode64(p);
-	p += 8;
-	t->compression_algorithm = mtbl_fixed_decode64(p);
-	p += 8;
-	t->count_data_blocks = mtbl_fixed_decode64(p);
-	p += 8;
-	t->bytes_data_blocks_compressed = mtbl_fixed_decode64(p);
-	p += 8;
-	t->bytes_data_blocks_uncompressed = mtbl_fixed_decode64(p);
-	p += 8;
-	t->bytes_index_block = mtbl_fixed_decode64(p);
-	p += 8;
-	t->count_entries = mtbl_fixed_decode64(p);
-	p += 8;
-	t->bytes_keys = mtbl_fixed_decode64(p);
-	p += 8;
-	t->bytes_values = mtbl_fixed_decode64(p);
-	p += 8;
+	t->index_block_offset = mtbl_fixed_decode64(p); p += 8;
+	t->compression_algorithm = mtbl_fixed_decode64(p); p += 8;
+	t->count_entries = mtbl_fixed_decode64(p); p += 8;
+	t->count_data_blocks = mtbl_fixed_decode64(p); p += 8;
+	t->bytes_data_blocks = mtbl_fixed_decode64(p); p += 8;
+	t->bytes_index_block = mtbl_fixed_decode64(p); p += 8;
+	t->bytes_keys = mtbl_fixed_decode64(p); p += 8;
+	t->bytes_values = mtbl_fixed_decode64(p); p += 8;
 
 	return (true);
 

@@ -70,11 +70,10 @@ bool block_builder_empty(struct block_builder *);
 struct trailer {
 	uint64_t	index_block_offset;
 	uint64_t	compression_algorithm;
-	uint64_t	count_data_blocks;
-	uint64_t	bytes_data_blocks_compressed;
-	uint64_t	bytes_data_blocks_uncompressed;
-	uint64_t	bytes_index_block;
 	uint64_t	count_entries;
+	uint64_t	count_data_blocks;
+	uint64_t	bytes_data_blocks;
+	uint64_t	bytes_index_block;
 	uint64_t	bytes_keys;
 	uint64_t	bytes_values;
 };

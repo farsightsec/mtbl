@@ -218,7 +218,8 @@ _mtbl_writer_flush(struct mtbl_writer *w)
 	if (block_builder_empty(w->data))
 		return;
 	assert(!w->pending_index_entry);
-	_mtbl_writer_writeblock(w, w->data, w->opt.comp_type);
+	w->t.bytes_data_blocks += _mtbl_writer_writeblock(w, w->data, w->opt.comp_type);
+	w->t.count_data_blocks += 1;
 	w->pending_index_entry = true;
 }
 
@@ -238,7 +239,6 @@ _mtbl_writer_writeblock(struct mtbl_writer *w, struct block_builder *b, mtbl_com
 	case MTBL_COMP_NONE:
 		block_contents = raw_contents;
 		block_contents_size = raw_contents_size;
-		w->t.bytes_data_blocks_uncompressed += raw_contents_size;
 		break;
 	case MTBL_COMP_SNAPPY:
 		comp_contents_size = snappy_max_compressed_length(raw_contents_size);
@@ -249,7 +249,6 @@ _mtbl_writer_writeblock(struct mtbl_writer *w, struct block_builder *b, mtbl_com
 		assert(res == SNAPPY_OK);
 		block_contents = comp_contents;
 		block_contents_size = comp_contents_size;
-		w->t.bytes_data_blocks_compressed += comp_contents_size;
 		break;
 	case MTBL_COMP_ZLIB:
 		comp_contents_size = 2 * raw_contents_size;
@@ -273,13 +272,10 @@ _mtbl_writer_writeblock(struct mtbl_writer *w, struct block_builder *b, mtbl_com
 		assert(zret == Z_OK);
 		block_contents = comp_contents;
 		block_contents_size = comp_contents_size;
-		w->t.bytes_data_blocks_compressed += comp_contents_size;
 		break;
 	}
 
 	assert(block_contents_size < UINT_MAX);
-
-	w->t.count_data_blocks += 1;
 
 	const uint32_t crc = htole32(mtbl_crc32c(block_contents, block_contents_size));
 	const uint32_t len = htole32(block_contents_size);
