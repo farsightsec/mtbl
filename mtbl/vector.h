@@ -118,7 +118,7 @@ name##_ptr(name *vec)							\
 	return ((vec)->_p);						\
 }									\
 static inline type *							\
-name##_array(name *vec)							\
+name##_data(name *vec)							\
 {									\
 	return ((vec)->_v);						\
 }									\

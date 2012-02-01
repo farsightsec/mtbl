@@ -85,7 +85,7 @@ _mtbl_memtable_compare(const void *va, const void *vb)
 void
 mtbl_memtable_finish(struct mtbl_memtable *m)
 {
-	struct entry **array = entry_vec_array(m->vec);
+	struct entry **array = entry_vec_data(m->vec);
 	assert(!m->finished);
 	qsort(array, entry_vec_size(m->vec), sizeof(void *), _mtbl_memtable_compare);
 	m->finished = true;
