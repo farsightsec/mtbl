@@ -163,7 +163,7 @@ mtbl_writer_add(struct mtbl_writer *w,
 			w->last_key->_v, ubuf_size(w->last_key), w->pending_offset);
 		*/
 		block_builder_add(w->index,
-				  ubuf_ptr(w->last_key), ubuf_size(w->last_key),
+				  ubuf_data(w->last_key), ubuf_size(w->last_key),
 				  enc, len_enc);
 		w->pending_index_entry = false;
 	}
@@ -200,7 +200,7 @@ _mtbl_writer_finish(struct mtbl_writer *w)
 			w->last_key->_v, ubuf_size(w->last_key), w->pending_offset);
 		*/
 		block_builder_add(w->index,
-				  ubuf_ptr(w->last_key), ubuf_size(w->last_key),
+				  ubuf_data(w->last_key), ubuf_size(w->last_key),
 				  enc, len_enc);
 		w->pending_index_entry = false;
 	}
