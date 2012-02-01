@@ -81,4 +81,19 @@ struct trailer {
 void trailer_write(struct trailer *t, uint8_t *buf);
 bool trailer_read(const uint8_t *buf, struct trailer *t);
 
+/* misc */
+
+static inline int
+bytes_compare(const uint8_t *a, size_t a_len,
+	      const uint8_t *b, size_t b_len)
+{
+	if (a_len < b_len) {
+		return (-1);
+	} else if (a_len == b_len) {
+		return (memcmp(a, b, a_len));
+	} else {
+		return (1);
+	}
+}
+
 #endif /* MTBL_PRIVATE_H */
