@@ -115,7 +115,7 @@ block_builder_add(struct block_builder *b,
 	       bytes_compare(key, len_key, ubuf_data(b->last_key), ubuf_size(b->last_key)) > 0);
 
 	/*
-	fprintf(stderr, "============================\n"
+	fprintf(stderr, "----------------------------\n"
 			"%s: writing key= '%s' (%zd) val= '%s' (%zd)\n",
 			__func__, (char *) key, len_key, (char *) val, len_val);
 	*/
