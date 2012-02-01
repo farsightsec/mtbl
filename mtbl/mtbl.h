@@ -31,6 +31,10 @@ typedef enum {
 	MTBL_COMP_ZLIB = 2
 } mtbl_comp_type;
 
+/* exported types */
+
+struct mtbl_writer_options;
+
 /* writer */
 struct mtbl_writer;
 struct mtbl_writer *	mtbl_writer_init(const char *fname);
@@ -39,7 +43,22 @@ void			mtbl_writer_add(struct mtbl_writer *w,
 					const uint8_t *key, size_t len_key,
 					const uint8_t *val, size_t len_val);
 
+/* writer options */
+
+struct mtbl_writer_options * mtbl_writer_options_init(void);
+void mtbl_writer_options_destroy(struct mtbl_writer_options **);
+void mtbl_writer_options_set_compression(
+	struct mtbl_writer_options *,
+	mtbl_comp_type);
+void mtbl_writer_options_set_block_size(
+	struct mtbl_writer_options *,
+	size_t block_size);
+void mtbl_writer_options_set_block_restart_interval(
+	struct mtbl_writer_options *,
+	size_t block_restart_interval);
+
 /* memtable */
+
 struct mtbl_memtable;
 struct mtbl_memtable *	mtbl_memtable_init(void);
 void			mtbl_memtable_destroy(struct mtbl_memtable **m);

@@ -17,6 +17,17 @@
 #include "mtbl-private.h"
 #include "vector_types.h"
 
+#define DEFAULT_COMP_TYPE		MTBL_COMP_ZLIB
+#define DEFAULT_BLOCK_SIZE		16384
+#define DEFAULT_BLOCK_RESTART_INTERVAL	16
+#define MIN_BLOCK_SIZE			1024
+
+struct mtbl_writer_options {
+	mtbl_comp_type			comp_type;
+	size_t				block_size;
+	size_t				block_restart_interval;
+};
+
 struct mtbl_writer {
 	char				*fname;
 	int				fd;
@@ -37,6 +48,53 @@ static void _mtbl_writer_finish(struct mtbl_writer *);
 static void _mtbl_writer_flush(struct mtbl_writer *);
 static void _write_all(int fd, const uint8_t *, size_t);
 static size_t _mtbl_writer_writeblock(struct mtbl_writer *, struct block_builder *);
+
+struct mtbl_writer_options *
+mtbl_writer_options_init(void)
+{
+	struct mtbl_writer_options *opt;
+	opt = calloc(1, sizeof(*opt));
+	assert(opt != NULL);
+	opt->comp_type = DEFAULT_COMP_TYPE;
+	opt->block_size = DEFAULT_BLOCK_SIZE;
+	opt->block_restart_interval = DEFAULT_BLOCK_RESTART_INTERVAL;
+	return (opt);
+}
+
+void
+mtbl_writer_options_destroy(struct mtbl_writer_options **opt)
+{
+	if (*opt) {
+		free(*opt);
+		*opt = NULL;
+	}
+}
+
+void
+mtbl_writer_options_set_compression(struct mtbl_writer_options *opt,
+				    mtbl_comp_type comp_type)
+{
+	assert(comp_type == MTBL_COMP_NONE ||
+	       comp_type == MTBL_COMP_SNAPPY ||
+	       comp_type == MTBL_COMP_ZLIB);
+	opt->comp_type = comp_type;
+}
+
+void
+mtbl_writer_options_set_block_size(struct mtbl_writer_options *opt,
+				   size_t block_size)
+{
+	if (block_size < MIN_BLOCK_SIZE)
+		block_size = MIN_BLOCK_SIZE;
+	opt->block_size = block_size;
+}
+
+void
+mtbl_writer_options_set_block_restart_interval(struct mtbl_writer_options *opt,
+					       size_t block_restart_interval)
+{
+	opt->block_restart_interval = block_restart_interval;
+}
 
 struct mtbl_writer *
 mtbl_writer_init(const char *fname)
