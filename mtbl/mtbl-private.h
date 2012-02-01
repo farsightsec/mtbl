@@ -48,12 +48,6 @@
 
 #define MTBL_TRAILER_SIZE	512
 
-typedef enum {
-	MTBL_COMP_NONE = 0,
-	MTBL_COMP_SNAPPY = 1,
-	MTBL_COMP_ZLIB = 2
-} mtbl_comp_type;
-
 /*
  * block builder
  */
