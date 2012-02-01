@@ -48,7 +48,7 @@ struct mtbl_writer {
 static void _mtbl_writer_finish(struct mtbl_writer *);
 static void _mtbl_writer_flush(struct mtbl_writer *);
 static void _write_all(int fd, const uint8_t *, size_t);
-static size_t _mtbl_writer_writeblock(struct mtbl_writer *, struct block_builder *);
+static size_t _mtbl_writer_writeblock(struct mtbl_writer *, struct block_builder *, mtbl_comp_type);
 
 struct mtbl_writer_options *
 mtbl_writer_options_init(void)
@@ -205,7 +205,7 @@ _mtbl_writer_finish(struct mtbl_writer *w)
 		w->pending_index_entry = false;
 	}
 	w->t.index_block_offset = w->pending_offset;
-	w->t.bytes_index_block = _mtbl_writer_writeblock(w, w->index);
+	w->t.bytes_index_block = _mtbl_writer_writeblock(w, w->index, MTBL_COMP_NONE);
 
 	trailer_write(&w->t, tbuf);
 	_write_all(w->fd, tbuf, sizeof(tbuf));
@@ -218,12 +218,12 @@ _mtbl_writer_flush(struct mtbl_writer *w)
 	if (block_builder_empty(w->data))
 		return;
 	assert(!w->pending_index_entry);
-	_mtbl_writer_writeblock(w, w->data);
+	_mtbl_writer_writeblock(w, w->data, w->opt.comp_type);
 	w->pending_index_entry = true;
 }
 
 static size_t
-_mtbl_writer_writeblock(struct mtbl_writer *w, struct block_builder *b)
+_mtbl_writer_writeblock(struct mtbl_writer *w, struct block_builder *b, mtbl_comp_type comp_type)
 {
 	uint8_t *raw_contents = NULL, *block_contents = NULL, *comp_contents = NULL;
 	size_t raw_contents_size = 0, block_contents_size = 0, comp_contents_size = 0;
@@ -234,7 +234,7 @@ _mtbl_writer_writeblock(struct mtbl_writer *w, struct block_builder *b)
 	block_builder_finish(b, &raw_contents, &raw_contents_size);
 	assert(raw_contents != NULL);
 
-	switch (w->t.compression_algorithm) {
+	switch (comp_type) {
 	case MTBL_COMP_NONE:
 		block_contents = raw_contents;
 		block_contents_size = raw_contents_size;
