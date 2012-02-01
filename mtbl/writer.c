@@ -147,9 +147,8 @@ mtbl_writer_add(struct mtbl_writer *w,
 		const uint8_t *val, size_t len_val)
 {
 	assert(!w->closed);
-	if (w->t.count_entries > 0) {
-		/* XXX use comparator to ensure ordering */
-	}
+	if (w->t.count_entries > 0)
+		assert(bytes_compare(key, len_key,ubuf_data(w->last_key), ubuf_size(w->last_key)) > 0);
 
 	if (w->pending_index_entry) {
 		/* XXX use shortest separator */
