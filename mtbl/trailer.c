@@ -17,7 +17,7 @@
 #include "mtbl-private.h"
 
 void
-trailer_write(struct mtbl_trailer *t, uint8_t *buf)
+trailer_write(struct trailer *t, uint8_t *buf)
 {
 	size_t padding;
 	uint8_t *p = buf;
@@ -39,7 +39,7 @@ trailer_write(struct mtbl_trailer *t, uint8_t *buf)
 }
 
 bool
-trailer_read(const uint8_t *buf, struct mtbl_trailer *t)
+trailer_read(const uint8_t *buf, struct trailer *t)
 {
 	uint32_t magic;
 	const uint8_t *p = buf;

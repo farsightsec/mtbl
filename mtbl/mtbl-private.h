@@ -72,7 +72,7 @@ bool	mtbl_block_builder_empty(struct mtbl_block_builder *);
  * trailer
  */
 
-struct mtbl_trailer {
+struct trailer {
 	uint64_t	index_block_offset;
 	uint64_t	compression_algorithm;
 	uint64_t	count_data_blocks;
@@ -84,7 +84,7 @@ struct mtbl_trailer {
 	uint64_t	bytes_values;
 };
 
-void	trailer_write(struct mtbl_trailer *t, uint8_t *buf);
-bool	trailer_read(const uint8_t *buf, struct mtbl_trailer *t);
+void	trailer_write(struct trailer *t, uint8_t *buf);
+bool	trailer_read(const uint8_t *buf, struct trailer *t);
 
 #endif /* MTBL_PRIVATE_H */

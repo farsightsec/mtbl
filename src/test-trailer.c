@@ -15,7 +15,7 @@ static int
 test2(void)
 {
 	int ret = 0;
-	struct mtbl_trailer t;
+	struct trailer t;
 	uint8_t tbuf[MTBL_TRAILER_SIZE];
 
 	memset(tbuf, 0, sizeof(tbuf));
@@ -32,7 +32,7 @@ static int
 test1(void)
 {
 	int ret = 0;
-	struct mtbl_trailer t1, t2;
+	struct trailer t1, t2;
 	uint8_t tbuf[MTBL_TRAILER_SIZE];
 
 	memset(tbuf, 0, sizeof(tbuf));
@@ -53,7 +53,7 @@ test1(void)
 		ret |= 1;
 	}
 
-	if (memcmp(&t1, &t2, sizeof(struct mtbl_trailer) != 0)) {
+	if (memcmp(&t1, &t2, sizeof(struct trailer) != 0)) {
 		fprintf(stderr, NAME ": t1 != t2\n");
 		ret |= 1;
 	}

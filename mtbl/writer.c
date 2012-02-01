@@ -20,7 +20,7 @@
 struct mtbl_writer {
 	char				*fname;
 	int				fd;
-	struct mtbl_trailer		t;
+	struct trailer			t;
 	struct mtbl_block_builder	*data;
 	struct mtbl_block_builder	*index;
 
