@@ -45,25 +45,27 @@
 #include <zlib.h>
 
 #define MTBL_MAGIC		0x77846676
-
 #define MTBL_TRAILER_SIZE	512
 
-/*
- * block builder
- */
+/* types */
 
 struct block_builder;
-struct block_builder *block_builder_init(size_t block_restart_interval);
-size_t	block_builder_current_size_estimate(struct block_builder *);
-void	block_builder_destroy(struct block_builder **);
-void	block_builder_finish(struct block_builder *, uint8_t **, size_t *);
-void	block_builder_reset(struct block_builder *);
-void	block_builder_add(struct block_builder *, const uint8_t *, size_t, const uint8_t *, size_t);
-bool	block_builder_empty(struct block_builder *);
+struct trailer;
 
-/*
- * trailer
- */
+/* block builder */
+
+struct block_builder *block_builder_init(size_t block_restart_interval);
+size_t block_builder_current_size_estimate(struct block_builder *);
+void block_builder_destroy(struct block_builder **);
+void block_builder_finish(struct block_builder *,
+	uint8_t **buf, size_t *bufsz);
+void block_builder_reset(struct block_builder *);
+void block_builder_add(struct block_builder *,
+	const uint8_t *key, size_t len_key,
+	const uint8_t *val, size_t len_val);
+bool block_builder_empty(struct block_builder *);
+
+/* trailer */
 
 struct trailer {
 	uint64_t	index_block_offset;
@@ -77,7 +79,7 @@ struct trailer {
 	uint64_t	bytes_values;
 };
 
-void	trailer_write(struct trailer *t, uint8_t *buf);
-bool	trailer_read(const uint8_t *buf, struct trailer *t);
+void trailer_write(struct trailer *t, uint8_t *buf);
+bool trailer_read(const uint8_t *buf, struct trailer *t);
 
 #endif /* MTBL_PRIVATE_H */
