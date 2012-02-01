@@ -30,7 +30,7 @@ name##_init(unsigned hint)						\
 	assert(vec != NULL);						\
 	if (hint == 0) hint = 1;					\
 	vec->_hint = vec->_n_alloced = hint;				\
-	vec->_v = malloc(vec->_n_alloced * sizeof(void *));		\
+	vec->_v = malloc(vec->_n_alloced * sizeof(type));		\
 	assert(vec->_v != NULL);					\
 	vec->_p = &(vec->_v[0]);					\
 	return (vec);							\
@@ -41,7 +41,7 @@ name##_detach(name *vec, type **out, size_t *outsz)			\
 	*(out) = (vec)->_v;						\
 	*(outsz) = (vec)->_n;						\
 	(vec)->_n_alloced = (vec)->_hint;				\
-	(vec)->_v = malloc((vec)->_n_alloced * sizeof(void *));		\
+	(vec)->_v = malloc((vec)->_n_alloced * sizeof(type));		\
 	assert((vec)->_v != NULL);					\
 	(vec)->_p = &(vec->_v[0]);					\
 }									\
@@ -58,7 +58,7 @@ name##_add(name *vec, type elem)					\
 	if ((vec)->_n == (vec)->_n_alloced - 1) {			\
 		(vec)->_n_alloced *= 2;					\
 		(vec)->_v = realloc((vec)->_v, (vec)->_n_alloced	\
-				   * sizeof(void *));			\
+				   * sizeof(type));			\
 		assert((vec)->_v != NULL);				\
 	}								\
 	(vec)->_v[(vec)->_n] = elem;					\
@@ -66,12 +66,12 @@ name##_add(name *vec, type elem)					\
 	(vec)->_p = &((vec)->_v[(vec)->_n]);				\
 }									\
 static inline void							\
-name##_reserve(name *vec, size_t n)					\
+name##_reserve(name *vec, size_t n_elems)				\
 {									\
-	while ((n) > ((vec)->_n_alloced - (vec)->_n)) {			\
+	while ((n_elems) > ((vec)->_n_alloced - (vec)->_n)) {		\
 		(vec)->_n_alloced *= 2;					\
 		(vec)->_v = realloc((vec)->_v, (vec)->_n_alloced	\
-				   * sizeof(void *));			\
+				   * sizeof(type));			\
 		assert((vec)->_v != NULL);				\
 		(vec)->_p = &((vec)->_v[(vec)->_n]);			\
 	}								\
@@ -79,8 +79,8 @@ name##_reserve(name *vec, size_t n)					\
 static inline void							\
 name##_append(name *vec, type const *elems, size_t n_elems)		\
 {									\
-	name##_reserve(vec, n_elems * sizeof(*elems));			\
-	memcpy((vec)->_v + (vec)->_n, elems, (n_elems)*sizeof(*elems));	\
+	name##_reserve(vec, n_elems);					\
+	memcpy((vec)->_v + (vec)->_n, elems, (n_elems) * sizeof(type));	\
 	(vec)->_n += (n_elems);						\
 	(vec)->_p = &((vec)->_v[(vec)->_n]);				\
 }									\
