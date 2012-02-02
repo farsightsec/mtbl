@@ -157,10 +157,10 @@ mtbl_writer_add(struct mtbl_writer *w,
 		uint8_t enc[10];
 		size_t len_enc;
 		assert(block_builder_empty(w->data));
-		len_enc = mtbl_varint_encode64(enc, w->pending_offset);
+		len_enc = mtbl_varint_encode64(enc, w->last_offset);
 		/*
 		fprintf(stderr, "%s: writing index entry, key= '%s' (%zd) val= %" PRIu64 "\n",
-			__func__, ubuf_data(w->last_key), ubuf_size(w->last_key), w->pending_offset);
+			__func__, ubuf_data(w->last_key), ubuf_size(w->last_key), w->last_offset);
 		*/
 		block_builder_add(w->index,
 				  ubuf_data(w->last_key), ubuf_size(w->last_key),
@@ -193,10 +193,10 @@ _mtbl_writer_finish(struct mtbl_writer *w)
 		/* XXX use short successor */
 		uint8_t enc[10];
 		size_t len_enc;
-		len_enc = mtbl_varint_encode64(enc, w->pending_offset);
+		len_enc = mtbl_varint_encode64(enc, w->last_offset);
 		/*
 		fprintf(stderr, "%s: writing index entry, key= '%s' (%zd) val= %" PRIu64 "\n",
-			__func__, ubuf_data(w->last_key), ubuf_size(w->last_key), w->pending_offset);
+			__func__, ubuf_data(w->last_key), ubuf_size(w->last_key), w->last_offset);
 		*/
 		block_builder_add(w->index,
 				  ubuf_data(w->last_key), ubuf_size(w->last_key),
@@ -284,6 +284,7 @@ _mtbl_writer_writeblock(struct mtbl_writer *w, struct block_builder *b, mtbl_com
 	_write_all(w->fd, block_contents, block_contents_size);
 
 	const size_t bytes_written = (sizeof(len) + sizeof(crc) + block_contents_size);
+	w->last_offset = w->pending_offset;
 	w->pending_offset += bytes_written;
 
 	block_builder_reset(b);
