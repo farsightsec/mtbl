@@ -128,9 +128,8 @@ mtbl_varint_encode64(uint8_t *src_ptr, uint64_t v)
 }
 
 size_t
-mtbl_varint_decode32(uint8_t *src_ptr, uint32_t *value)
+mtbl_varint_decode32(const uint8_t *data, uint32_t *value)
 {
-	uint8_t *data = src_ptr;
 	unsigned len = mtbl_varint_length_packed(data);
 	uint32_t val = data[0] & 0x7f;
 	if (len > 1) {
@@ -149,15 +148,14 @@ mtbl_varint_decode32(uint8_t *src_ptr, uint32_t *value)
 }
 
 size_t
-mtbl_varint_decode64(uint8_t *src_ptr, uint64_t *value) {
-	uint8_t *data = src_ptr;
+mtbl_varint_decode64(const uint8_t *data, uint64_t *value) {
 	unsigned shift, i;
 	unsigned len = mtbl_varint_length_packed(data);
 	uint64_t val;
 	if (len < 5) {
 		size_t tmp_len;
 		uint32_t tmp;
-		tmp_len = mtbl_varint_decode32(src_ptr, &tmp);
+		tmp_len = mtbl_varint_decode32(data, &tmp);
 		*value = tmp;
 		return (tmp_len);
 	}
