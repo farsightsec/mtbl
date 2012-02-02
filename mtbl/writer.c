@@ -119,6 +119,7 @@ mtbl_writer_init(const char *fname, const struct mtbl_writer_options *opt)
 	w->fname = strdup(fname);
 	w->last_key = ubuf_init(256);
 	w->t.compression_algorithm = w->opt.comp_type;
+	w->t.data_block_size = w->opt.block_size;
 	w->data = block_builder_init(w->opt.block_restart_interval);
 	w->index = block_builder_init(w->opt.block_restart_interval);
 	return (w);
