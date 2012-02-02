@@ -30,6 +30,7 @@ include_HEADERS = mtbl/mtbl.h
 lib_LTLIBRARIES = mtbl/libmtbl.la
 
 mtbl_libmtbl_la_SOURCES = \
+	mtbl/block.c \
 	mtbl/block_builder.c \
 	mtbl/crc32c.c \
 	mtbl/fixed.c \

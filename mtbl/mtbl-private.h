@@ -49,8 +49,27 @@
 
 /* types */
 
+struct block;
 struct block_builder;
+struct block_iter;
 struct trailer;
+
+/* block */
+
+struct block *block_init(uint8_t *data, size_t size, bool needs_free);
+void block_destroy(struct block **);
+
+struct block_iter *block_iter_init(struct block *);
+void block_iter_destroy(struct block_iter **);
+bool block_iter_valid(const struct block_iter *);
+void block_iter_seek_to_first(struct block_iter *);
+void block_iter_seek_to_last(struct block_iter *);
+void block_iter_seek(struct block_iter *, const uint8_t *key, size_t key_len);
+bool block_iter_next(struct block_iter *);
+void block_iter_prev(struct block_iter *);
+bool block_iter_get(struct block_iter *,
+	const uint8_t **key, size_t *key_len,
+	const uint8_t **val, size_t *val_len);
 
 /* block builder */
 
