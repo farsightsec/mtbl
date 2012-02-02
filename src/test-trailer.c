@@ -38,6 +38,7 @@ test1(void)
 	memset(tbuf, 0, sizeof(tbuf));
 
 	t1.index_block_offset = 123;
+	t1.data_block_size = 65536;
 	t1.compression_algorithm = 1;
 	t1.count_entries = 2;
 	t1.count_data_blocks = 3;

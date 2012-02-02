@@ -89,6 +89,7 @@ bool block_builder_empty(struct block_builder *);
 
 struct trailer {
 	uint64_t	index_block_offset;
+	uint64_t	data_block_size;
 	uint64_t	compression_algorithm;
 	uint64_t	count_entries;
 	uint64_t	count_data_blocks;
