@@ -309,8 +309,10 @@ block_iter_get(struct block_iter *bi,
 {
 	if (!block_iter_valid(bi))
 		return (false);
-	*key = ubuf_data(bi->key);
-	*key_len = ubuf_size(bi->key);
+	if (key) {
+		*key = ubuf_data(bi->key);
+		*key_len = ubuf_size(bi->key);
+	}
 	if (val) {
 		*val = bi->val;
 		*val_len = bi->val_len;
