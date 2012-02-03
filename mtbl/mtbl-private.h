@@ -112,21 +112,4 @@ struct trailer {
 void trailer_write(struct trailer *t, uint8_t *buf);
 bool trailer_read(const uint8_t *buf, struct trailer *t);
 
-/* misc */
-
-static inline void
-print_string(const uint8_t *data, size_t len, FILE *out) {
-        unsigned c;
-
-        fputc('\'', out);
-        while (len-- != 0) {
-                c = *(data++);
-                if (isprint(c))
-                        fputc(c, out);
-                else
-                        fprintf(out, "\\x%02x", c);
-        }
-        fputc('\'', out);
-}
-
 #endif /* MTBL_PRIVATE_H */
