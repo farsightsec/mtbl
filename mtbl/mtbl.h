@@ -83,6 +83,12 @@ void mtbl_memtable_get(struct mtbl_memtable *m, size_t idx,
 size_t mtbl_memtable_size(struct mtbl_memtable *m);
 void mtbl_memtable_finish(struct mtbl_memtable *m);
 
+/* compare */
+
+int mtbl_compare_bytes(
+	const uint8_t *a, size_t a_len,
+	const uint8_t *b, size_t b_len);
+
 /* crc32c */
 
 uint32_t mtbl_crc32c(const uint8_t *buffer, size_t length);

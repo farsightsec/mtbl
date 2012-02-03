@@ -105,14 +105,6 @@ bool trailer_read(const uint8_t *buf, struct trailer *t);
 
 /* misc */
 
-static inline int
-bytes_compare(const uint8_t *a, size_t a_len,
-	      const uint8_t *b, size_t b_len)
-{
-	size_t len = a_len > b_len ? b_len : a_len;
-	return (memcmp(a, b, len));
-}
-
 static inline void
 print_string(const uint8_t *data, size_t len, FILE *out) {
         unsigned c;
