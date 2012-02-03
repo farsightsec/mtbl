@@ -37,6 +37,7 @@ typedef int (*mtbl_compare_fp)(
 
 /* exported types */
 
+struct mtbl_iter;
 struct mtbl_memtable;
 struct mtbl_reader;
 struct mtbl_reader_options;
@@ -79,6 +80,15 @@ void mtbl_reader_destroy(struct mtbl_reader **);
 bool mtbl_reader_get(struct mtbl_reader *,
 	const uint8_t *key, size_t len_key,
 	uint8_t **val, size_t *len_val);
+struct mtbl_iter *mtbl_reader_get_range(struct mtbl_reader *,
+	const uint8_t *key0, size_t len_key0,
+	const uint8_t *key1, size_t len_key1);
+struct mtbl_iter *mtbl_reader_get_prefix(struct mtbl_reader *,
+	const uint8_t *key, size_t len_key);
+void mtbl_iter_destroy(struct mtbl_iter **);
+bool mtbl_iter_next(struct mtbl_iter *,
+	const uint8_t **key, size_t *len_key,
+	const uint8_t **val, size_t *len_val);
 
 /* reader options */
 

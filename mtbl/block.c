@@ -282,7 +282,8 @@ block_iter_seek(struct block_iter *bi, const uint8_t *target, size_t target_len)
 bool
 block_iter_next(struct block_iter *bi)
 {
-	assert(block_iter_valid(bi));
+	if (!block_iter_valid(bi))
+		return (false);
 	parse_next_key(bi);
 	return (block_iter_valid(bi));
 }

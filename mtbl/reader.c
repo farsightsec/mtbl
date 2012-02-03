@@ -17,6 +17,23 @@
 #include "mtbl-private.h"
 #include "vector_types.h"
 
+typedef enum {
+	ITER_TYPE_ALL,
+	ITER_TYPE_RANGE,
+	ITER_TYPE_PREFIX
+} iter_type;
+
+struct mtbl_iter {
+	struct mtbl_reader		*r;
+	struct block			*b;
+	struct block_iter		*bi;
+	struct block_iter		*index_iter;
+	ubuf				*k;
+	bool				first;
+	bool				valid;
+	iter_type			it_type;
+};
+
 struct mtbl_reader_options {
 	mtbl_compare_fp			compare;
 	bool				verify_checksums;
@@ -202,24 +219,38 @@ get_block(struct mtbl_reader *r, uint64_t offset)
 	return (b);
 }
 
+static struct block *
+get_block_at_index(struct mtbl_reader *r, struct block_iter *index_iter)
+{
+	const uint8_t *ikey, *ival;
+	size_t len_ikey, len_ival;
+
+	if (block_iter_get(index_iter, &ikey, &len_ikey, &ival, &len_ival)) {
+		struct block *b;
+		uint64_t offset;
+
+		mtbl_varint_decode64(ival, &offset);
+		b = get_block(r, offset);
+		return (b);
+	}
+
+	return (NULL);
+}
+
 bool
 mtbl_reader_get(struct mtbl_reader *r,
 		const uint8_t *key, size_t len_key,
 		uint8_t **val, size_t *len_val)
 {
+	struct block *b;
 	bool res = false;
-	const uint8_t *ikey, *ival, *bkey, *bval;
-	size_t ikey_len, ival_len, bkey_len, bval_len;
+	const uint8_t *bkey, *bval;
+	size_t bkey_len, bval_len;
 
 	block_iter_seek(r->index_iter, key, len_key);
-	if (block_iter_get(r->index_iter, &ikey, &ikey_len, &ival, &ival_len)) {
-		struct block *b;
-		struct block_iter *bi;
-		uint64_t offset;
-
-		mtbl_varint_decode64(ival, &offset);
-		b = get_block(r, offset);
-		bi = block_iter_init(b);
+	b = get_block_at_index(r, r->index_iter);
+	if (b != NULL) {
+		struct block_iter *bi = block_iter_init(b);
 		assert(bi != NULL);
 
 		block_iter_seek(bi, key, len_key);
@@ -236,4 +267,122 @@ mtbl_reader_get(struct mtbl_reader *r,
 	}
 
 	return (res);
+}
+
+static struct mtbl_iter *
+iter_init(struct mtbl_reader *r, const uint8_t *key, size_t len_key)
+{
+	struct mtbl_iter *it;
+	it = calloc(1, sizeof(*it));
+	assert(it != NULL);
+
+	it->r = r;
+	it->index_iter = block_iter_init(r->index);
+	assert(it->index_iter != NULL);
+
+	block_iter_seek(it->index_iter, key, len_key);
+	it->b = get_block_at_index(r, it->index_iter);
+	if (it->b == NULL) {
+		block_iter_destroy(&it->index_iter);
+		block_destroy(&it->b);
+		free(it);
+		return (NULL);
+	}
+
+	it->bi = block_iter_init(it->b);
+	block_iter_seek(it->bi, key, len_key);
+
+	it->first = true;
+	it->valid = true;
+	return (it);
+}
+
+struct mtbl_iter *
+mtbl_reader_get_range(struct mtbl_reader *r,
+		      const uint8_t *key0, size_t len_key0,
+		      const uint8_t *key1, size_t len_key1)
+{
+	struct mtbl_iter *it = iter_init(r, key0, len_key0);
+	if (it == NULL)
+		return (NULL);
+	it->k = ubuf_init(len_key1);
+	ubuf_append(it->k, key1, len_key1);
+	it->it_type = ITER_TYPE_RANGE;
+	return (it);
+}
+
+struct mtbl_iter *
+mtbl_reader_get_prefix(struct mtbl_reader *r,
+		       const uint8_t *key, size_t len_key)
+{
+	struct mtbl_iter *it = iter_init(r, key, len_key);
+	if (it == NULL)
+		return (NULL);
+	it->k = ubuf_init(len_key);
+	ubuf_append(it->k, key, len_key);
+	it->it_type = ITER_TYPE_PREFIX;
+	return (it);
+}
+
+void
+mtbl_iter_destroy(struct mtbl_iter **it)
+{
+	if (*it) {
+		ubuf_destroy(&(*it)->k);
+		block_destroy(&(*it)->b);
+		block_iter_destroy(&(*it)->bi);
+		block_iter_destroy(&(*it)->index_iter);
+		free(*it);
+		*it = NULL;
+	}
+}
+
+bool
+mtbl_iter_next(struct mtbl_iter *it,
+	       const uint8_t **key, size_t *len_key,
+	       const uint8_t **val, size_t *len_val)
+{
+	if (!it->valid)
+		return (false);
+
+	if (!it->first)
+		block_iter_next(it->bi);
+	it->first = false;
+
+	it->valid = block_iter_get(it->bi, key, len_key, val, len_val);
+	if (!it->valid) {
+		block_destroy(&it->b);
+		block_iter_destroy(&it->bi);
+		if (!block_iter_next(it->index_iter))
+			return (false);
+		it->b = get_block_at_index(it->r, it->index_iter);
+		it->bi = block_iter_init(it->b);
+		block_iter_seek_to_first(it->bi);
+		it->valid = block_iter_get(it->bi, key, len_key, val, len_val);
+		if (!it->valid)
+			return (false);
+	}
+
+	switch (it->it_type) {
+	case ITER_TYPE_ALL:
+		break;
+	case ITER_TYPE_RANGE:
+		if (it->r->opt.compare(*key, *len_key,
+				       ubuf_data(it->k), ubuf_size(it->k)) > 0)
+		{
+			it->valid = false;
+		}
+		break;
+	case ITER_TYPE_PREFIX:
+		if (!(ubuf_size(it->k) <= *len_key &&
+		      memcmp(ubuf_data(it->k), *key, ubuf_size(it->k)) == 0))
+		{
+			it->valid = false;
+		}
+		break;
+	default:
+		assert(0);
+	}
+
+	return (it->valid);
 }
