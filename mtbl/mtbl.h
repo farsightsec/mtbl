@@ -87,6 +87,9 @@ void mtbl_reader_options_destroy(struct mtbl_reader_options **);
 void mtbl_reader_options_set_compare(
 	struct mtbl_reader_options *,
 	mtbl_compare_fp);
+void mtbl_reader_options_set_verify_checksums(
+	struct mtbl_reader_options *,
+	bool);
 
 /* memtable */
 

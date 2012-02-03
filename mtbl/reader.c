@@ -19,6 +19,7 @@
 
 struct mtbl_reader_options {
 	mtbl_compare_fp			compare;
+	bool				verify_checksums;
 };
 
 struct mtbl_reader {
@@ -58,6 +59,13 @@ mtbl_reader_options_set_compare(struct mtbl_reader_options *opt,
 				mtbl_compare_fp compare)
 {
 	opt->compare = compare;
+}
+
+void
+mtbl_reader_options_set_verify_checksums(struct mtbl_reader_options *opt,
+					 bool verify_checksums)
+{
+	opt->verify_checksums = verify_checksums;
 }
 
 struct mtbl_reader *
@@ -133,7 +141,6 @@ get_block(struct mtbl_reader *r, uint64_t offset)
 {
 	bool needs_free = false;
 	struct block *b;
-	uint32_t crc;
 	uint8_t *block_contents = NULL, *raw_contents = NULL;
 	size_t block_contents_size = 0, raw_contents_size = 0;
 	snappy_status res;
@@ -143,10 +150,14 @@ get_block(struct mtbl_reader *r, uint64_t offset)
 	assert(offset < r->len_data);
 
 	raw_contents_size = mtbl_fixed_decode32(&r->data[offset + 0]);
-	crc = mtbl_fixed_decode32(&r->data[offset + sizeof(uint32_t)]);
 	raw_contents = &r->data[offset + 2 * sizeof(uint32_t)];
 
-	//assert(crc == mtbl_crc32c(raw_contents, raw_contents_size));
+	if (r->opt.verify_checksums) {
+		uint32_t block_crc, calc_crc;
+		block_crc = mtbl_fixed_decode32(&r->data[offset + sizeof(uint32_t)]);
+		calc_crc = mtbl_crc32c(raw_contents, raw_contents_size);
+		assert(block_crc == calc_crc);
+	}
 
 	switch (r->t.compression_algorithm) {
 	case MTBL_COMPRESSION_NONE:
