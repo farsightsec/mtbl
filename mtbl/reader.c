@@ -17,6 +17,10 @@
 #include "mtbl-private.h"
 #include "vector_types.h"
 
+struct mtbl_reader_options {
+	mtbl_compare_fp			compare;
+};
+
 struct mtbl_reader {
 	char				*fname;
 	int				fd;
@@ -24,12 +28,40 @@ struct mtbl_reader {
 	uint8_t				*data;
 	size_t				len_data;
 
+	struct mtbl_reader_options	opt;
+
 	struct block			*index;
 	struct block_iter		*index_iter;
 };
 
+struct mtbl_reader_options *
+mtbl_reader_options_init(void)
+{
+	struct mtbl_reader_options *opt;
+	opt = calloc(1, sizeof(*opt));
+	assert(opt != NULL);
+	opt->compare = DEFAULT_COMPARE_FUNC;
+	return (opt);
+}
+
+void
+mtbl_reader_options_destroy(struct mtbl_reader_options **opt)
+{
+	if (*opt) {
+		free(*opt);
+		*opt = NULL;
+	}
+}
+
+void
+mtbl_reader_options_set_compare(struct mtbl_reader_options *opt,
+				mtbl_compare_fp compare)
+{
+	opt->compare = compare;
+}
+
 struct mtbl_reader *
-mtbl_reader_init(const char *fname)
+mtbl_reader_init(const char *fname, const struct mtbl_reader_options *opt)
 {
 	struct mtbl_reader *r;
 	struct stat ss;
@@ -48,6 +80,11 @@ mtbl_reader_init(const char *fname)
 
 	r = calloc(1, sizeof(*r));
 	assert(r != NULL);
+	if (opt == NULL) {
+		r->opt.compare = DEFAULT_COMPARE_FUNC;
+	} else {
+		memcpy(&r->opt, opt, sizeof(*opt));
+	}
 	r->fd = fd;
 	r->fname = strdup(fname);
 	r->len_data = ss.st_size;
@@ -69,7 +106,7 @@ mtbl_reader_init(const char *fname)
 	index_crc = mtbl_fixed_decode32(r->data + r->t.index_block_offset + sizeof(uint32_t));
 	index_data = r->data + r->t.index_block_offset + 2 * sizeof(uint32_t);
 	assert(index_crc == mtbl_crc32c(index_data, index_len));
-	r->index = block_init(index_data, index_len, false);
+	r->index = block_init(index_data, index_len, false, r->opt.compare);
 	assert(r->index != NULL);
 	r->index_iter = block_iter_init(r->index);
 	assert(r->index_iter != NULL);
@@ -148,7 +185,7 @@ get_block(struct mtbl_reader *r, uint64_t offset)
 		break;
 	}
 
-	b = block_init(block_contents, block_contents_size, needs_free);
+	b = block_init(block_contents, block_contents_size, needs_free, r->opt.compare);
 	assert(b != NULL);
 
 	return (b);
@@ -176,7 +213,7 @@ mtbl_reader_get(struct mtbl_reader *r,
 
 		block_iter_seek(bi, key, key_len);
 		block_iter_get(bi, &bkey, &bkey_len, &bval, &bval_len);
-		if (bytes_compare(key, key_len, bkey, bkey_len) == 0) {
+		if (r->opt.compare(key, key_len, bkey, bkey_len) == 0) {
 			*val_len = bval_len;
 			*val = malloc(bval_len);
 			assert(*val != NULL);
@@ -185,7 +222,6 @@ mtbl_reader_get(struct mtbl_reader *r,
 		}
 		block_iter_destroy(&bi);
 		block_destroy(&b);
-
 	}
 
 	return (res);

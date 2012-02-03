@@ -49,6 +49,12 @@
 #define MTBL_MAGIC		0x77846676
 #define MTBL_TRAILER_SIZE	512
 
+#define DEFAULT_COMPARE_FUNC		mtbl_compare_bytes
+#define DEFAULT_COMP_TYPE		MTBL_COMP_ZLIB
+#define DEFAULT_BLOCK_RESTART_INTERVAL	16
+#define DEFAULT_BLOCK_SIZE		8192
+#define MIN_BLOCK_SIZE			1024
+
 /* types */
 
 struct block;
@@ -58,7 +64,8 @@ struct trailer;
 
 /* block */
 
-struct block *block_init(uint8_t *data, size_t size, bool needs_free);
+struct block *block_init(uint8_t *data, size_t size,
+	bool needs_free, mtbl_compare_fp);
 void block_destroy(struct block **);
 
 struct block_iter *block_iter_init(struct block *);
@@ -75,7 +82,9 @@ bool block_iter_get(struct block_iter *,
 
 /* block builder */
 
-struct block_builder *block_builder_init(size_t block_restart_interval);
+struct block_builder *block_builder_init(
+	size_t block_restart_interval,
+	mtbl_compare_fp);
 size_t block_builder_current_size_estimate(struct block_builder *);
 void block_builder_destroy(struct block_builder **);
 void block_builder_finish(struct block_builder *,

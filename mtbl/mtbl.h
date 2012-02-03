@@ -31,10 +31,15 @@ typedef enum {
 	MTBL_COMP_ZLIB = 2
 } mtbl_comp_type;
 
+typedef int (*mtbl_compare_fp)(
+	const uint8_t *a, size_t a_len,
+	const uint8_t *b, size_t b_len);
+
 /* exported types */
 
 struct mtbl_memtable;
 struct mtbl_reader;
+struct mtbl_reader_options;
 struct mtbl_writer;
 struct mtbl_writer_options;
 
@@ -61,14 +66,27 @@ void mtbl_writer_options_set_block_size(
 void mtbl_writer_options_set_block_restart_interval(
 	struct mtbl_writer_options *,
 	size_t block_restart_interval);
+void mtbl_writer_options_set_compare(
+	struct mtbl_writer_options *,
+	mtbl_compare_fp);
 
 /* reader */
 
-struct mtbl_reader *mtbl_reader_init(const char *fname);
+struct mtbl_reader *mtbl_reader_init(
+	const char *fname,
+	const struct mtbl_reader_options *);
 void mtbl_reader_destroy(struct mtbl_reader **);
 bool mtbl_reader_get(struct mtbl_reader *,
 	const uint8_t *key, size_t key_len,
 	uint8_t **val, size_t *val_len);
+
+/* reader options */
+
+struct mtbl_reader_options *mtbl_reader_options_init(void);
+void mtbl_reader_options_destroy(struct mtbl_reader_options **);
+void mtbl_reader_options_set_compare(
+	struct mtbl_reader_options *,
+	mtbl_compare_fp);
 
 /* memtable */
 

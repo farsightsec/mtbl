@@ -18,6 +18,7 @@
 #include "vector_types.h"
 
 struct block_builder {
+	mtbl_compare_fp	compare;
 	size_t		block_restart_interval;
 
 	ubuf		*buf;
@@ -29,13 +30,16 @@ struct block_builder {
 };
 
 struct block_builder *
-block_builder_init(size_t block_restart_interval)
+block_builder_init(size_t block_restart_interval, mtbl_compare_fp compare)
 {
 	struct block_builder *b;
 
 	b = calloc(1, sizeof(*b));
 	if (b == NULL)
 		return (NULL);
+	b->compare = compare;
+	if (b->compare == NULL)
+		b->compare = DEFAULT_COMPARE_FUNC;
 
 	b->block_restart_interval = block_restart_interval;
 
@@ -111,8 +115,7 @@ block_builder_add(struct block_builder *b,
 {
 	assert(b->counter <= b->block_restart_interval);
 	assert(b->finished == false);
-	assert(block_builder_empty(b) ||
-	       bytes_compare(key, len_key, ubuf_data(b->last_key), ubuf_size(b->last_key)) > 0);
+	assert(block_builder_empty(b) || b->compare(key, len_key, ubuf_data(b->last_key), ubuf_size(b->last_key)) > 0);
 
 	/*
 	fprintf(stderr, "----------------------------\n"
