@@ -19,7 +19,7 @@
 
 struct mtbl_writer_options {
 	mtbl_compare_fp			compare;
-	mtbl_comp_type			comp_type;
+	mtbl_compression_type		compression_type;
 	size_t				block_size;
 	size_t				block_restart_interval;
 };
@@ -44,7 +44,10 @@ struct mtbl_writer {
 static void _mtbl_writer_finish(struct mtbl_writer *);
 static void _mtbl_writer_flush(struct mtbl_writer *);
 static void _write_all(int fd, const uint8_t *, size_t);
-static size_t _mtbl_writer_writeblock(struct mtbl_writer *, struct block_builder *, mtbl_comp_type);
+static size_t _mtbl_writer_writeblock(
+	struct mtbl_writer *,
+	struct block_builder *,
+	mtbl_compression_type);
 
 struct mtbl_writer_options *
 mtbl_writer_options_init(void)
@@ -53,7 +56,7 @@ mtbl_writer_options_init(void)
 	opt = calloc(1, sizeof(*opt));
 	assert(opt != NULL);
 	opt->compare = DEFAULT_COMPARE_FUNC;
-	opt->comp_type = DEFAULT_COMP_TYPE;
+	opt->compression_type = DEFAULT_COMPRESSION_TYPE;
 	opt->block_size = DEFAULT_BLOCK_SIZE;
 	opt->block_restart_interval = DEFAULT_BLOCK_RESTART_INTERVAL;
 	return (opt);
@@ -77,12 +80,12 @@ mtbl_writer_options_set_compare(struct mtbl_writer_options *opt,
 
 void
 mtbl_writer_options_set_compression(struct mtbl_writer_options *opt,
-				    mtbl_comp_type comp_type)
+				    mtbl_compression_type compression_type)
 {
-	assert(comp_type == MTBL_COMP_NONE ||
-	       comp_type == MTBL_COMP_SNAPPY ||
-	       comp_type == MTBL_COMP_ZLIB);
-	opt->comp_type = comp_type;
+	assert(compression_type == MTBL_COMPRESSION_NONE ||
+	       compression_type == MTBL_COMPRESSION_SNAPPY ||
+	       compression_type == MTBL_COMPRESSION_ZLIB);
+	opt->compression_type = compression_type;
 }
 
 void
@@ -114,7 +117,7 @@ mtbl_writer_init(const char *fname, const struct mtbl_writer_options *opt)
 	assert(w != NULL);
 	if (opt == NULL) {
 		w->opt.compare = DEFAULT_COMPARE_FUNC;
-		w->opt.comp_type = DEFAULT_COMP_TYPE;
+		w->opt.compression_type = DEFAULT_COMPRESSION_TYPE;
 		w->opt.block_size = DEFAULT_BLOCK_SIZE;
 		w->opt.block_restart_interval = DEFAULT_BLOCK_RESTART_INTERVAL;
 	} else {
@@ -123,7 +126,7 @@ mtbl_writer_init(const char *fname, const struct mtbl_writer_options *opt)
 	w->fd = fd;
 	w->fname = strdup(fname);
 	w->last_key = ubuf_init(256);
-	w->t.compression_algorithm = w->opt.comp_type;
+	w->t.compression_algorithm = w->opt.compression_type;
 	w->t.data_block_size = w->opt.block_size;
 	w->data = block_builder_init(w->opt.block_restart_interval, w->opt.compare);
 	w->index = block_builder_init(w->opt.block_restart_interval, w->opt.compare);
@@ -209,7 +212,7 @@ _mtbl_writer_finish(struct mtbl_writer *w)
 		w->pending_index_entry = false;
 	}
 	w->t.index_block_offset = w->pending_offset;
-	w->t.bytes_index_block = _mtbl_writer_writeblock(w, w->index, MTBL_COMP_NONE);
+	w->t.bytes_index_block = _mtbl_writer_writeblock(w, w->index, MTBL_COMPRESSION_NONE);
 
 	trailer_write(&w->t, tbuf);
 	_write_all(w->fd, tbuf, sizeof(tbuf));
@@ -222,13 +225,15 @@ _mtbl_writer_flush(struct mtbl_writer *w)
 	if (block_builder_empty(w->data))
 		return;
 	assert(!w->pending_index_entry);
-	w->t.bytes_data_blocks += _mtbl_writer_writeblock(w, w->data, w->opt.comp_type);
+	w->t.bytes_data_blocks += _mtbl_writer_writeblock(w, w->data, w->opt.compression_type);
 	w->t.count_data_blocks += 1;
 	w->pending_index_entry = true;
 }
 
 static size_t
-_mtbl_writer_writeblock(struct mtbl_writer *w, struct block_builder *b, mtbl_comp_type comp_type)
+_mtbl_writer_writeblock(struct mtbl_writer *w,
+			struct block_builder *b,
+			mtbl_compression_type compression_type)
 {
 	uint8_t *raw_contents = NULL, *block_contents = NULL, *comp_contents = NULL;
 	size_t raw_contents_size = 0, block_contents_size = 0, comp_contents_size = 0;
@@ -239,12 +244,12 @@ _mtbl_writer_writeblock(struct mtbl_writer *w, struct block_builder *b, mtbl_com
 	block_builder_finish(b, &raw_contents, &raw_contents_size);
 	assert(raw_contents != NULL);
 
-	switch (comp_type) {
-	case MTBL_COMP_NONE:
+	switch (compression_type) {
+	case MTBL_COMPRESSION_NONE:
 		block_contents = raw_contents;
 		block_contents_size = raw_contents_size;
 		break;
-	case MTBL_COMP_SNAPPY:
+	case MTBL_COMPRESSION_SNAPPY:
 		comp_contents_size = snappy_max_compressed_length(raw_contents_size);
 		comp_contents = malloc(comp_contents_size);
 		assert(comp_contents != NULL);
@@ -254,7 +259,7 @@ _mtbl_writer_writeblock(struct mtbl_writer *w, struct block_builder *b, mtbl_com
 		block_contents = comp_contents;
 		block_contents_size = comp_contents_size;
 		break;
-	case MTBL_COMP_ZLIB:
+	case MTBL_COMPRESSION_ZLIB:
 		comp_contents_size = 2 * raw_contents_size;
 		comp_contents = malloc(comp_contents_size);
 		assert(comp_contents != NULL);

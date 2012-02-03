@@ -149,11 +149,11 @@ get_block(struct mtbl_reader *r, uint64_t offset)
 	//assert(crc == mtbl_crc32c(raw_contents, raw_contents_size));
 
 	switch (r->t.compression_algorithm) {
-	case MTBL_COMP_NONE:
+	case MTBL_COMPRESSION_NONE:
 		block_contents = raw_contents;
 		block_contents_size = raw_contents_size;
 		break;
-	case MTBL_COMP_SNAPPY:
+	case MTBL_COMPRESSION_SNAPPY:
 		needs_free = true;
 		block_contents_size = 2 * r->t.data_block_size;
 		block_contents = calloc(1, block_contents_size);
@@ -162,7 +162,7 @@ get_block(struct mtbl_reader *r, uint64_t offset)
 					(char *) block_contents, &block_contents_size);
 		assert(res == SNAPPY_OK);
 		break;
-	case MTBL_COMP_ZLIB:
+	case MTBL_COMPRESSION_ZLIB:
 		needs_free = true;
 		block_contents_size = 2 * r->t.data_block_size;
 		zs.zalloc = Z_NULL;

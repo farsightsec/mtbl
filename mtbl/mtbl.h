@@ -26,10 +26,10 @@ extern "C" {
 #include <stdint.h>
 
 typedef enum {
-	MTBL_COMP_NONE = 0,
-	MTBL_COMP_SNAPPY = 1,
-	MTBL_COMP_ZLIB = 2
-} mtbl_comp_type;
+	MTBL_COMPRESSION_NONE = 0,
+	MTBL_COMPRESSION_SNAPPY = 1,
+	MTBL_COMPRESSION_ZLIB = 2
+} mtbl_compression_type;
 
 typedef int (*mtbl_compare_fp)(
 	const uint8_t *a, size_t a_len,
@@ -59,7 +59,7 @@ struct mtbl_writer_options *mtbl_writer_options_init(void);
 void mtbl_writer_options_destroy(struct mtbl_writer_options **);
 void mtbl_writer_options_set_compression(
 	struct mtbl_writer_options *,
-	mtbl_comp_type);
+	mtbl_compression_type);
 void mtbl_writer_options_set_block_size(
 	struct mtbl_writer_options *,
 	size_t block_size);
