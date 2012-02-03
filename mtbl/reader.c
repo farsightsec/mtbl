@@ -298,6 +298,35 @@ iter_init(struct mtbl_reader *r, const uint8_t *key, size_t len_key)
 }
 
 struct mtbl_iter *
+mtbl_reader_iter(struct mtbl_reader *r)
+{
+	struct mtbl_iter *it;
+	it = calloc(1, sizeof(*it));
+	assert(it != NULL);
+
+	it->r = r;
+	it->index_iter = block_iter_init(r->index);
+	assert(it->index_iter != NULL);
+
+	block_iter_seek_to_first(it->index_iter);
+	it->b = get_block_at_index(r, it->index_iter);
+	if (it->b == NULL) {
+		block_iter_destroy(&it->index_iter);
+		block_destroy(&it->b);
+		free(it);
+		return (NULL);
+	}
+
+	it->bi = block_iter_init(it->b);
+	block_iter_seek_to_first(it->bi);
+
+	it->first = true;
+	it->valid = true;
+	it->it_type = ITER_TYPE_ALL;
+	return (it);
+}
+
+struct mtbl_iter *
 mtbl_reader_get_range(struct mtbl_reader *r,
 		      const uint8_t *key0, size_t len_key0,
 		      const uint8_t *key1, size_t len_key1)
