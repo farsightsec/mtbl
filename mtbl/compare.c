@@ -17,9 +17,9 @@
 #include "mtbl-private.h"
 
 int
-mtbl_compare_bytes(const uint8_t *a, size_t a_len,
-		   const uint8_t *b, size_t b_len)
+mtbl_compare_bytes(const uint8_t *a, size_t len_a,
+		   const uint8_t *b, size_t len_b)
 {
-	size_t len = a_len > b_len ? b_len : a_len;
+	size_t len = len_a > len_b ? len_b : len_a;
 	return (memcmp(a, b, len));
 }

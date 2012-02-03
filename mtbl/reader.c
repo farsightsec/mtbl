@@ -204,14 +204,14 @@ get_block(struct mtbl_reader *r, uint64_t offset)
 
 bool
 mtbl_reader_get(struct mtbl_reader *r,
-		const uint8_t *key, size_t key_len,
-		uint8_t **val, size_t *val_len)
+		const uint8_t *key, size_t len_key,
+		uint8_t **val, size_t *len_val)
 {
 	bool res = false;
 	const uint8_t *ikey, *ival, *bkey, *bval;
 	size_t ikey_len, ival_len, bkey_len, bval_len;
 
-	block_iter_seek(r->index_iter, key, key_len);
+	block_iter_seek(r->index_iter, key, len_key);
 	if (block_iter_get(r->index_iter, &ikey, &ikey_len, &ival, &ival_len)) {
 		struct block *b;
 		struct block_iter *bi;
@@ -222,10 +222,10 @@ mtbl_reader_get(struct mtbl_reader *r,
 		bi = block_iter_init(b);
 		assert(bi != NULL);
 
-		block_iter_seek(bi, key, key_len);
+		block_iter_seek(bi, key, len_key);
 		block_iter_get(bi, &bkey, &bkey_len, &bval, &bval_len);
-		if (r->opt.compare(key, key_len, bkey, bkey_len) == 0) {
-			*val_len = bval_len;
+		if (r->opt.compare(key, len_key, bkey, bkey_len) == 0) {
+			*len_val = bval_len;
 			*val = malloc(bval_len);
 			assert(*val != NULL);
 			memcpy(*val, bval, bval_len);

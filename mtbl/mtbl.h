@@ -77,8 +77,8 @@ struct mtbl_reader *mtbl_reader_init(
 	const struct mtbl_reader_options *);
 void mtbl_reader_destroy(struct mtbl_reader **);
 bool mtbl_reader_get(struct mtbl_reader *,
-	const uint8_t *key, size_t key_len,
-	uint8_t **val, size_t *val_len);
+	const uint8_t *key, size_t len_key,
+	uint8_t **val, size_t *len_val);
 
 /* reader options */
 
@@ -107,8 +107,8 @@ void mtbl_memtable_finish(struct mtbl_memtable *m);
 /* compare */
 
 int mtbl_compare_bytes(
-	const uint8_t *a, size_t a_len,
-	const uint8_t *b, size_t b_len);
+	const uint8_t *a, size_t len_a,
+	const uint8_t *b, size_t len_b);
 
 /* crc32c */
 
