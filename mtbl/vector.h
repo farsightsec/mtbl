@@ -48,9 +48,11 @@ name##_detach(name *vec, type **out, size_t *outsz)			\
 static inline void							\
 name##_destroy(name **vec)						\
 {									\
-	free((*vec)->_v);						\
-	free((*vec));							\
-	*vec = NULL;							\
+	if (*vec) {							\
+		free((*vec)->_v);					\
+		free((*vec));						\
+		*vec = NULL;						\
+	}								\
 }									\
 static inline void							\
 name##_add(name *vec, type elem)					\
