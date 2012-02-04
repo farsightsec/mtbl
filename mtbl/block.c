@@ -52,7 +52,6 @@ struct block {
 	size_t		size;
 	uint32_t	restart_offset;
 	bool		needs_free;
-	mtbl_compare_fp	compare;
 };
 
 struct block_iter {
@@ -98,13 +97,10 @@ decode_entry(uint8_t *p, uint8_t *limit,
 }
 
 struct block *
-block_init(uint8_t *data, size_t size, bool needs_free, mtbl_compare_fp compare)
+block_init(uint8_t *data, size_t size, bool needs_free)
 {
 	struct block *b = calloc(1, sizeof(*b));
 	assert(b != NULL);
-	b->compare = compare;
-	if (b->compare == NULL)
-		b->compare = DEFAULT_COMPARE_FUNC;
 	b->data = data;
 	b->size = size;
 	if (size < sizeof(uint32_t)) {
@@ -253,7 +249,7 @@ block_iter_seek(struct block_iter *bi, const uint8_t *target, size_t target_len)
 			/* corruption */
 			return;
 		}
-		if (bi->block->compare(key_ptr, non_shared, target, target_len) < 0) {
+		if (bytes_compare(key_ptr, non_shared, target, target_len) < 0) {
 			/* key at "mid" is smaller than "target", therefore all
 			 * keys before "mid" are uninteresting
 			 */
@@ -271,7 +267,7 @@ block_iter_seek(struct block_iter *bi, const uint8_t *target, size_t target_len)
 	for (;;) {
 		if (!parse_next_key(bi))
 			return;
-		if (bi->block->compare(ubuf_data(bi->key), ubuf_size(bi->key),
+		if (bytes_compare(ubuf_data(bi->key), ubuf_size(bi->key),
 				       target, target_len) >= 0)
 		{
 			return;

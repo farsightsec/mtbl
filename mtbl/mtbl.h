@@ -31,10 +31,6 @@ typedef enum {
 	MTBL_COMPRESSION_ZLIB = 2
 } mtbl_compression_type;
 
-typedef int (*mtbl_compare_fp)(
-	const uint8_t *a, size_t a_len,
-	const uint8_t *b, size_t b_len);
-
 /* exported types */
 
 struct mtbl_iter;
@@ -67,9 +63,6 @@ void mtbl_writer_options_set_block_size(
 void mtbl_writer_options_set_block_restart_interval(
 	struct mtbl_writer_options *,
 	size_t block_restart_interval);
-void mtbl_writer_options_set_compare(
-	struct mtbl_writer_options *,
-	mtbl_compare_fp);
 
 /* reader */
 
@@ -95,9 +88,6 @@ bool mtbl_iter_next(struct mtbl_iter *,
 
 struct mtbl_reader_options *mtbl_reader_options_init(void);
 void mtbl_reader_options_destroy(struct mtbl_reader_options **);
-void mtbl_reader_options_set_compare(
-	struct mtbl_reader_options *,
-	mtbl_compare_fp);
 void mtbl_reader_options_set_verify_checksums(
 	struct mtbl_reader_options *,
 	bool);
@@ -114,12 +104,6 @@ void mtbl_memtable_get(struct mtbl_memtable *m, size_t idx,
 	uint8_t **val, size_t *len_val);
 size_t mtbl_memtable_size(struct mtbl_memtable *m);
 void mtbl_memtable_finish(struct mtbl_memtable *m);
-
-/* compare */
-
-int mtbl_compare_bytes(
-	const uint8_t *a, size_t len_a,
-	const uint8_t *b, size_t len_b);
 
 /* crc32c */
 

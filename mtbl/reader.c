@@ -35,7 +35,6 @@ struct mtbl_iter {
 };
 
 struct mtbl_reader_options {
-	mtbl_compare_fp			compare;
 	bool				verify_checksums;
 };
 
@@ -58,7 +57,6 @@ mtbl_reader_options_init(void)
 	struct mtbl_reader_options *opt;
 	opt = calloc(1, sizeof(*opt));
 	assert(opt != NULL);
-	opt->compare = DEFAULT_COMPARE_FUNC;
 	return (opt);
 }
 
@@ -69,13 +67,6 @@ mtbl_reader_options_destroy(struct mtbl_reader_options **opt)
 		free(*opt);
 		*opt = NULL;
 	}
-}
-
-void
-mtbl_reader_options_set_compare(struct mtbl_reader_options *opt,
-				mtbl_compare_fp compare)
-{
-	opt->compare = compare;
 }
 
 void
@@ -105,11 +96,8 @@ mtbl_reader_init(const char *fname, const struct mtbl_reader_options *opt)
 
 	r = calloc(1, sizeof(*r));
 	assert(r != NULL);
-	if (opt == NULL) {
-		r->opt.compare = DEFAULT_COMPARE_FUNC;
-	} else {
+	if (opt != NULL)
 		memcpy(&r->opt, opt, sizeof(*opt));
-	}
 	r->fd = fd;
 	r->fname = strdup(fname);
 	r->len_data = ss.st_size;
@@ -131,7 +119,7 @@ mtbl_reader_init(const char *fname, const struct mtbl_reader_options *opt)
 	index_crc = mtbl_fixed_decode32(r->data + r->t.index_block_offset + sizeof(uint32_t));
 	index_data = r->data + r->t.index_block_offset + 2 * sizeof(uint32_t);
 	assert(index_crc == mtbl_crc32c(index_data, index_len));
-	r->index = block_init(index_data, index_len, false, r->opt.compare);
+	r->index = block_init(index_data, index_len, false);
 	assert(r->index != NULL);
 	r->index_iter = block_iter_init(r->index);
 	assert(r->index_iter != NULL);
@@ -213,7 +201,7 @@ get_block(struct mtbl_reader *r, uint64_t offset)
 		break;
 	}
 
-	b = block_init(block_contents, block_contents_size, needs_free, r->opt.compare);
+	b = block_init(block_contents, block_contents_size, needs_free);
 	assert(b != NULL);
 
 	return (b);
@@ -255,7 +243,7 @@ mtbl_reader_get(struct mtbl_reader *r,
 
 		block_iter_seek(bi, key, len_key);
 		block_iter_get(bi, &bkey, &bkey_len, &bval, &bval_len);
-		if (r->opt.compare(key, len_key, bkey, bkey_len) == 0) {
+		if (bytes_compare(key, len_key, bkey, bkey_len) == 0) {
 			*len_val = bval_len;
 			*val = malloc(bval_len);
 			assert(*val != NULL);
@@ -396,8 +384,7 @@ mtbl_iter_next(struct mtbl_iter *it,
 	case ITER_TYPE_ALL:
 		break;
 	case ITER_TYPE_RANGE:
-		if (it->r->opt.compare(*key, *len_key,
-				       ubuf_data(it->k), ubuf_size(it->k)) > 0)
+		if (bytes_compare(*key, *len_key, ubuf_data(it->k), ubuf_size(it->k)) > 0)
 		{
 			it->valid = false;
 		}

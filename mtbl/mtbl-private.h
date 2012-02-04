@@ -49,7 +49,6 @@
 #define MTBL_MAGIC		0x77846676
 #define MTBL_TRAILER_SIZE	512
 
-#define DEFAULT_COMPARE_FUNC		mtbl_compare_bytes
 #define DEFAULT_COMPRESSION_TYPE	MTBL_COMPRESSION_ZLIB
 #define DEFAULT_BLOCK_RESTART_INTERVAL	16
 #define DEFAULT_BLOCK_SIZE		8192
@@ -64,8 +63,7 @@ struct trailer;
 
 /* block */
 
-struct block *block_init(uint8_t *data, size_t size,
-	bool needs_free, mtbl_compare_fp);
+struct block *block_init(uint8_t *data, size_t size, bool needs_free);
 void block_destroy(struct block **);
 
 struct block_iter *block_iter_init(struct block *);
@@ -82,9 +80,7 @@ bool block_iter_get(struct block_iter *,
 
 /* block builder */
 
-struct block_builder *block_builder_init(
-	size_t block_restart_interval,
-	mtbl_compare_fp);
+struct block_builder *block_builder_init(size_t block_restart_interval);
 size_t block_builder_current_size_estimate(struct block_builder *);
 void block_builder_destroy(struct block_builder **);
 void block_builder_finish(struct block_builder *,
@@ -111,5 +107,15 @@ struct trailer {
 
 void trailer_write(struct trailer *t, uint8_t *buf);
 bool trailer_read(const uint8_t *buf, struct trailer *t);
+
+/* misc */
+
+static inline int
+bytes_compare(const uint8_t *a, size_t len_a,
+	      const uint8_t *b, size_t len_b)
+{
+	size_t len = len_a > len_b ? len_b : len_a;
+	return (memcmp(a, b, len));
+}
 
 #endif /* MTBL_PRIVATE_H */

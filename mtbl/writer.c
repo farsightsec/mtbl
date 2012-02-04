@@ -18,7 +18,6 @@
 #include "vector_types.h"
 
 struct mtbl_writer_options {
-	mtbl_compare_fp			compare;
 	mtbl_compression_type		compression_type;
 	size_t				block_size;
 	size_t				block_restart_interval;
@@ -55,7 +54,6 @@ mtbl_writer_options_init(void)
 	struct mtbl_writer_options *opt;
 	opt = calloc(1, sizeof(*opt));
 	assert(opt != NULL);
-	opt->compare = DEFAULT_COMPARE_FUNC;
 	opt->compression_type = DEFAULT_COMPRESSION_TYPE;
 	opt->block_size = DEFAULT_BLOCK_SIZE;
 	opt->block_restart_interval = DEFAULT_BLOCK_RESTART_INTERVAL;
@@ -69,13 +67,6 @@ mtbl_writer_options_destroy(struct mtbl_writer_options **opt)
 		free(*opt);
 		*opt = NULL;
 	}
-}
-
-void
-mtbl_writer_options_set_compare(struct mtbl_writer_options *opt,
-				mtbl_compare_fp compare)
-{
-	opt->compare = compare;
 }
 
 void
@@ -116,7 +107,6 @@ mtbl_writer_init(const char *fname, const struct mtbl_writer_options *opt)
 	w = calloc(1, sizeof(*w));
 	assert(w != NULL);
 	if (opt == NULL) {
-		w->opt.compare = DEFAULT_COMPARE_FUNC;
 		w->opt.compression_type = DEFAULT_COMPRESSION_TYPE;
 		w->opt.block_size = DEFAULT_BLOCK_SIZE;
 		w->opt.block_restart_interval = DEFAULT_BLOCK_RESTART_INTERVAL;
@@ -128,8 +118,8 @@ mtbl_writer_init(const char *fname, const struct mtbl_writer_options *opt)
 	w->last_key = ubuf_init(256);
 	w->t.compression_algorithm = w->opt.compression_type;
 	w->t.data_block_size = w->opt.block_size;
-	w->data = block_builder_init(w->opt.block_restart_interval, w->opt.compare);
-	w->index = block_builder_init(w->opt.block_restart_interval, w->opt.compare);
+	w->data = block_builder_init(w->opt.block_restart_interval);
+	w->index = block_builder_init(w->opt.block_restart_interval);
 	return (w);
 }
 
@@ -158,7 +148,7 @@ mtbl_writer_add(struct mtbl_writer *w,
 {
 	assert(!w->closed);
 	if (w->t.count_entries > 0)
-		assert(w->opt.compare(key, len_key, ubuf_data(w->last_key), ubuf_size(w->last_key)) > 0);
+		assert(bytes_compare(key, len_key, ubuf_data(w->last_key), ubuf_size(w->last_key)) > 0);
 
 	if (w->pending_index_entry) {
 		/* XXX use shortest separator */
