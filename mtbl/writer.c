@@ -24,7 +24,6 @@ struct mtbl_writer_options {
 };
 
 struct mtbl_writer {
-	char				*fname;
 	int				fd;
 	struct trailer			t;
 	struct block_builder		*data;
@@ -96,12 +95,12 @@ mtbl_writer_options_set_block_restart_interval(struct mtbl_writer_options *opt,
 }
 
 struct mtbl_writer *
-mtbl_writer_init(const char *fname, const struct mtbl_writer_options *opt)
+mtbl_writer_init_fd(int orig_fd, const struct mtbl_writer_options *opt)
 {
 	struct mtbl_writer *w;
 	int fd;
 
-	fd = open(fname, O_WRONLY | O_CREAT | O_EXCL, 0644);
+	fd = dup(orig_fd);
 	if (fd < 0)
 		return (NULL);
 	w = calloc(1, sizeof(*w));
@@ -114,12 +113,25 @@ mtbl_writer_init(const char *fname, const struct mtbl_writer_options *opt)
 		memcpy(&w->opt, opt, sizeof(*opt));
 	}
 	w->fd = fd;
-	w->fname = strdup(fname);
 	w->last_key = ubuf_init(256);
 	w->t.compression_algorithm = w->opt.compression_type;
 	w->t.data_block_size = w->opt.block_size;
 	w->data = block_builder_init(w->opt.block_restart_interval);
 	w->index = block_builder_init(w->opt.block_restart_interval);
+	return (w);
+}
+
+struct mtbl_writer *
+mtbl_writer_init(const char *fname, const struct mtbl_writer_options *opt)
+{
+	struct mtbl_writer *w;
+	int fd;
+
+	fd = open(fname, O_WRONLY | O_CREAT | O_TRUNC | O_EXCL, 0644);
+	if (fd < 0)
+		return (NULL);
+	w = mtbl_writer_init_fd(fd, opt);
+	close(fd);
 	return (w);
 }
 
@@ -135,7 +147,6 @@ mtbl_writer_destroy(struct mtbl_writer **w)
 		block_builder_destroy(&((*w)->data));
 		block_builder_destroy(&((*w)->index));
 		ubuf_destroy(&(*w)->last_key);
-		free((*w)->fname);
 		free(*w);
 		*w = NULL;
 	}
