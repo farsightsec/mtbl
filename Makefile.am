@@ -56,7 +56,6 @@ EXTRA_DIST += mtbl/libmtbl.pc.in
 CLEANFILES += mtbl/libmtbl.pc
 
 TESTS = \
-	src/test-memtable \
 	src/test-mtbl \
 	src/test-crc32c \
 	src/test-fixed \
@@ -64,7 +63,6 @@ TESTS = \
 	src/test-varint
 
 check_PROGRAMS = \
-	src/test-memtable \
 	src/test-mtbl \
 	src/test-block_builder \
 	src/test-crc32c \
@@ -88,7 +86,5 @@ src_test_varint_SOURCES = src/test-varint.c
 src_test_varint_LDADD = mtbl/libmtbl.la
 src_test_vector_SOURCES = src/test-vector.c
 src_test_vector_LDADD = mtbl/libmtbl.la
-src_test_memtable_SOURCES = src/test-memtable.c
-src_test_memtable_LDADD = mtbl/libmtbl.la
 src_test_writer_SOURCES = src/test-writer.c
 src_test_writer_LDADD = mtbl/libmtbl.la
