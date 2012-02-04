@@ -73,13 +73,8 @@ _mtbl_memtable_compare(const void *va, const void *vb)
 	const struct entry *a = *((const struct entry **) va);
 	const struct entry *b = *((const struct entry **) vb);
 
-	if (a->len_key < b->len_key) {
-		return (-1);
-	} else if (a->len_key > b->len_key) {
-		return (1);
-	} else {
-		return (memcmp(a->data, b->data, a->len_key));
-	}
+	size_t len = a->len_key > b->len_key ? b->len_key : a->len_key;
+	return (memcmp(a->data, b->data, len));
 }
 
 void
