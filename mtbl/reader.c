@@ -39,7 +39,6 @@ struct mtbl_reader_options {
 };
 
 struct mtbl_reader {
-	char				*fname;
 	int				fd;
 	struct trailer			t;
 	uint8_t				*data;
@@ -77,7 +76,7 @@ mtbl_reader_options_set_verify_checksums(struct mtbl_reader_options *opt,
 }
 
 struct mtbl_reader *
-mtbl_reader_init(const char *fname, const struct mtbl_reader_options *opt)
+mtbl_reader_init_fd(int orig_fd, const struct mtbl_reader_options *opt)
 {
 	struct mtbl_reader *r;
 	struct stat ss;
@@ -88,23 +87,25 @@ mtbl_reader_init(const char *fname, const struct mtbl_reader_options *opt)
 	uint32_t index_crc;
 	uint8_t *index_data;
 
-	fd = open(fname, O_RDONLY);
+	if (orig_fd < 0)
+		return (NULL);
+	fd = dup(orig_fd);
 	if (fd < 0)
 		return (NULL);
-	if (fstat(fd, &ss) < 0)
+	if (fstat(fd, &ss) < 0) {
+		close(fd);
 		return (NULL);
+	}
 
 	r = calloc(1, sizeof(*r));
 	assert(r != NULL);
 	if (opt != NULL)
 		memcpy(&r->opt, opt, sizeof(*opt));
 	r->fd = fd;
-	r->fname = strdup(fname);
 	r->len_data = ss.st_size;
 	r->data = mmap(NULL, r->len_data, PROT_READ, MAP_PRIVATE, r->fd, 0);
 	if (r->data == MAP_FAILED) {
 		close(r->fd);
-		free(r->fname);
 		free(r);
 		return (NULL);
 	}
@@ -127,6 +128,21 @@ mtbl_reader_init(const char *fname, const struct mtbl_reader_options *opt)
 	return (r);
 }
 
+struct mtbl_reader *
+mtbl_reader_init(const char *fname, const struct mtbl_reader_options *opt)
+{
+	struct mtbl_reader *r;
+	int fd;
+
+	fd = open(fname, O_RDONLY);
+	if (fd < 0)
+		return (NULL);
+	r = mtbl_reader_init_fd(fd, opt);
+	close(fd);
+
+	return (r);
+}
+
 void
 mtbl_reader_destroy(struct mtbl_reader **r)
 {
@@ -135,7 +151,6 @@ mtbl_reader_destroy(struct mtbl_reader **r)
 		block_destroy(&(*r)->index);
 		munmap((*r)->data, (*r)->len_data);
 		close((*r)->fd);
-		free((*r)->fname);
 		free(*r);
 		*r = NULL;
 	}
