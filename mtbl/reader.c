@@ -18,12 +18,12 @@
 #include "vector_types.h"
 
 typedef enum {
-	ITER_TYPE_ALL,
-	ITER_TYPE_RANGE,
-	ITER_TYPE_PREFIX
-} iter_type;
+	READ_ITER_TYPE_ALL,
+	READ_ITER_TYPE_RANGE,
+	READ_ITER_TYPE_PREFIX
+} read_iter_type;
 
-struct mtbl_iter {
+struct read_iter {
 	struct mtbl_reader		*r;
 	struct block			*b;
 	struct block_iter		*bi;
@@ -31,7 +31,7 @@ struct mtbl_iter {
 	ubuf				*k;
 	bool				first;
 	bool				valid;
-	iter_type			it_type;
+	read_iter_type			it_type;
 };
 
 struct mtbl_reader_options {
@@ -49,6 +49,9 @@ struct mtbl_reader {
 	struct block			*index;
 	struct block_iter		*index_iter;
 };
+
+static bool read_iter_next(void *, const uint8_t **, size_t *, const uint8_t **, size_t *);
+static void read_iter_free(void *);
 
 struct mtbl_reader_options *
 mtbl_reader_options_init(void)
@@ -272,10 +275,10 @@ mtbl_reader_get(struct mtbl_reader *r,
 	return (res);
 }
 
-static struct mtbl_iter *
-iter_init(struct mtbl_reader *r, const uint8_t *key, size_t len_key)
+static struct read_iter *
+read_iter_init(struct mtbl_reader *r, const uint8_t *key, size_t len_key)
 {
-	struct mtbl_iter *it;
+	struct read_iter *it;
 	it = calloc(1, sizeof(*it));
 	assert(it != NULL);
 
@@ -303,7 +306,7 @@ iter_init(struct mtbl_reader *r, const uint8_t *key, size_t len_key)
 struct mtbl_iter *
 mtbl_reader_iter(struct mtbl_reader *r)
 {
-	struct mtbl_iter *it;
+	struct read_iter *it;
 	it = calloc(1, sizeof(*it));
 	assert(it != NULL);
 
@@ -325,8 +328,8 @@ mtbl_reader_iter(struct mtbl_reader *r)
 
 	it->first = true;
 	it->valid = true;
-	it->it_type = ITER_TYPE_ALL;
-	return (it);
+	it->it_type = READ_ITER_TYPE_ALL;
+	return (iter_init(read_iter_next, read_iter_free, it));
 }
 
 struct mtbl_iter *
@@ -334,46 +337,47 @@ mtbl_reader_get_range(struct mtbl_reader *r,
 		      const uint8_t *key0, size_t len_key0,
 		      const uint8_t *key1, size_t len_key1)
 {
-	struct mtbl_iter *it = iter_init(r, key0, len_key0);
+	struct read_iter *it = read_iter_init(r, key0, len_key0);
 	if (it == NULL)
 		return (NULL);
 	it->k = ubuf_init(len_key1);
 	ubuf_append(it->k, key1, len_key1);
-	it->it_type = ITER_TYPE_RANGE;
-	return (it);
+	it->it_type = READ_ITER_TYPE_RANGE;
+	return (iter_init(read_iter_next, read_iter_free, it));
 }
 
 struct mtbl_iter *
 mtbl_reader_get_prefix(struct mtbl_reader *r,
 		       const uint8_t *key, size_t len_key)
 {
-	struct mtbl_iter *it = iter_init(r, key, len_key);
+	struct read_iter *it = read_iter_init(r, key, len_key);
 	if (it == NULL)
 		return (NULL);
 	it->k = ubuf_init(len_key);
 	ubuf_append(it->k, key, len_key);
-	it->it_type = ITER_TYPE_PREFIX;
-	return (it);
+	it->it_type = READ_ITER_TYPE_PREFIX;
+	return (iter_init(read_iter_next, read_iter_free, it));
 }
 
-void
-mtbl_iter_destroy(struct mtbl_iter **it)
+static void
+read_iter_free(void *v)
 {
-	if (*it) {
-		ubuf_destroy(&(*it)->k);
-		block_destroy(&(*it)->b);
-		block_iter_destroy(&(*it)->bi);
-		block_iter_destroy(&(*it)->index_iter);
-		free(*it);
-		*it = NULL;
+	struct read_iter *it = (struct read_iter *) v;
+	if (it) {
+		ubuf_destroy(&it->k);
+		block_destroy(&it->b);
+		block_iter_destroy(&it->bi);
+		block_iter_destroy(&it->index_iter);
+		free(it);
 	}
 }
 
-bool
-mtbl_iter_next(struct mtbl_iter *it,
+static bool
+read_iter_next(void *v,
 	       const uint8_t **key, size_t *len_key,
 	       const uint8_t **val, size_t *len_val)
 {
+	struct read_iter *it = (struct read_iter *) v;
 	if (!it->valid)
 		return (false);
 
@@ -396,15 +400,15 @@ mtbl_iter_next(struct mtbl_iter *it,
 	}
 
 	switch (it->it_type) {
-	case ITER_TYPE_ALL:
+	case READ_ITER_TYPE_ALL:
 		break;
-	case ITER_TYPE_RANGE:
+	case READ_ITER_TYPE_RANGE:
 		if (bytes_compare(*key, *len_key, ubuf_data(it->k), ubuf_size(it->k)) > 0)
 		{
 			it->valid = false;
 		}
 		break;
-	case ITER_TYPE_PREFIX:
+	case READ_ITER_TYPE_PREFIX:
 		if (!(ubuf_size(it->k) <= *len_key &&
 		      memcmp(ubuf_data(it->k), *key, ubuf_size(it->k)) == 0))
 		{
