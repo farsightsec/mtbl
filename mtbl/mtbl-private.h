@@ -115,7 +115,17 @@ bytes_compare(const uint8_t *a, size_t len_a,
 	      const uint8_t *b, size_t len_b)
 {
 	size_t len = len_a > len_b ? len_b : len_a;
-	return (memcmp(a, b, len));
+	int ret = memcmp(a, b, len);
+	if (ret == 0) {
+		if (len_a < len_b) {
+			return (-1);
+		} else if (len_a == len_b) {
+			return (0);
+		} else if (len_a > len_b) {
+			return (1);
+		}
+	}
+	return (ret);
 }
 
 #endif /* MTBL_PRIVATE_H */
