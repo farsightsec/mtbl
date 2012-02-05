@@ -34,7 +34,7 @@ typedef enum {
 /* exported types */
 
 struct mtbl_iter;
-struct mtbl_memtable;
+
 struct mtbl_reader;
 struct mtbl_reader_options;
 struct mtbl_writer;
@@ -97,19 +97,6 @@ void mtbl_reader_options_destroy(struct mtbl_reader_options **);
 void mtbl_reader_options_set_verify_checksums(
 	struct mtbl_reader_options *,
 	bool);
-
-/* memtable */
-
-struct mtbl_memtable *mtbl_memtable_init(void);
-void mtbl_memtable_destroy(struct mtbl_memtable **m);
-void mtbl_memtable_add(struct mtbl_memtable *m,
-	const uint8_t *key, size_t len_key,
-	const uint8_t *val, size_t len_val);
-void mtbl_memtable_get(struct mtbl_memtable *m, size_t idx,
-	uint8_t **key, size_t *len_key,
-	uint8_t **val, size_t *len_val);
-size_t mtbl_memtable_size(struct mtbl_memtable *m);
-void mtbl_memtable_finish(struct mtbl_memtable *m);
 
 /* crc32c */
 

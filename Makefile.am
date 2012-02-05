@@ -34,7 +34,6 @@ mtbl_libmtbl_la_SOURCES = \
 	mtbl/block_builder.c \
 	mtbl/crc32c.c \
 	mtbl/fixed.c \
-	mtbl/memtable.c \
 	mtbl/mtbl.h \
 	mtbl/mtbl-private.h \
 	mtbl/reader.c \
