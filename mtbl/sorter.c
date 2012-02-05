@@ -159,8 +159,6 @@ _mtbl_sorter_write_chunk(struct mtbl_sorter *s)
 	ubuf_append(tmp_fname, (uint8_t *) template, strlen(template));
 	ubuf_append(tmp_fname, (const uint8_t *) "\x00", 1);
 
-	fprintf(stderr, "%s: tmp_fname= %s\n", __func__, ubuf_data(tmp_fname));
-
 	c->fd = mkstemp((char *) ubuf_data(tmp_fname));
 	assert(c->fd > 0);
 	int unlink_ret = unlink((char *) ubuf_data(tmp_fname));
@@ -213,8 +211,6 @@ _mtbl_sorter_write_chunk(struct mtbl_sorter *s)
 		free(ent);
 	}
 	mtbl_writer_destroy(&w);
-	fprintf(stderr, "%s: wrote %zd entries to %s\n", __func__,
-		entries_written, ubuf_data(tmp_fname));
 	entry_vec_destroy(&s->vec);
 	s->vec = entry_vec_init(INITIAL_SORTER_VEC_SIZE);
 	s->entry_bytes = 0;
@@ -238,11 +234,8 @@ mtbl_sorter_write(struct mtbl_sorter *s, struct mtbl_writer *w)
 	for (unsigned i = 0; i < chunk_vec_size(s->chunks); i++) {
 		struct chunk *c = chunk_vec_value(s->chunks, i);
 		struct mtbl_reader *r;
-
 		r = mtbl_reader_init_fd(c->fd, NULL);
 		assert(r != NULL);
-		fprintf(stderr, "%s: c[%d]: fd= %d r= %p\n", __func__, i, c->fd, r);
-
 		mtbl_merger_add(m, r);
 	}
 
@@ -273,8 +266,6 @@ mtbl_sorter_add(struct mtbl_sorter *s,
 	entry_vec_append(s->vec, &ent, 1);
 	s->entry_bytes += entry_bytes;
 
-	if (s->entry_bytes + entry_vec_bytes(s->vec) >= s->opt.max_memory) {
-		fprintf(stderr, "%s: entry_bytes = %zd\n", __func__, s->entry_bytes);
+	if (s->entry_bytes + entry_vec_bytes(s->vec) >= s->opt.max_memory)
 		_mtbl_sorter_write_chunk(s);
-	}
 }
