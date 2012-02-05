@@ -40,6 +40,14 @@ struct mtbl_reader_options;
 struct mtbl_writer;
 struct mtbl_writer_options;
 
+struct mtbl_merger;
+
+typedef void (*mtbl_merge_func)(void *clos,
+	const uint8_t *key, size_t len_key,
+	const uint8_t *val0, size_t len_val0,
+	const uint8_t *val1, size_t len_val1,
+	uint8_t **merged_val, size_t *len_merged_val);
+
 /* writer */
 
 struct mtbl_writer *mtbl_writer_init(
@@ -97,6 +105,16 @@ void mtbl_reader_options_destroy(struct mtbl_reader_options **);
 void mtbl_reader_options_set_verify_checksums(
 	struct mtbl_reader_options *,
 	bool);
+
+/* merger */
+
+struct mtbl_merger *mtbl_merger_init(void);
+void mtbl_merger_destroy(struct mtbl_merger **m);
+void mtbl_merger_add(struct mtbl_merger *m, struct mtbl_reader *r);
+void mtbl_merger_merge(struct mtbl_merger *m,
+	struct mtbl_writer *w,
+	mtbl_merge_func merge_fp,
+	void *clos);
 
 /* crc32c */
 
