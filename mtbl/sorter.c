@@ -17,6 +17,11 @@
 #include "mtbl-private.h"
 #include "vector_types.h"
 
+struct sorter_iter {
+	struct mtbl_merger		*m;
+	struct mtbl_iter		*m_iter;
+};
+
 struct entry {
 	uint32_t			len_key;
 	uint32_t			len_val;
@@ -45,7 +50,7 @@ struct mtbl_sorter {
 	chunk_vec			*chunks;
 	entry_vec			*vec;
 	size_t				entry_bytes;
-	bool				finished;
+	bool				iterating;
 
 	struct mtbl_sorter_options	opt;
 };
@@ -147,7 +152,7 @@ _mtbl_sorter_compare(const void *va, const void *vb)
 static void
 _mtbl_sorter_write_chunk(struct mtbl_sorter *s)
 {
-	assert(!s->finished);
+	assert(!s->iterating);
 
 	struct chunk *c = calloc(1, sizeof(*c));
 	assert(c != NULL);
@@ -223,28 +228,15 @@ _mtbl_sorter_write_chunk(struct mtbl_sorter *s)
 void
 mtbl_sorter_write(struct mtbl_sorter *s, struct mtbl_writer *w)
 {
-	struct mtbl_merger *m;
-	struct mtbl_merger_options *mopt;
+	assert(!s->iterating);
+	struct mtbl_iter *it = mtbl_sorter_iter(s);
+	const uint8_t *key, *val;
+	size_t len_key, len_val;
 
-	mopt = mtbl_merger_options_init();
-	mtbl_merger_options_set_merge_func(mopt, s->opt.merge, s->opt.merge_clos);
-	m = mtbl_merger_init(mopt);
-	mtbl_merger_options_destroy(&mopt);
+	while (mtbl_iter_next(it, &key, &len_key, &val, &len_val))
+		mtbl_writer_add(w, key, len_key, val, len_val);
 
-	if (entry_vec_size(s->vec) > 0)
-		_mtbl_sorter_write_chunk(s);
-
-	for (unsigned i = 0; i < chunk_vec_size(s->chunks); i++) {
-		struct chunk *c = chunk_vec_value(s->chunks, i);
-		struct mtbl_reader *r;
-		r = mtbl_reader_init_fd(c->fd, NULL);
-		assert(r != NULL);
-		mtbl_merger_add_reader(m, r);
-	}
-
-	mtbl_merger_write(m, w);
-	mtbl_merger_destroy(&m);
-	s->finished = true;
+	mtbl_iter_destroy(&it);
 }
 
 void
@@ -252,7 +244,7 @@ mtbl_sorter_add(struct mtbl_sorter *s,
 		const uint8_t *key, size_t len_key,
 		const uint8_t *val, size_t len_val)
 {
-	assert(!s->finished);
+	assert(!s->iterating);
 	assert(len_key <= UINT_MAX);
 	assert(len_val <= UINT_MAX);
 
@@ -271,4 +263,51 @@ mtbl_sorter_add(struct mtbl_sorter *s,
 
 	if (s->entry_bytes + entry_vec_bytes(s->vec) >= s->opt.max_memory)
 		_mtbl_sorter_write_chunk(s);
+}
+
+static bool
+sorter_iter_next(void *v,
+		 const uint8_t **key, size_t *len_key,
+		 const uint8_t **val, size_t *len_val)
+{
+	struct sorter_iter *it = (struct sorter_iter *) v;
+	return (mtbl_iter_next(it->m_iter, key, len_key, val, len_val));
+}
+
+static void
+sorter_iter_free(void *v)
+{
+	struct sorter_iter *it = (struct sorter_iter *) v;
+	if (it) {
+		mtbl_iter_destroy(&it->m_iter);
+		mtbl_merger_destroy(&it->m);
+		free(it);
+	}
+}
+
+struct mtbl_iter *
+mtbl_sorter_iter(struct mtbl_sorter *s)
+{
+	struct sorter_iter *it = calloc(1, sizeof(*it));
+	assert(it != NULL);
+
+	struct mtbl_merger_options *mopt = mtbl_merger_options_init();
+	mtbl_merger_options_set_merge_func(mopt, s->opt.merge, s->opt.merge_clos);
+	it->m = mtbl_merger_init(mopt);
+	mtbl_merger_options_destroy(&mopt);
+
+	if (entry_vec_size(s->vec) > 0)
+		_mtbl_sorter_write_chunk(s);
+
+	for (unsigned i = 0; i < chunk_vec_size(s->chunks); i++) {
+		struct chunk *c = chunk_vec_value(s->chunks, i);
+		struct mtbl_reader *r;
+		r = mtbl_reader_init_fd(c->fd, NULL);
+		assert(r != NULL);
+		mtbl_merger_add_reader(it->m, r);
+	}
+
+	it->m_iter = mtbl_merger_iter(it->m);
+	s->iterating = true;
+	return (iter_init(sorter_iter_next, sorter_iter_free, it));
 }

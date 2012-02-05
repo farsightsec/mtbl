@@ -137,6 +137,7 @@ void mtbl_sorter_add(struct mtbl_sorter *,
 	const uint8_t *key, size_t len_key,
 	const uint8_t *val, size_t len_val);
 void mtbl_sorter_write(struct mtbl_sorter *, struct mtbl_writer *);
+struct mtbl_iter *mtbl_sorter_iter(struct mtbl_sorter *s);
 
 /* sorter options */
 
