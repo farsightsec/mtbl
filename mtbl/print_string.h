@@ -14,6 +14,8 @@
  * OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
+#include <ctype.h>
+
 static inline void
 print_string(const uint8_t *data, size_t len, FILE *out) {
 	unsigned c;
