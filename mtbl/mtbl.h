@@ -59,8 +59,8 @@ struct mtbl_writer *mtbl_writer_init(
 struct mtbl_writer *mtbl_writer_init_fd(
 	int fd,
 	const struct mtbl_writer_options *);
-void mtbl_writer_destroy(struct mtbl_writer **w);
-void mtbl_writer_add(struct mtbl_writer *w,
+void mtbl_writer_destroy(struct mtbl_writer **);
+void mtbl_writer_add(struct mtbl_writer *,
 	const uint8_t *key, size_t len_key,
 	const uint8_t *val, size_t len_val);
 
@@ -73,10 +73,10 @@ void mtbl_writer_options_set_compression(
 	mtbl_compression_type);
 void mtbl_writer_options_set_block_size(
 	struct mtbl_writer_options *,
-	size_t block_size);
+	size_t);
 void mtbl_writer_options_set_block_restart_interval(
 	struct mtbl_writer_options *,
-	size_t block_restart_interval);
+	size_t);
 
 /* reader */
 
@@ -128,11 +128,11 @@ void mtbl_merger_options_set_merge_func(
 /* sorter */
 
 struct mtbl_sorter *mtbl_sorter_init(struct mtbl_sorter_options *);
-void mtbl_sorter_destroy(struct mtbl_sorter **s);
-void mtbl_sorter_add(struct mtbl_sorter *s,
+void mtbl_sorter_destroy(struct mtbl_sorter **);
+void mtbl_sorter_add(struct mtbl_sorter *,
 	const uint8_t *key, size_t len_key,
 	const uint8_t *val, size_t len_val);
-void mtbl_sorter_write(struct mtbl_sorter *s, struct mtbl_writer *w);
+void mtbl_sorter_write(struct mtbl_sorter *, struct mtbl_writer *);
 
 /* sorter options */
 
