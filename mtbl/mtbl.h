@@ -51,8 +51,18 @@ typedef void (*mtbl_merge_func)(void *clos,
 	const uint8_t *val1, size_t len_val1,
 	uint8_t **merged_val, size_t *len_merged_val);
 
+typedef bool (*mtbl_iter_next_func)(void *,
+	const uint8_t **key, size_t *len_key,
+	const uint8_t **val, size_t *len_val);
+
+typedef void (*mtbl_iter_free_func)(void *);
+
 /* iter */
 
+struct mtbl_iter *mtbl_iter_init(
+	mtbl_iter_next_func,
+	mtbl_iter_free_func,
+	void *clos);
 void mtbl_iter_destroy(struct mtbl_iter **);
 bool mtbl_iter_next(struct mtbl_iter *,
 	const uint8_t **key, size_t *len_key,

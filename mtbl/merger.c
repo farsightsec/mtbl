@@ -245,5 +245,5 @@ mtbl_merger_iter(struct mtbl_merger *m)
 {
 	m->iterating = true;
 	m->n_open = entry_vec_size(m->vec);
-	return (iter_init(merger_iter_next, merger_iter_free, m));
+	return (mtbl_iter_init(merger_iter_next, merger_iter_free, m));
 }

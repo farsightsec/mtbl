@@ -17,13 +17,15 @@
 #include "mtbl-private.h"
 
 struct mtbl_iter {
-	iter_next_func	iter_next;
-	iter_free_func	iter_free;
-	void		*clos;
+	mtbl_iter_next_func	iter_next;
+	mtbl_iter_free_func	iter_free;
+	void			*clos;
 };
 
 struct mtbl_iter *
-iter_init(iter_next_func iter_next, iter_free_func iter_free, void *clos)
+mtbl_iter_init(mtbl_iter_next_func iter_next,
+	       mtbl_iter_free_func iter_free,
+	       void *clos)
 {
 	assert(iter_next != NULL);
 	assert(iter_free != NULL);

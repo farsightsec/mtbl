@@ -309,5 +309,5 @@ mtbl_sorter_iter(struct mtbl_sorter *s)
 
 	it->m_iter = mtbl_merger_iter(it->m);
 	s->iterating = true;
-	return (iter_init(sorter_iter_next, sorter_iter_free, it));
+	return (mtbl_iter_init(sorter_iter_next, sorter_iter_free, it));
 }

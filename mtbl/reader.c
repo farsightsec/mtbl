@@ -329,7 +329,7 @@ mtbl_reader_iter(struct mtbl_reader *r)
 	it->first = true;
 	it->valid = true;
 	it->it_type = READ_ITER_TYPE_ALL;
-	return (iter_init(read_iter_next, read_iter_free, it));
+	return (mtbl_iter_init(read_iter_next, read_iter_free, it));
 }
 
 struct mtbl_iter *
@@ -343,7 +343,7 @@ mtbl_reader_get_range(struct mtbl_reader *r,
 	it->k = ubuf_init(len_key1);
 	ubuf_append(it->k, key1, len_key1);
 	it->it_type = READ_ITER_TYPE_RANGE;
-	return (iter_init(read_iter_next, read_iter_free, it));
+	return (mtbl_iter_init(read_iter_next, read_iter_free, it));
 }
 
 struct mtbl_iter *
@@ -356,7 +356,7 @@ mtbl_reader_get_prefix(struct mtbl_reader *r,
 	it->k = ubuf_init(len_key);
 	ubuf_append(it->k, key, len_key);
 	it->it_type = READ_ITER_TYPE_PREFIX;
-	return (iter_init(read_iter_next, read_iter_free, it));
+	return (mtbl_iter_init(read_iter_next, read_iter_free, it));
 }
 
 static void
