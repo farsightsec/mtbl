@@ -41,6 +41,8 @@ struct mtbl_writer;
 struct mtbl_writer_options;
 
 struct mtbl_merger;
+struct mtbl_sorter;
+struct mtbl_sorter_options;
 
 typedef void (*mtbl_merge_func)(void *clos,
 	const uint8_t *key, size_t len_key,
@@ -115,6 +117,30 @@ void mtbl_merger_merge(struct mtbl_merger *m,
 	struct mtbl_writer *w,
 	mtbl_merge_func merge_fp,
 	void *clos);
+
+/* sorter */
+
+struct mtbl_sorter *mtbl_sorter_init(struct mtbl_sorter_options *);
+void mtbl_sorter_destroy(struct mtbl_sorter **s);
+void mtbl_sorter_add(struct mtbl_sorter *s,
+	const uint8_t *key, size_t len_key,
+	const uint8_t *val, size_t len_val);
+void mtbl_sorter_write(struct mtbl_sorter *s, struct mtbl_writer *w);
+
+/* sorter options */
+
+struct mtbl_sorter_options *mtbl_sorter_options_init(void);
+void mtbl_sorter_options_destroy(struct mtbl_sorter_options **);
+void mtbl_sorter_options_set_merge_func(
+	struct mtbl_sorter_options *,
+	mtbl_merge_func merge_fp,
+	void *clos);
+void mtbl_sorter_options_set_temp_dir(
+	struct mtbl_sorter_options *,
+	const char *);
+void mtbl_sorter_options_set_max_memory(
+	struct mtbl_sorter_options *,
+	size_t);
 
 /* crc32c */
 

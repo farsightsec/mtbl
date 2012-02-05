@@ -30,6 +30,7 @@
 #include <sys/stat.h>
 #include <assert.h>
 #include <ctype.h>
+#include <dirent.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <limits.h>
@@ -53,6 +54,11 @@
 #define DEFAULT_BLOCK_RESTART_INTERVAL	16
 #define DEFAULT_BLOCK_SIZE		8192
 #define MIN_BLOCK_SIZE			1024
+
+#define DEFAULT_SORTER_TEMP_DIR		"/var/tmp"
+#define DEFAULT_SORTER_MEMORY		1073741824
+#define MIN_SORTER_MEMORY		10485760
+#define INITIAL_SORTER_VEC_SIZE		131072
 
 /* types */
 

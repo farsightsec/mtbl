@@ -38,6 +38,7 @@ mtbl_libmtbl_la_SOURCES = \
 	mtbl/mtbl.h \
 	mtbl/mtbl-private.h \
 	mtbl/reader.c \
+	mtbl/sorter.c \
 	mtbl/trailer.c \
 	mtbl/varint.c \
 	mtbl/writer.c
