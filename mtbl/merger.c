@@ -29,7 +29,6 @@ VECTOR_GENERATE(entry_vec, struct entry *);
 struct mtbl_merger {
 	bool				finished;
 	size_t				n_open;
-	size_t				n_entries_written;
 	entry_vec			*vec;
 	struct mtbl_writer		*w;
 	mtbl_merge_func			merge;
@@ -55,10 +54,7 @@ mtbl_merger_init(void)
 void
 mtbl_merger_destroy(struct mtbl_merger **m)
 {
-	fprintf(stderr, "%s: *m = %p\n", __func__, *m);
 	if (*m) {
-		fprintf(stderr, "%s: n_entries_written = %zd\n",
-			__func__, (*m)->n_entries_written);
 		for (unsigned i = 0; i < entry_vec_size((*m)->vec); i++) {
 			struct entry *e = entry_vec_value((*m)->vec, i);
 			free(e);
@@ -121,12 +117,10 @@ do_fill(struct mtbl_merger *m)
 				   &key, &len_key,
 				   &val, &len_val))
 		{
-			//fprintf(stderr, "%s: read one entry from reader @ %p\n", __func__, e);
 			ubuf_clip(e->val, 0);
 			ubuf_append(e->key, key, len_key);
 			ubuf_append(e->val, val, len_val);
 		} else {
-			//fprintf(stderr, "%s: closing reader @ %p\n", __func__, e);
 			m->n_open -= 1;
 			mtbl_iter_destroy(&e->it);
 			mtbl_reader_destroy(&e->r);
@@ -139,16 +133,6 @@ do_fill(struct mtbl_merger *m)
 static void
 do_output_cur(struct mtbl_merger *m)
 {
-	m->n_entries_written += 1;
-	/*
-	if ((m->n_entries_written % 10000) == 0) {
-		fprintf(stderr, "%s: wrote %zd entries\n", __func__, m->n_entries_written);
-		fprintf(stderr, "%s: writing key= '%.*s' val= '%.*s'\n", __func__,
-			(int)ubuf_size(m->cur_key), ubuf_data(m->cur_key),
-			(int)ubuf_size(m->cur_val), ubuf_data(m->cur_val)
-			);
-	}
-	*/
 	mtbl_writer_add(m->w,
 			ubuf_data(m->cur_key), ubuf_size(m->cur_key),
 			ubuf_data(m->cur_val), ubuf_size(m->cur_val));
@@ -163,7 +147,6 @@ do_output(struct mtbl_merger *m)
 	assert(e != NULL);
 
 	if (ubuf_size(m->cur_key) == 0) {
-		//fprintf(stderr, "%s: grabbing entry\n", __func__);
 		ubuf_clip(m->cur_val, 0);
 		ubuf_append(m->cur_key, ubuf_data(e->key), ubuf_size(e->key));
 		ubuf_append(m->cur_val, ubuf_data(e->val), ubuf_size(e->val));
@@ -176,12 +159,6 @@ do_output(struct mtbl_merger *m)
 	{
 		uint8_t *merged_val;
 		size_t len_merged_val;
-
-		/*
-		fprintf(stderr, "%s: needs merge: cur_key= '%.*s' e->key= '%.*s'\n", __func__,
-			(int)ubuf_size(m->cur_key), ubuf_data(m->cur_key),
-			(int)ubuf_size(e->key), ubuf_data(e->key));
-		*/
 
 		m->merge(m->merge_clos,
 			 ubuf_data(m->cur_key), ubuf_size(m->cur_key),
