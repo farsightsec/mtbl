@@ -37,9 +37,12 @@ mtbl_libmtbl_la_SOURCES = \
 	mtbl/merger.c \
 	mtbl/mtbl.h \
 	mtbl/mtbl-private.h \
+	mtbl/print_string.h \
 	mtbl/reader.c \
 	mtbl/sorter.c \
 	mtbl/trailer.c \
+	mtbl/vector.h \
+	mtbl/vector_types.h \
 	mtbl/varint.c \
 	mtbl/writer.c
 
