@@ -224,9 +224,11 @@ void
 mtbl_sorter_write(struct mtbl_sorter *s, struct mtbl_writer *w)
 {
 	struct mtbl_merger *m;
+	struct mtbl_merger_options *mopt;
 
-	m = mtbl_merger_init();
-	assert(m != NULL);
+	mopt = mtbl_merger_options_init();
+	mtbl_merger_options_set_merge_func(mopt, s->opt.merge, s->opt.merge_clos);
+	m = mtbl_merger_init(mopt);
 
 	if (entry_vec_size(s->vec) > 0)
 		_mtbl_sorter_write_chunk(s);
@@ -236,10 +238,10 @@ mtbl_sorter_write(struct mtbl_sorter *s, struct mtbl_writer *w)
 		struct mtbl_reader *r;
 		r = mtbl_reader_init_fd(c->fd, NULL);
 		assert(r != NULL);
-		mtbl_merger_add(m, r);
+		mtbl_merger_add_reader(m, r);
 	}
 
-	mtbl_merger_merge(m, w, s->opt.merge, s->opt.merge_clos);
+	mtbl_merger_write(m, w);
 	mtbl_merger_destroy(&m);
 	s->finished = true;
 }

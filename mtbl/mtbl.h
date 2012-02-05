@@ -41,6 +41,7 @@ struct mtbl_writer;
 struct mtbl_writer_options;
 
 struct mtbl_merger;
+struct mtbl_merger_options;
 struct mtbl_sorter;
 struct mtbl_sorter_options;
 
@@ -110,12 +111,18 @@ void mtbl_reader_options_set_verify_checksums(
 
 /* merger */
 
-struct mtbl_merger *mtbl_merger_init(void);
-void mtbl_merger_destroy(struct mtbl_merger **m);
-void mtbl_merger_add(struct mtbl_merger *m, struct mtbl_reader *r);
-void mtbl_merger_merge(struct mtbl_merger *m,
-	struct mtbl_writer *w,
-	mtbl_merge_func merge_fp,
+struct mtbl_merger *mtbl_merger_init(const struct mtbl_merger_options *);
+void mtbl_merger_destroy(struct mtbl_merger **);
+void mtbl_merger_add_reader(struct mtbl_merger *, struct mtbl_reader *);
+void mtbl_merger_write(struct mtbl_merger *, struct mtbl_writer *);
+
+/* merger options */
+
+struct mtbl_merger_options *mtbl_merger_options_init(void);
+void mtbl_merger_options_destroy(struct mtbl_merger_options **);
+void mtbl_merger_options_set_merge_func(
+	struct mtbl_merger_options *,
+	mtbl_merge_func,
 	void *clos);
 
 /* sorter */

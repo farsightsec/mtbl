@@ -26,19 +26,50 @@ struct entry {
 
 VECTOR_GENERATE(entry_vec, struct entry *);
 
+struct mtbl_merger_options {
+	mtbl_merge_func			merge;
+	void				*merge_clos;
+};
+
 struct mtbl_merger {
 	bool				finished;
 	size_t				n_open;
 	entry_vec			*vec;
 	struct mtbl_writer		*w;
-	mtbl_merge_func			merge;
-	void				*merge_clos;
 	ubuf				*cur_key;
 	ubuf				*cur_val;
+
+	struct mtbl_merger_options	opt;
 };
 
+struct mtbl_merger_options *
+mtbl_merger_options_init(void)
+{
+	struct mtbl_merger_options *opt;
+	opt = calloc(1, sizeof(*opt));
+	assert(opt != NULL);
+	return (opt);
+}
+
+void
+mtbl_merger_options_destroy(struct mtbl_merger_options **opt)
+{
+	if (*opt) {
+		free(*opt);
+		*opt = NULL;
+	}
+}
+
+void
+mtbl_merger_options_set_merge_func(struct mtbl_merger_options *opt,
+				   mtbl_merge_func merge, void *clos)
+{
+	opt->merge = merge;
+	opt->merge_clos = clos;
+}
+
 struct mtbl_merger *
-mtbl_merger_init(void)
+mtbl_merger_init(const struct mtbl_merger_options *opt)
 {
 	struct mtbl_merger *m;
 
@@ -47,6 +78,9 @@ mtbl_merger_init(void)
 	m->vec = entry_vec_init(0);
 	m->cur_key = ubuf_init(256);
 	m->cur_val = ubuf_init(256);
+	assert(opt != NULL);
+	assert(opt->merge != NULL);
+	memcpy(&m->opt, opt, sizeof(*opt));
 
 	return (m);
 }
@@ -68,7 +102,7 @@ mtbl_merger_destroy(struct mtbl_merger **m)
 }
 
 void
-mtbl_merger_add(struct mtbl_merger *m, struct mtbl_reader *r)
+mtbl_merger_add_reader(struct mtbl_merger *m, struct mtbl_reader *r)
 {
 	assert(!m->finished);
 	struct entry *e = calloc(1, sizeof(*e));
@@ -160,7 +194,7 @@ do_output(struct mtbl_merger *m)
 		uint8_t *merged_val;
 		size_t len_merged_val;
 
-		m->merge(m->merge_clos,
+		m->opt.merge(m->opt.merge_clos,
 			 ubuf_data(m->cur_key), ubuf_size(m->cur_key),
 			 ubuf_data(m->cur_val), ubuf_size(m->cur_val),
 			 ubuf_data(e->val), ubuf_size(e->val),
@@ -175,14 +209,10 @@ do_output(struct mtbl_merger *m)
 }
 
 void
-mtbl_merger_merge(struct mtbl_merger *m,
-		  struct mtbl_writer *w,
-		  mtbl_merge_func merge_fp, void *clos)
+mtbl_merger_write(struct mtbl_merger *m, struct mtbl_writer *w)
 {
 	struct entry **array = entry_vec_data(m->vec);
 	m->w = w;
-	m->merge = merge_fp;
-	m->merge_clos = clos;
 	m->n_open = entry_vec_size(m->vec);
 
 	for (;;) {
