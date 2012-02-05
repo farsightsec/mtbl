@@ -229,6 +229,7 @@ mtbl_sorter_write(struct mtbl_sorter *s, struct mtbl_writer *w)
 	mopt = mtbl_merger_options_init();
 	mtbl_merger_options_set_merge_func(mopt, s->opt.merge, s->opt.merge_clos);
 	m = mtbl_merger_init(mopt);
+	mtbl_merger_options_destroy(&mopt);
 
 	if (entry_vec_size(s->vec) > 0)
 		_mtbl_sorter_write_chunk(s);
