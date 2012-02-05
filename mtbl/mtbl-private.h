@@ -67,6 +67,16 @@ struct block_builder;
 struct block_iter;
 struct trailer;
 
+/* iter */
+
+typedef bool (*iter_next_func)(void *,
+	const uint8_t **key, size_t *len_key,
+	const uint8_t **val, size_t *len_val);
+
+typedef void (*iter_free_func)(void *);
+
+struct mtbl_iter *iter_init(iter_next_func, iter_free_func, void *);
+
 /* block */
 
 struct block *block_init(uint8_t *data, size_t size, bool needs_free);
