@@ -128,8 +128,7 @@ block_destroy(struct block **b)
 struct block_iter *
 block_iter_init(struct block *b)
 {
-	if (b->size < 2*sizeof(uint32_t))
-		return (NULL);
+	assert(b->size >= 2 * sizeof(uint32_t));
 	struct block_iter *bi = my_calloc(1, sizeof(*bi));
 	bi->block = b;
 	bi->data = b->data;

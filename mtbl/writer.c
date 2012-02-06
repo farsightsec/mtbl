@@ -100,8 +100,7 @@ mtbl_writer_init_fd(int orig_fd, const struct mtbl_writer_options *opt)
 	int fd;
 
 	fd = dup(orig_fd);
-	if (fd < 0)
-		return (NULL);
+	assert(fd >= 0);
 	w = my_calloc(1, sizeof(*w));
 	if (opt == NULL) {
 		w->opt.compression_type = DEFAULT_COMPRESSION_TYPE;
@@ -241,7 +240,6 @@ _mtbl_writer_writeblock(struct mtbl_writer *w,
 	z_stream zs;
 
 	block_builder_finish(b, &raw_contents, &raw_contents_size);
-	assert(raw_contents != NULL);
 
 	switch (compression_type) {
 	case MTBL_COMPRESSION_NONE:

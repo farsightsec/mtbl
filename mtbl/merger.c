@@ -193,7 +193,6 @@ merger_iter_next(void *v,
 		qsort(array, entry_vec_size(m->vec), sizeof(void *), _mtbl_merger_compare);
 
 		struct entry *e = entry_vec_value(m->vec, 0);
-		assert(e != NULL);
 
 		if (ubuf_size(m->cur_key) == 0) {
 			ubuf_clip(m->cur_val, 0);

@@ -162,14 +162,13 @@ _mtbl_sorter_write_chunk(struct mtbl_sorter *s)
 	ubuf_append(tmp_fname, (const uint8_t *) "\x00", 1);
 
 	c->fd = mkstemp((char *) ubuf_data(tmp_fname));
-	assert(c->fd > 0);
+	assert(c->fd >= 0);
 	int unlink_ret = unlink((char *) ubuf_data(tmp_fname));
 	assert(unlink_ret == 0);
 
 	struct mtbl_writer_options *wopt = mtbl_writer_options_init();
 	mtbl_writer_options_set_compression(wopt, MTBL_COMPRESSION_SNAPPY);
 	struct mtbl_writer *w = mtbl_writer_init_fd(c->fd, wopt);
-	assert(w != NULL);
 	mtbl_writer_options_destroy(&wopt);
 
 	size_t entries_written = 0;
@@ -297,7 +296,6 @@ mtbl_sorter_iter(struct mtbl_sorter *s)
 		struct chunk *c = chunk_vec_value(s->chunks, i);
 		struct mtbl_reader *r;
 		r = mtbl_reader_init_fd(c->fd, NULL);
-		assert(r != NULL);
 		mtbl_merger_add_reader(it->m, r);
 	}
 

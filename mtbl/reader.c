@@ -87,15 +87,11 @@ mtbl_reader_init_fd(int orig_fd, const struct mtbl_reader_options *opt)
 	uint32_t index_crc;
 	uint8_t *index_data;
 
-	if (orig_fd < 0)
-		return (NULL);
+	assert(orig_fd >= 0);
 	fd = dup(orig_fd);
-	if (fd < 0)
-		return (NULL);
-	if (fstat(fd, &ss) < 0) {
-		close(fd);
-		return (NULL);
-	}
+	assert(fd >= 0);
+	int ret = fstat(fd, &ss);
+	assert(ret == 0);
 
 	r = my_calloc(1, sizeof(*r));
 	if (opt != NULL)
@@ -120,9 +116,7 @@ mtbl_reader_init_fd(int orig_fd, const struct mtbl_reader_options *opt)
 	index_data = r->data + r->t.index_block_offset + 2 * sizeof(uint32_t);
 	assert(index_crc == mtbl_crc32c(index_data, index_len));
 	r->index = block_init(index_data, index_len, false);
-	assert(r->index != NULL);
 	r->index_iter = block_iter_init(r->index);
-	assert(r->index_iter != NULL);
 
 	return (r);
 }
@@ -159,7 +153,6 @@ static struct block *
 get_block(struct mtbl_reader *r, uint64_t offset)
 {
 	bool needs_free = false;
-	struct block *b;
 	uint8_t *block_contents = NULL, *raw_contents = NULL;
 	size_t block_contents_size = 0, raw_contents_size = 0;
 	snappy_status res;
@@ -213,10 +206,7 @@ get_block(struct mtbl_reader *r, uint64_t offset)
 		break;
 	}
 
-	b = block_init(block_contents, block_contents_size, needs_free);
-	assert(b != NULL);
-
-	return (b);
+	return (block_init(block_contents, block_contents_size, needs_free));
 }
 
 static struct block *
@@ -251,8 +241,6 @@ mtbl_reader_get(struct mtbl_reader *r,
 	b = get_block_at_index(r, r->index_iter);
 	if (b != NULL) {
 		struct block_iter *bi = block_iter_init(b);
-		assert(bi != NULL);
-
 		block_iter_seek(bi, key, len_key);
 		block_iter_get(bi, &bkey, &bkey_len, &bval, &bval_len);
 		if (bytes_compare(key, len_key, bkey, bkey_len) == 0) {
@@ -275,7 +263,6 @@ read_iter_init(struct mtbl_reader *r, const uint8_t *key, size_t len_key)
 
 	it->r = r;
 	it->index_iter = block_iter_init(r->index);
-	assert(it->index_iter != NULL);
 
 	block_iter_seek(it->index_iter, key, len_key);
 	it->b = get_block_at_index(r, it->index_iter);
@@ -301,7 +288,6 @@ mtbl_reader_iter(struct mtbl_reader *r)
 
 	it->r = r;
 	it->index_iter = block_iter_init(r->index);
-	assert(it->index_iter != NULL);
 
 	block_iter_seek_to_first(it->index_iter);
 	it->b = get_block_at_index(r, it->index_iter);
