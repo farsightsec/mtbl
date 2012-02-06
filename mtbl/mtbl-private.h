@@ -134,4 +134,28 @@ bytes_compare(const uint8_t *a, size_t len_a,
 	return (ret);
 }
 
+static inline void *
+my_calloc(size_t nmemb, size_t size)
+{
+	void *ptr = calloc(nmemb, size);
+	assert(ptr != NULL);
+	return (ptr);
+}
+
+static inline void *
+my_malloc(size_t size)
+{
+	void *ptr = malloc(size);
+	assert(ptr != NULL);
+	return (ptr);
+}
+
+static inline void *
+my_realloc(void *ptr, size_t size)
+{
+	ptr = realloc(ptr, size);
+	assert(ptr != NULL);
+	return (ptr);
+}
+
 #endif /* MTBL_PRIVATE_H */
