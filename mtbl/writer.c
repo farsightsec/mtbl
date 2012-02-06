@@ -149,7 +149,7 @@ mtbl_writer_destroy(struct mtbl_writer **w)
 	}
 }
 
-bool
+mtbl_res
 mtbl_writer_add(struct mtbl_writer *w,
 		const uint8_t *key, size_t len_key,
 		const uint8_t *val, size_t len_val)
@@ -159,7 +159,7 @@ mtbl_writer_add(struct mtbl_writer *w,
 		if (!(bytes_compare(key, len_key,
 				    ubuf_data(w->last_key), ubuf_size(w->last_key)) > 0))
 		{
-			return (false);
+			return (mtbl_res_failure);
 		}
 	}
 
@@ -192,7 +192,7 @@ mtbl_writer_add(struct mtbl_writer *w,
 	w->t.bytes_keys += len_key;
 	w->t.bytes_values += len_val;
 	block_builder_add(w->data, key, len_key, val, len_val);
-	return (true);
+	return (mtbl_res_success);
 }
 
 static void

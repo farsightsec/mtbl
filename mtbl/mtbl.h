@@ -31,6 +31,11 @@ typedef enum {
 	MTBL_COMPRESSION_ZLIB = 2
 } mtbl_compression_type;
 
+typedef enum {
+	mtbl_res_failure = 0,
+	mtbl_res_success = 1
+} mtbl_res;
+
 /* exported types */
 
 struct mtbl_iter;
@@ -51,7 +56,7 @@ typedef void (*mtbl_merge_func)(void *clos,
 	const uint8_t *val1, size_t len_val1,
 	uint8_t **merged_val, size_t *len_merged_val);
 
-typedef bool (*mtbl_iter_next_func)(void *,
+typedef mtbl_res (*mtbl_iter_next_func)(void *,
 	const uint8_t **key, size_t *len_key,
 	const uint8_t **val, size_t *len_val);
 
@@ -64,9 +69,10 @@ struct mtbl_iter *mtbl_iter_init(
 	mtbl_iter_free_func,
 	void *clos);
 void mtbl_iter_destroy(struct mtbl_iter **);
-bool mtbl_iter_next(struct mtbl_iter *,
+mtbl_res mtbl_iter_next(struct mtbl_iter *,
 	const uint8_t **key, size_t *len_key,
-	const uint8_t **val, size_t *len_val);
+	const uint8_t **val, size_t *len_val)
+	__attribute__((warn_unused_result));
 
 /* writer */
 
@@ -77,7 +83,7 @@ struct mtbl_writer *mtbl_writer_init_fd(
 	int fd,
 	const struct mtbl_writer_options *);
 void mtbl_writer_destroy(struct mtbl_writer **);
-bool mtbl_writer_add(struct mtbl_writer *,
+mtbl_res mtbl_writer_add(struct mtbl_writer *,
 	const uint8_t *key, size_t len_key,
 	const uint8_t *val, size_t len_val);
 
@@ -104,7 +110,7 @@ struct mtbl_reader *mtbl_reader_init_fd(
 	int fd,
 	const struct mtbl_reader_options *);
 void mtbl_reader_destroy(struct mtbl_reader **);
-bool mtbl_reader_get(struct mtbl_reader *,
+mtbl_res mtbl_reader_get(struct mtbl_reader *,
 	const uint8_t *key, size_t len_key,
 	uint8_t **val, size_t *len_val);
 struct mtbl_iter *mtbl_reader_iter(struct mtbl_reader *);
@@ -126,8 +132,14 @@ void mtbl_reader_options_set_verify_checksums(
 
 struct mtbl_merger *mtbl_merger_init(const struct mtbl_merger_options *);
 void mtbl_merger_destroy(struct mtbl_merger **);
-void mtbl_merger_add_reader(struct mtbl_merger *, struct mtbl_reader *);
-void mtbl_merger_write(struct mtbl_merger *, struct mtbl_writer *);
+mtbl_res mtbl_merger_add_reader(
+	struct mtbl_merger *,
+	struct mtbl_reader *)
+	__attribute__((warn_unused_result));
+mtbl_res mtbl_merger_write(
+	struct mtbl_merger *,
+	struct mtbl_writer *)
+	__attribute__((warn_unused_result));
 struct mtbl_iter *mtbl_merger_iter(struct mtbl_merger *);
 
 /* merger options */
@@ -143,10 +155,14 @@ void mtbl_merger_options_set_merge_func(
 
 struct mtbl_sorter *mtbl_sorter_init(struct mtbl_sorter_options *);
 void mtbl_sorter_destroy(struct mtbl_sorter **);
-void mtbl_sorter_add(struct mtbl_sorter *,
+mtbl_res mtbl_sorter_add(struct mtbl_sorter *,
 	const uint8_t *key, size_t len_key,
-	const uint8_t *val, size_t len_val);
-void mtbl_sorter_write(struct mtbl_sorter *, struct mtbl_writer *);
+	const uint8_t *val, size_t len_val)
+	__attribute__((warn_unused_result));
+mtbl_res mtbl_sorter_write(
+	struct mtbl_sorter *,
+	struct mtbl_writer *)
+	__attribute__((warn_unused_result));
 struct mtbl_iter *mtbl_sorter_iter(struct mtbl_sorter *s);
 
 /* sorter options */

@@ -46,7 +46,7 @@ mtbl_iter_destroy(struct mtbl_iter **it)
 	}
 }
 
-bool
+mtbl_res
 mtbl_iter_next(struct mtbl_iter *it,
 	       const uint8_t **key, size_t *len_key,
 	       const uint8_t **val, size_t *len_val)

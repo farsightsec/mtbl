@@ -220,26 +220,28 @@ _mtbl_sorter_write_chunk(struct mtbl_sorter *s)
 	ubuf_destroy(&tmp_fname);
 }
 
-void
+mtbl_res
 mtbl_sorter_write(struct mtbl_sorter *s, struct mtbl_writer *w)
 {
-	assert(!s->iterating);
+	if (s->iterating)
+		return (mtbl_res_failure);
 	struct mtbl_iter *it = mtbl_sorter_iter(s);
 	const uint8_t *key, *val;
 	size_t len_key, len_val;
 
 	while (mtbl_iter_next(it, &key, &len_key, &val, &len_val))
 		mtbl_writer_add(w, key, len_key, val, len_val);
-
 	mtbl_iter_destroy(&it);
+	return (mtbl_res_success);
 }
 
-void
+mtbl_res
 mtbl_sorter_add(struct mtbl_sorter *s,
 		const uint8_t *key, size_t len_key,
 		const uint8_t *val, size_t len_val)
 {
-	assert(!s->iterating);
+	if (s->iterating)
+		return (mtbl_res_failure);
 	assert(len_key <= UINT_MAX);
 	assert(len_val <= UINT_MAX);
 
@@ -257,9 +259,10 @@ mtbl_sorter_add(struct mtbl_sorter *s,
 
 	if (s->entry_bytes + entry_vec_bytes(s->vec) >= s->opt.max_memory)
 		_mtbl_sorter_write_chunk(s);
+	return (mtbl_res_success);
 }
 
-static bool
+static mtbl_res
 sorter_iter_next(void *v,
 		 const uint8_t **key, size_t *len_key,
 		 const uint8_t **val, size_t *len_val)
@@ -296,7 +299,11 @@ mtbl_sorter_iter(struct mtbl_sorter *s)
 		struct chunk *c = chunk_vec_value(s->chunks, i);
 		struct mtbl_reader *r;
 		r = mtbl_reader_init_fd(c->fd, NULL);
-		mtbl_merger_add_reader(it->m, r);
+		if (mtbl_merger_add_reader(it->m, r) != mtbl_res_success) {
+			mtbl_merger_destroy(&it->m);
+			free(it);
+			return (NULL);
+		}
 	}
 
 	it->m_iter = mtbl_merger_iter(it->m);

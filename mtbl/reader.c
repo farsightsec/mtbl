@@ -50,7 +50,7 @@ struct mtbl_reader {
 	struct block_iter		*index_iter;
 };
 
-static bool read_iter_next(void *, const uint8_t **, size_t *, const uint8_t **, size_t *);
+static mtbl_res read_iter_next(void *, const uint8_t **, size_t *, const uint8_t **, size_t *);
 static void read_iter_free(void *);
 
 struct mtbl_reader_options *
@@ -227,13 +227,13 @@ get_block_at_index(struct mtbl_reader *r, struct block_iter *index_iter)
 	return (NULL);
 }
 
-bool
+mtbl_res
 mtbl_reader_get(struct mtbl_reader *r,
 		const uint8_t *key, size_t len_key,
 		uint8_t **val, size_t *len_val)
 {
 	struct block *b;
-	bool res = false;
+	mtbl_res res = mtbl_res_failure;
 	const uint8_t *bkey, *bval;
 	size_t bkey_len, bval_len;
 
@@ -247,7 +247,7 @@ mtbl_reader_get(struct mtbl_reader *r,
 			*len_val = bval_len;
 			*val = my_malloc(bval_len);
 			memcpy(*val, bval, bval_len);
-			res = true;
+			res = mtbl_res_success;
 		}
 		block_iter_destroy(&bi);
 		block_destroy(&b);
@@ -347,14 +347,14 @@ read_iter_free(void *v)
 	}
 }
 
-static bool
+static mtbl_res
 read_iter_next(void *v,
 	       const uint8_t **key, size_t *len_key,
 	       const uint8_t **val, size_t *len_val)
 {
 	struct read_iter *it = (struct read_iter *) v;
 	if (!it->valid)
-		return (false);
+		return (mtbl_res_failure);
 
 	if (!it->first)
 		block_iter_next(it->bi);
@@ -365,13 +365,13 @@ read_iter_next(void *v,
 		block_destroy(&it->b);
 		block_iter_destroy(&it->bi);
 		if (!block_iter_next(it->index_iter))
-			return (false);
+			return (mtbl_res_failure);
 		it->b = get_block_at_index(it->r, it->index_iter);
 		it->bi = block_iter_init(it->b);
 		block_iter_seek_to_first(it->bi);
 		it->valid = block_iter_get(it->bi, key, len_key, val, len_val);
 		if (!it->valid)
-			return (false);
+			return (mtbl_res_failure);
 	}
 
 	switch (it->it_type) {
@@ -394,5 +394,7 @@ read_iter_next(void *v,
 		assert(0);
 	}
 
-	return (it->valid);
+	if (it->valid)
+		return (mtbl_res_success);
+	return (mtbl_res_failure);
 }

@@ -97,18 +97,19 @@ mtbl_merger_destroy(struct mtbl_merger **m)
 	}
 }
 
-void
+mtbl_res
 mtbl_merger_add_reader(struct mtbl_merger *m, struct mtbl_reader *r)
 {
-	assert(!m->finished && !m->iterating);
+	if (m->finished || m->iterating)
+		return (mtbl_res_failure);
 	struct entry *e = my_calloc(1, sizeof(*e));
 	e->r = r;
 	e->it = mtbl_reader_iter(r);
 	assert(e->it != NULL);
 	e->key = ubuf_init(256);
 	e->val = ubuf_init(256);
-
 	entry_vec_add(m->vec, e);
+	return (mtbl_res_success);
 }
 
 static int
@@ -128,30 +129,30 @@ _mtbl_merger_compare(const void *va, const void *vb)
 			      ubuf_data(b->key), ubuf_size(b->key)));
 }
 
-void
+mtbl_res
 mtbl_merger_write(struct mtbl_merger *m, struct mtbl_writer *w)
 {
-	assert(!m->finished && !m->iterating);
+	if (m->finished || m->iterating)
+		return (mtbl_res_failure);
 	struct mtbl_iter *it = mtbl_merger_iter(m);
 	const uint8_t *key, *val;
 	size_t len_key, len_val;
 
 	while (mtbl_iter_next(it, &key, &len_key, &val, &len_val))
 		mtbl_writer_add(w, key, len_key, val, len_val);
-
 	mtbl_iter_destroy(&it);
-
 	m->finished = true;
+	return (mtbl_res_success);
 }
 
-static bool
+static mtbl_res
 merger_iter_next(void *v,
 		 const uint8_t **out_key, size_t *out_len_key,
 		 const uint8_t **out_val, size_t *out_len_val)
 {
 	struct mtbl_merger *m = (struct mtbl_merger *) v;
 	if (m->finished)
-		return (false);
+		return (mtbl_res_failure);
 
 	ubuf_clip(m->cur_key, 0);
 	ubuf_clip(m->cur_val, 0);
@@ -225,7 +226,7 @@ merger_iter_next(void *v,
 	*out_val = ubuf_data(m->cur_val);
 	*out_len_key = ubuf_size(m->cur_key);
 	*out_len_val = ubuf_size(m->cur_val);
-	return (true);
+	return (mtbl_res_success);
 }
 
 static void
