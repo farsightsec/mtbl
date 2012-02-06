@@ -77,7 +77,7 @@ struct mtbl_writer *mtbl_writer_init_fd(
 	int fd,
 	const struct mtbl_writer_options *);
 void mtbl_writer_destroy(struct mtbl_writer **);
-void mtbl_writer_add(struct mtbl_writer *,
+bool mtbl_writer_add(struct mtbl_writer *,
 	const uint8_t *key, size_t len_key,
 	const uint8_t *val, size_t len_val);
 

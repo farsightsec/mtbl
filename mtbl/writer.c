@@ -149,14 +149,19 @@ mtbl_writer_destroy(struct mtbl_writer **w)
 	}
 }
 
-void
+bool
 mtbl_writer_add(struct mtbl_writer *w,
 		const uint8_t *key, size_t len_key,
 		const uint8_t *val, size_t len_val)
 {
 	assert(!w->closed);
-	if (w->t.count_entries > 0)
-		assert(bytes_compare(key, len_key, ubuf_data(w->last_key), ubuf_size(w->last_key)) > 0);
+	if (w->t.count_entries > 0) {
+		if (!(bytes_compare(key, len_key,
+				    ubuf_data(w->last_key), ubuf_size(w->last_key)) > 0))
+		{
+			return (false);
+		}
+	}
 
 	size_t estimated_block_size = block_builder_current_size_estimate(w->data);
 	estimated_block_size += 3*5 + len_key + len_val;
@@ -187,6 +192,7 @@ mtbl_writer_add(struct mtbl_writer *w,
 	w->t.bytes_keys += len_key;
 	w->t.bytes_values += len_val;
 	block_builder_add(w->data, key, len_key, val, len_val);
+	return (true);
 }
 
 static void
