@@ -204,7 +204,7 @@ get_block(struct mtbl_reader *r, uint64_t offset)
 		assert(zret == Z_OK);
 		zs.avail_in = raw_contents_size;
 		zs.next_in = raw_contents;
-		zs.avail_out = 131072;
+		zs.avail_out = block_contents_size;
 		zs.next_out = block_contents = my_calloc(1, block_contents_size);
 		zret = inflate(&zs, Z_NO_FLUSH);
 		assert(zret == Z_STREAM_END);
