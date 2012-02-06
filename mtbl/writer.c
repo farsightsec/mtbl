@@ -158,6 +158,12 @@ mtbl_writer_add(struct mtbl_writer *w,
 	if (w->t.count_entries > 0)
 		assert(bytes_compare(key, len_key, ubuf_data(w->last_key), ubuf_size(w->last_key)) > 0);
 
+	size_t estimated_block_size = block_builder_current_size_estimate(w->data);
+	estimated_block_size += 3*5 + len_key + len_val;
+
+	if (estimated_block_size >= w->opt.block_size)
+		_mtbl_writer_flush(w);
+
 	if (w->pending_index_entry) {
 		/* XXX use shortest separator */
 		uint8_t enc[10];
@@ -181,10 +187,6 @@ mtbl_writer_add(struct mtbl_writer *w,
 	w->t.bytes_keys += len_key;
 	w->t.bytes_values += len_val;
 	block_builder_add(w->data, key, len_key, val, len_val);
-
-	const size_t estimated_block_size = block_builder_current_size_estimate(w->data);
-	if (estimated_block_size >= w->opt.block_size)
-		_mtbl_writer_flush(w);
 }
 
 static void
