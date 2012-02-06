@@ -45,10 +45,7 @@ struct mtbl_merger {
 struct mtbl_merger_options *
 mtbl_merger_options_init(void)
 {
-	struct mtbl_merger_options *opt;
-	opt = calloc(1, sizeof(*opt));
-	assert(opt != NULL);
-	return (opt);
+	return (my_calloc(1, sizeof(struct mtbl_merger_options)));
 }
 
 void
@@ -73,8 +70,7 @@ mtbl_merger_init(const struct mtbl_merger_options *opt)
 {
 	struct mtbl_merger *m;
 
-	m = calloc(1, sizeof(*m));
-	assert(m != NULL);
+	m = my_calloc(1, sizeof(*m));
 	m->vec = entry_vec_init(0);
 	m->cur_key = ubuf_init(256);
 	m->cur_val = ubuf_init(256);
@@ -105,8 +101,7 @@ void
 mtbl_merger_add_reader(struct mtbl_merger *m, struct mtbl_reader *r)
 {
 	assert(!m->finished && !m->iterating);
-	struct entry *e = calloc(1, sizeof(*e));
-	assert(e != NULL);
+	struct entry *e = my_calloc(1, sizeof(*e));
 	e->r = r;
 	e->it = mtbl_reader_iter(r);
 	assert(e->it != NULL);

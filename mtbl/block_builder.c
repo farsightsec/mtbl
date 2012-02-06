@@ -33,15 +33,10 @@ block_builder_init(size_t block_restart_interval)
 {
 	struct block_builder *b;
 
-	b = calloc(1, sizeof(*b));
-	if (b == NULL)
-		return (NULL);
-
+	b = my_calloc(1, sizeof(*b));
 	b->block_restart_interval = block_restart_interval;
-
 	b->buf = ubuf_init(65536);
 	b->last_key = ubuf_init(256);
-
 	b->restarts = uint32_vec_init(64);
 	uint32_vec_add(b->restarts, 0);
 

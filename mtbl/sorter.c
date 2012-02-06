@@ -59,8 +59,7 @@ struct mtbl_sorter_options *
 mtbl_sorter_options_init(void)
 {
 	struct mtbl_sorter_options *opt;
-	opt = calloc(1, sizeof(*opt));
-	assert(opt != NULL);
+	opt = my_calloc(1, sizeof(*opt));
 	opt->max_memory = DEFAULT_SORTER_MEMORY;
 	mtbl_sorter_options_set_temp_dir(opt, DEFAULT_SORTER_TEMP_DIR);
 	return (opt);
@@ -106,8 +105,7 @@ mtbl_sorter_init(struct mtbl_sorter_options *opt)
 {
 	struct mtbl_sorter *s;
 
-	s = calloc(1, sizeof(*s));
-	assert(s != NULL);
+	s = my_calloc(1, sizeof(*s));
 	if (opt != NULL) {
 		memcpy(&s->opt, opt, sizeof(*opt));
 		opt->tmp_dname = NULL;
@@ -154,8 +152,7 @@ _mtbl_sorter_write_chunk(struct mtbl_sorter *s)
 {
 	assert(!s->iterating);
 
-	struct chunk *c = calloc(1, sizeof(*c));
-	assert(c != NULL);
+	struct chunk *c = my_calloc(1, sizeof(*c));
 
 	char template[64];
 	sprintf(template, "/.mtbl.%ld.XXXXXX", (long)getpid());
@@ -196,8 +193,7 @@ _mtbl_sorter_write_chunk(struct mtbl_sorter *s)
 					     &merge_val, &len_merge_val);
 				assert(merge_val != NULL);
 				size_t len = sizeof(struct entry) + ent->len_key + len_merge_val;
-				merge_ent = malloc(len);
-				assert(merge_ent != NULL);
+				merge_ent = my_malloc(len);
 				merge_ent->len_key = ent->len_key;
 				merge_ent->len_val = len_merge_val;
 				memcpy(entry_key(merge_ent), entry_key(ent), ent->len_key);
@@ -252,8 +248,7 @@ mtbl_sorter_add(struct mtbl_sorter *s,
 	size_t entry_bytes;
 
 	entry_bytes = sizeof(*ent) + len_key + len_val;
-	ent = malloc(entry_bytes);
-	assert(ent != NULL);
+	ent = my_malloc(entry_bytes);
 	ent->len_key = len_key;
 	ent->len_val = len_val;
 	memcpy(entry_key(ent), key, len_key);
@@ -288,8 +283,7 @@ sorter_iter_free(void *v)
 struct mtbl_iter *
 mtbl_sorter_iter(struct mtbl_sorter *s)
 {
-	struct sorter_iter *it = calloc(1, sizeof(*it));
-	assert(it != NULL);
+	struct sorter_iter *it = my_calloc(1, sizeof(*it));
 
 	struct mtbl_merger_options *mopt = mtbl_merger_options_init();
 	mtbl_merger_options_set_merge_func(mopt, s->opt.merge, s->opt.merge_clos);

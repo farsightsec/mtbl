@@ -56,10 +56,7 @@ static void read_iter_free(void *);
 struct mtbl_reader_options *
 mtbl_reader_options_init(void)
 {
-	struct mtbl_reader_options *opt;
-	opt = calloc(1, sizeof(*opt));
-	assert(opt != NULL);
-	return (opt);
+	return (my_calloc(1, sizeof(struct mtbl_reader_options)));
 }
 
 void
@@ -100,8 +97,7 @@ mtbl_reader_init_fd(int orig_fd, const struct mtbl_reader_options *opt)
 		return (NULL);
 	}
 
-	r = calloc(1, sizeof(*r));
-	assert(r != NULL);
+	r = my_calloc(1, sizeof(*r));
 	if (opt != NULL)
 		memcpy(&r->opt, opt, sizeof(*opt));
 	r->fd = fd;
@@ -190,8 +186,7 @@ get_block(struct mtbl_reader *r, uint64_t offset)
 	case MTBL_COMPRESSION_SNAPPY:
 		needs_free = true;
 		block_contents_size = 2 * r->t.data_block_size;
-		block_contents = calloc(1, block_contents_size);
-		assert(block_contents != NULL);
+		block_contents = my_calloc(1, block_contents_size);
 		res = snappy_uncompress((const char *)raw_contents, raw_contents_size,
 					(char *) block_contents, &block_contents_size);
 		assert(res == SNAPPY_OK);
@@ -210,8 +205,7 @@ get_block(struct mtbl_reader *r, uint64_t offset)
 		zs.avail_in = raw_contents_size;
 		zs.next_in = raw_contents;
 		zs.avail_out = 131072;
-		zs.next_out = block_contents = calloc(1, block_contents_size);
-		assert(zs.next_out != NULL);
+		zs.next_out = block_contents = my_calloc(1, block_contents_size);
 		zret = inflate(&zs, Z_NO_FLUSH);
 		assert(zret == Z_STREAM_END);
 		block_contents_size = zs.total_out;
@@ -263,8 +257,7 @@ mtbl_reader_get(struct mtbl_reader *r,
 		block_iter_get(bi, &bkey, &bkey_len, &bval, &bval_len);
 		if (bytes_compare(key, len_key, bkey, bkey_len) == 0) {
 			*len_val = bval_len;
-			*val = malloc(bval_len);
-			assert(*val != NULL);
+			*val = my_malloc(bval_len);
 			memcpy(*val, bval, bval_len);
 			res = true;
 		}
@@ -278,9 +271,7 @@ mtbl_reader_get(struct mtbl_reader *r,
 static struct read_iter *
 read_iter_init(struct mtbl_reader *r, const uint8_t *key, size_t len_key)
 {
-	struct read_iter *it;
-	it = calloc(1, sizeof(*it));
-	assert(it != NULL);
+	struct read_iter *it = my_calloc(1, sizeof(*it));
 
 	it->r = r;
 	it->index_iter = block_iter_init(r->index);
@@ -306,9 +297,7 @@ read_iter_init(struct mtbl_reader *r, const uint8_t *key, size_t len_key)
 struct mtbl_iter *
 mtbl_reader_iter(struct mtbl_reader *r)
 {
-	struct read_iter *it;
-	it = calloc(1, sizeof(*it));
-	assert(it != NULL);
+	struct read_iter *it = my_calloc(1, sizeof(*it));
 
 	it->r = r;
 	it->index_iter = block_iter_init(r->index);

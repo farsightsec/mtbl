@@ -99,8 +99,7 @@ decode_entry(uint8_t *p, uint8_t *limit,
 struct block *
 block_init(uint8_t *data, size_t size, bool needs_free)
 {
-	struct block *b = calloc(1, sizeof(*b));
-	assert(b != NULL);
+	struct block *b = my_calloc(1, sizeof(*b));
 	b->data = data;
 	b->size = size;
 	if (size < sizeof(uint32_t)) {
@@ -131,8 +130,7 @@ block_iter_init(struct block *b)
 {
 	if (b->size < 2*sizeof(uint32_t))
 		return (NULL);
-	struct block_iter *bi = calloc(1, sizeof(*bi));
-	assert(bi != NULL);
+	struct block_iter *bi = my_calloc(1, sizeof(*bi));
 	bi->block = b;
 	bi->data = b->data;
 	bi->restarts = b->restart_offset;

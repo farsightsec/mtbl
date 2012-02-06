@@ -29,8 +29,7 @@ mtbl_iter_init(mtbl_iter_next_func iter_next,
 {
 	assert(iter_next != NULL);
 	assert(iter_free != NULL);
-	struct mtbl_iter *it = calloc(1, sizeof(*it));
-	assert(it != NULL);
+	struct mtbl_iter *it = my_calloc(1, sizeof(*it));
 	it->iter_next = iter_next;
 	it->iter_free = iter_free;
 	it->clos = clos;

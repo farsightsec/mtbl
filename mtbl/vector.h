@@ -26,12 +26,10 @@ static inline name *							\
 name##_init(unsigned hint)						\
 {									\
 	name *vec;							\
-	vec = calloc(1, sizeof(name));					\
-	assert(vec != NULL);						\
+	vec = my_calloc(1, sizeof(name));				\
 	if (hint == 0) hint = 1;					\
 	vec->_hint = vec->_n_alloced = hint;				\
-	vec->_v = malloc(vec->_n_alloced * sizeof(type));		\
-	assert(vec->_v != NULL);					\
+	vec->_v = my_malloc(vec->_n_alloced * sizeof(type));		\
 	vec->_p = &(vec->_v[0]);					\
 	return (vec);							\
 }									\
@@ -41,8 +39,7 @@ name##_detach(name *vec, type **out, size_t *outsz)			\
 	*(out) = (vec)->_v;						\
 	*(outsz) = (vec)->_n;						\
 	(vec)->_n_alloced = (vec)->_hint;				\
-	(vec)->_v = malloc((vec)->_n_alloced * sizeof(type));		\
-	assert((vec)->_v != NULL);					\
+	(vec)->_v = my_malloc((vec)->_n_alloced * sizeof(type));	\
 	(vec)->_p = &(vec->_v[0]);					\
 }									\
 static inline void							\
@@ -59,9 +56,8 @@ name##_add(name *vec, type elem)					\
 {									\
 	if ((vec)->_n == (vec)->_n_alloced - 1) {			\
 		(vec)->_n_alloced *= 2;					\
-		(vec)->_v = realloc((vec)->_v, (vec)->_n_alloced	\
+		(vec)->_v = my_realloc((vec)->_v, (vec)->_n_alloced	\
 				   * sizeof(type));			\
-		assert((vec)->_v != NULL);				\
 	}								\
 	(vec)->_v[(vec)->_n] = elem;					\
 	(vec)->_n += 1;							\
@@ -72,9 +68,8 @@ name##_reserve(name *vec, size_t n_elems)				\
 {									\
 	while ((n_elems) > ((vec)->_n_alloced - (vec)->_n)) {		\
 		(vec)->_n_alloced *= 2;					\
-		(vec)->_v = realloc((vec)->_v, (vec)->_n_alloced	\
+		(vec)->_v = my_realloc((vec)->_v, (vec)->_n_alloced	\
 				   * sizeof(type));			\
-		assert((vec)->_v != NULL);				\
 		(vec)->_p = &((vec)->_v[(vec)->_n]);			\
 	}								\
 }									\
@@ -92,9 +87,8 @@ name##_reset(name *vec)							\
 	(vec)->_n = 0;							\
 	if ((vec)->_n_alloced > (vec)->_hint) {				\
 		(vec)->_n_alloced = (vec)->_hint;			\
-		(vec)->_v = realloc((vec)->_v, (vec)->_n_alloced	\
+		(vec)->_v = my_realloc((vec)->_v, (vec)->_n_alloced	\
 				   * sizeof(type));			\
-		assert((vec)->_v != NULL);				\
 	}								\
 	(vec)->_p = &(vec->_v[0]);					\
 }									\

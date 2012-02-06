@@ -51,8 +51,7 @@ struct mtbl_writer_options *
 mtbl_writer_options_init(void)
 {
 	struct mtbl_writer_options *opt;
-	opt = calloc(1, sizeof(*opt));
-	assert(opt != NULL);
+	opt = my_calloc(1, sizeof(*opt));
 	opt->compression_type = DEFAULT_COMPRESSION_TYPE;
 	opt->block_size = DEFAULT_BLOCK_SIZE;
 	opt->block_restart_interval = DEFAULT_BLOCK_RESTART_INTERVAL;
@@ -103,8 +102,7 @@ mtbl_writer_init_fd(int orig_fd, const struct mtbl_writer_options *opt)
 	fd = dup(orig_fd);
 	if (fd < 0)
 		return (NULL);
-	w = calloc(1, sizeof(*w));
-	assert(w != NULL);
+	w = my_calloc(1, sizeof(*w));
 	if (opt == NULL) {
 		w->opt.compression_type = DEFAULT_COMPRESSION_TYPE;
 		w->opt.block_size = DEFAULT_BLOCK_SIZE;
@@ -252,8 +250,7 @@ _mtbl_writer_writeblock(struct mtbl_writer *w,
 		break;
 	case MTBL_COMPRESSION_SNAPPY:
 		comp_contents_size = snappy_max_compressed_length(raw_contents_size);
-		comp_contents = malloc(comp_contents_size);
-		assert(comp_contents != NULL);
+		comp_contents = my_malloc(comp_contents_size);
 		res = snappy_compress((const char *) raw_contents, raw_contents_size,
 				      (char *) comp_contents, &comp_contents_size);
 		assert(res == SNAPPY_OK);
@@ -262,8 +259,7 @@ _mtbl_writer_writeblock(struct mtbl_writer *w,
 		break;
 	case MTBL_COMPRESSION_ZLIB:
 		comp_contents_size = 2 * raw_contents_size;
-		comp_contents = malloc(comp_contents_size);
-		assert(comp_contents != NULL);
+		comp_contents = my_malloc(comp_contents_size);
 		memset(&zs, 0, sizeof(zs));
 		zs.zalloc = Z_NULL;
 		zs.zfree = Z_NULL;
