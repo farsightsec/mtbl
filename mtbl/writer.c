@@ -135,12 +135,11 @@ mtbl_writer_init(const char *fname, const struct mtbl_writer_options *opt)
 void
 mtbl_writer_destroy(struct mtbl_writer **w)
 {
-	if (!(*w)->closed) {
-		_mtbl_writer_finish(*w);
-		close((*w)->fd);
-	}
-	/* XXX */
 	if (*w != NULL) {
+		if (!(*w)->closed) {
+			_mtbl_writer_finish(*w);
+			close((*w)->fd);
+		}
 		block_builder_destroy(&((*w)->data));
 		block_builder_destroy(&((*w)->index));
 		ubuf_destroy(&(*w)->last_key);
