@@ -206,13 +206,15 @@ merger_iter_next(void *v,
 		if (bytes_compare(ubuf_data(m->cur_key), ubuf_size(m->cur_key),
 				  ubuf_data(e->key), ubuf_size(e->key)) == 0)
 		{
-			uint8_t *merged_val;
+			uint8_t *merged_val = NULL;
 			size_t len_merged_val;
 			m->opt.merge(m->opt.merge_clos,
 				     ubuf_data(m->cur_key), ubuf_size(m->cur_key),
 				     ubuf_data(m->cur_val), ubuf_size(m->cur_val),
 				     ubuf_data(e->val), ubuf_size(e->val),
 				     &merged_val, &len_merged_val);
+			if (merged_val == NULL)
+				return (mtbl_res_failure);
 			ubuf_clip(m->cur_val, 0);
 			ubuf_append(m->cur_val, merged_val, len_merged_val);
 			free(merged_val);
