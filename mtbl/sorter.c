@@ -147,11 +147,10 @@ _mtbl_sorter_compare(const void *va, const void *vb)
 			      entry_key(b), b->len_key));
 }
 
-static void
+static mtbl_res
 _mtbl_sorter_write_chunk(struct mtbl_sorter *s)
 {
 	assert(!s->iterating);
-
 	struct chunk *c = my_calloc(1, sizeof(*c));
 
 	char template[64];
@@ -165,6 +164,7 @@ _mtbl_sorter_write_chunk(struct mtbl_sorter *s)
 	assert(c->fd >= 0);
 	int unlink_ret = unlink((char *) ubuf_data(tmp_fname));
 	assert(unlink_ret == 0);
+	ubuf_destroy(&tmp_fname);
 
 	struct mtbl_writer_options *wopt = mtbl_writer_options_init();
 	mtbl_writer_options_set_compression(wopt, MTBL_COMPRESSION_SNAPPY);
@@ -190,7 +190,10 @@ _mtbl_sorter_write_chunk(struct mtbl_sorter *s)
 					     entry_val(ent), ent->len_val,
 					     entry_val(next_ent), next_ent->len_val,
 					     &merge_val, &len_merge_val);
-				assert(merge_val != NULL);
+				if (merge_val == NULL) {
+					mtbl_writer_destroy(&w);
+					return (mtbl_res_failure);
+				}
 				size_t len = sizeof(struct entry) + ent->len_key + len_merge_val;
 				merge_ent = my_malloc(len);
 				merge_ent->len_key = ent->len_key;
@@ -214,10 +217,8 @@ _mtbl_sorter_write_chunk(struct mtbl_sorter *s)
 	entry_vec_destroy(&s->vec);
 	s->vec = entry_vec_init(INITIAL_SORTER_VEC_SIZE);
 	s->entry_bytes = 0;
-
 	chunk_vec_add(s->chunks, c);
-
-	ubuf_destroy(&tmp_fname);
+	return (mtbl_res_success);
 }
 
 mtbl_res
@@ -240,6 +241,7 @@ mtbl_sorter_add(struct mtbl_sorter *s,
 		const uint8_t *key, size_t len_key,
 		const uint8_t *val, size_t len_val)
 {
+	mtbl_res res = mtbl_res_success;
 	if (s->iterating)
 		return (mtbl_res_failure);
 	assert(len_key <= UINT_MAX);
@@ -258,8 +260,8 @@ mtbl_sorter_add(struct mtbl_sorter *s,
 	s->entry_bytes += entry_bytes;
 
 	if (s->entry_bytes + entry_vec_bytes(s->vec) >= s->opt.max_memory)
-		_mtbl_sorter_write_chunk(s);
-	return (mtbl_res_success);
+		res = _mtbl_sorter_write_chunk(s);
+	return (res);
 }
 
 static mtbl_res
@@ -285,6 +287,7 @@ sorter_iter_free(void *v)
 struct mtbl_iter *
 mtbl_sorter_iter(struct mtbl_sorter *s)
 {
+	mtbl_res res;
 	struct sorter_iter *it = my_calloc(1, sizeof(*it));
 
 	struct mtbl_merger_options *mopt = mtbl_merger_options_init();
@@ -292,8 +295,11 @@ mtbl_sorter_iter(struct mtbl_sorter *s)
 	it->m = mtbl_merger_init(mopt);
 	mtbl_merger_options_destroy(&mopt);
 
-	if (entry_vec_size(s->vec) > 0)
-		_mtbl_sorter_write_chunk(s);
+	if (entry_vec_size(s->vec) > 0) {
+		res = _mtbl_sorter_write_chunk(s);
+		if (res != mtbl_res_success)
+			return (NULL);
+	}
 
 	for (unsigned i = 0; i < chunk_vec_size(s->chunks); i++) {
 		struct chunk *c = chunk_vec_value(s->chunks, i);
