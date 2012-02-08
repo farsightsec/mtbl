@@ -8,6 +8,7 @@
 
 #include <mtbl.h>
 
+#include "mtbl-private.h"
 #include "vector_types.h"
 
 #define NAME	"test-vector"
