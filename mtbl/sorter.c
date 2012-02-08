@@ -108,7 +108,7 @@ mtbl_sorter_init(struct mtbl_sorter_options *opt)
 	s = my_calloc(1, sizeof(*s));
 	if (opt != NULL) {
 		memcpy(&s->opt, opt, sizeof(*opt));
-		opt->tmp_dname = NULL;
+		s->opt.tmp_dname = strdup(opt->tmp_dname);
 	}
 	s->vec = entry_vec_init(INITIAL_SORTER_VEC_SIZE);
 	s->chunks = chunk_vec_init(1);
