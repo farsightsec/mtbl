@@ -60,6 +60,12 @@ pkgconfig_DATA = mtbl/libmtbl.pc
 EXTRA_DIST += mtbl/libmtbl.pc.in
 CLEANFILES += mtbl/libmtbl.pc
 
+bin_PROGRAMS = \
+	src/mtbl_dump
+
+src_mtbl_dump_SOURCES = src/mtbl_dump.c
+src_mtbl_dump_LDADD = mtbl/libmtbl.la
+
 TESTS = \
 	src/test-mtbl \
 	src/test-crc32c \
