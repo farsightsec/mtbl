@@ -1,0 +1,44 @@
+% MTBL_FIXED(3)
+%
+%
+
+# NAME
+
+mtbl_fixed - Fixed-width encoding and decoding of 32 and 64 bit integers
+
+# SYNOPSIS
+
+**#include \<mtbl.h\>**
+
+**size_t**
+:   **mtbl_fixed_encode32(uint8_t \*_dst_, uint32_t _value_);**
+
+**size_t**
+:   **mtbl_fixed_encode64(uint8_t \*_dst_, uint64_t _value_);**
+
+**uint32_t**
+:   **mtbl_fixed_decode32(const uint8_t \*_ptr_);**
+
+**uint64_t**
+:   **mtbl_fixed_decode64(const uint8_t \*_ptr_);**
+
+# DESCRIPTION
+
+**mtbl_fixed_encode32**() and **mtbl_fixed_encode64**() write the 32 or 64 bit
+quantity, respectively, in the argument _value_ to the buffer in the argument
+_dst_. The quantity will be written in little endian order, regardless of
+architecture.
+
+**mtbl_fixed_decode32**() and **mtbl_fixed_decode64**() read and return the 32
+or 64 bit quantity, respectively, in the argument _ptr_. The quantity will be
+read in little endian order, regardless of architecture.
+
+Bounds checking must be performed by the caller.
+
+# RETURN VALUE
+
+**mtbl_fixed_encode32**() and **mtbl_fixed_encode64**() return the number of
+bytes written to the buffer. (4 or 8, respectively.)
+
+**mtbl_fixed_decode32**() and **mtbl_fixed_decode64**() return the decoded
+quantity.

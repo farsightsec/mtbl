@@ -1,0 +1,57 @@
+% MTBL_VARINT(3)
+%
+%
+
+# NAME
+
+mtbl_varint - Variable-width encoding and decoding of 32 and 64 bit integers
+
+# SYNOPSIS
+
+**#include \<mtbl.h\>**
+
+**size_t**
+:   **mtbl_varint_encode32(uint8_t \*_dst_, uint32_t _value_);**
+
+**size_t**
+:   **mtbl_varint_encode64(uint8_t \*_dst_, uint64_t _value_);**
+
+**uint32_t**
+:   **mtbl_varint_decode32(const uint8_t \*_ptr_);**
+
+**uint64_t**
+:   **mtbl_varint_decode64(const uint8_t \*_ptr_);**
+
+**unsigned**
+:   **mtbl_varint_length(uint64_t _value_);**
+
+**unsigned**
+:   **mtbl_varint_length_packed(const uint8_t \*_buf_);**
+
+# DESCRIPTION
+
+**mtbl_varint_encode32**() and **mtbl_varint_encode64**() write the 32 or 64 bit
+quantity, respectively, in the argument _value_ to the buffer in the argument
+_dst_. The quantity will be written in using a variable-width encoding that uses
+at most 5 bytes for a 32 bit quantity or 10 bytes for a 64 bit quantity.
+
+**mtbl_varint_decode32**() and **mtbl_varint_decode64**() read the 32
+or 64 bit varint quantity, respectively, in the argument _ptr_. The quantity
+read will be placed in the argument _value_.
+
+Bounds checking must be performed by the caller.
+
+# RETURN VALUE
+
+**mtbl_varint_encode32**() and **mtbl_varint_encode64**() return the number of
+bytes written to _dst_.
+
+**mtbl_varint_decode32**() and **mtbl_varint_decode64**() return the number of
+bytes read from _ptr_.
+
+**mtbl_varint_length**() returns the number of bytes that its argument _value_
+would require in the variable-width encoding.
+
+**mtbl_varint_length_packed**() returns the number of bytes consumed by the
+variable-width encoded quantity at its argument _data_. It will read at most 10
+bytes from _data_.

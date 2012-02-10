@@ -93,3 +93,33 @@ src_test_vector_SOURCES = src/test-vector.c
 src_test_vector_LDADD = mtbl/libmtbl.la
 src_test_writer_SOURCES = src/test-writer.c
 src_test_writer_LDADD = mtbl/libmtbl.la
+
+SUFFIXES = .3.md .7.md .3 .7
+
+.3.md.3:
+	pandoc -s -w man -o $@ $<
+
+.7.md.7:
+	pandoc -s -w man -o $@ $<
+
+dist_man_MANS = \
+	man/mtbl_iter.3 \
+	man/mtbl_reader.3 \
+	man/mtbl_writer.3 \
+	man/mtbl_merger.3 \
+	man/mtbl_sorter.3 \
+	man/mtbl_crc32c.3 \
+	man/mtbl_fixed.3 \
+	man/mtbl_varint.3 \
+	man/mtbl.7
+
+EXTRA_DIST += \
+	man/mtbl_iter.3.md \
+	man/mtbl_reader.3.md \
+	man/mtbl_writer.3.md \
+	man/mtbl_merger.3.md \
+	man/mtbl_sorter.3.md \
+	man/mtbl_crc32c.3.md \
+	man/mtbl_fixed.3.md \
+	man/mtbl_varint.3.md \
+	man/mtbl.7.md
