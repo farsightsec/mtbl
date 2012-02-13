@@ -66,6 +66,7 @@ struct block;
 struct block_builder;
 struct block_iter;
 struct trailer;
+struct heap;
 
 /* block */
 
@@ -157,5 +158,18 @@ my_realloc(void *ptr, size_t size)
 	assert(ptr != NULL);
 	return (ptr);
 }
+
+/* heap */
+
+typedef int (*compare_func)(const void *a, const void *b);
+
+struct heap *heap_init(compare_func);
+void heap_destroy(struct heap **);
+void heap_push(struct heap *, void *);
+void *heap_pop(struct heap *);
+void *heap_replace(struct heap *, void *);
+void *heap_peek(struct heap *);
+void *heap_get(struct heap *, size_t);
+size_t heap_size(struct heap *);
 
 #endif /* MTBL_PRIVATE_H */

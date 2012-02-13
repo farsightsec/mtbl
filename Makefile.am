@@ -34,6 +34,7 @@ mtbl_libmtbl_la_SOURCES = \
 	mtbl/block_builder.c \
 	mtbl/crc32c.c \
 	mtbl/fixed.c \
+	mtbl/heap.c \
 	mtbl/iter.c \
 	mtbl/merger.c \
 	mtbl/mtbl.h \
