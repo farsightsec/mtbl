@@ -132,10 +132,9 @@ void mtbl_reader_options_set_verify_checksums(
 
 struct mtbl_merger *mtbl_merger_init(const struct mtbl_merger_options *);
 void mtbl_merger_destroy(struct mtbl_merger **);
-mtbl_res mtbl_merger_add_reader(
+void mtbl_merger_add_reader(
 	struct mtbl_merger *,
-	struct mtbl_reader *)
-	__attribute__((warn_unused_result));
+	struct mtbl_reader *);
 mtbl_res mtbl_merger_write(
 	struct mtbl_merger *,
 	struct mtbl_writer *)
