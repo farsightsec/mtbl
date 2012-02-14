@@ -27,19 +27,12 @@ VECTOR_GENERATE(entry_vec, struct entry *);
 
 VECTOR_GENERATE(reader_vec, struct mtbl_reader *);
 
-typedef enum {
-	MERGER_ITER_TYPE_ALL,
-	MERGER_ITER_TYPE_RANGE,
-	MERGER_ITER_TYPE_PREFIX
-} merger_iter_type;
-
 struct merger_iter {
 	struct mtbl_merger		*m;
 	struct heap			*h;
 	entry_vec			*entries;
 	ubuf				*cur_key;
 	ubuf				*cur_val;
-	merger_iter_type		it_type;
 	bool				finished;
 };
 
@@ -281,6 +274,59 @@ mtbl_merger_iter(struct mtbl_merger *m)
 		struct mtbl_reader *r = reader_vec_value(m->readers, i);
 		merger_iter_add_entry(it, mtbl_reader_iter(r));
 	}
-	it->it_type = MERGER_ITER_TYPE_ALL;
+	return (mtbl_iter_init(merger_iter_next, merger_iter_free, it));
+}
+
+struct mtbl_iter *
+mtbl_merger_get(struct mtbl_merger *m, const uint8_t *key, size_t len_key)
+{
+	struct merger_iter *it = merger_iter_init(m);
+	for (size_t i = 0; i < reader_vec_size(m->readers); i++) {
+		struct mtbl_reader *r = reader_vec_value(m->readers, i);
+		struct mtbl_iter *r_it = mtbl_reader_get_range(r, key, len_key, key, len_key);
+		if (r_it != NULL)
+			merger_iter_add_entry(it, r_it);
+	}
+	if (entry_vec_size(it->entries) == 0) {
+		merger_iter_free(it);
+		return (NULL);
+	}
+	return (mtbl_iter_init(merger_iter_next, merger_iter_free, it));
+}
+
+struct mtbl_iter *
+mtbl_merger_get_range(struct mtbl_merger *m,
+		      const uint8_t *key0, size_t len_key0,
+		      const uint8_t *key1, size_t len_key1)
+{
+	struct merger_iter *it = merger_iter_init(m);
+	for (size_t i = 0; i < reader_vec_size(m->readers); i++) {
+		struct mtbl_reader *r = reader_vec_value(m->readers, i);
+		struct mtbl_iter *r_it = mtbl_reader_get_range(r, key0, len_key0, key1, len_key1);
+		if (r_it != NULL)
+			merger_iter_add_entry(it, r_it);
+	}
+	if (entry_vec_size(it->entries) == 0) {
+		merger_iter_free(it);
+		return (NULL);
+	}
+	return (mtbl_iter_init(merger_iter_next, merger_iter_free, it));
+}
+
+struct mtbl_iter *
+mtbl_merger_get_prefix(struct mtbl_merger *m,
+		       const uint8_t *key, size_t len_key)
+{
+	struct merger_iter *it = merger_iter_init(m);
+	for (size_t i = 0; i < reader_vec_size(m->readers); i++) {
+		struct mtbl_reader *r = reader_vec_value(m->readers, i);
+		struct mtbl_iter *r_it = mtbl_reader_get_prefix(r, key, len_key);
+		if (r_it != NULL)
+			merger_iter_add_entry(it, r_it);
+	}
+	if (entry_vec_size(it->entries) == 0) {
+		merger_iter_free(it);
+		return (NULL);
+	}
 	return (mtbl_iter_init(merger_iter_next, merger_iter_free, it));
 }
