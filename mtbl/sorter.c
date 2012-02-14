@@ -17,7 +17,10 @@
 #include "mtbl-private.h"
 #include "vector_types.h"
 
+VECTOR_GENERATE(reader_vec, struct mtbl_reader *);
+
 struct sorter_iter {
+	reader_vec			*readers;
 	struct mtbl_merger		*m;
 	struct mtbl_iter		*m_iter;
 };
@@ -280,6 +283,11 @@ sorter_iter_free(void *v)
 	if (it) {
 		mtbl_iter_destroy(&it->m_iter);
 		mtbl_merger_destroy(&it->m);
+		for (size_t i = 0; i < reader_vec_size(it->readers); i++) {
+			struct mtbl_reader *r = reader_vec_value(it->readers, i);
+			mtbl_reader_destroy(&r);
+		}
+		reader_vec_destroy(&it->readers);
 		free(it);
 	}
 }
@@ -289,6 +297,7 @@ mtbl_sorter_iter(struct mtbl_sorter *s)
 {
 	mtbl_res res;
 	struct sorter_iter *it = my_calloc(1, sizeof(*it));
+	it->readers = reader_vec_init(0);
 
 	struct mtbl_merger_options *mopt = mtbl_merger_options_init();
 	mtbl_merger_options_set_merge_func(mopt, s->opt.merge, s->opt.merge_clos);
@@ -305,11 +314,8 @@ mtbl_sorter_iter(struct mtbl_sorter *s)
 		struct chunk *c = chunk_vec_value(s->chunks, i);
 		struct mtbl_reader *r;
 		r = mtbl_reader_init_fd(c->fd, NULL);
-		if (mtbl_merger_add_reader(it->m, r) != mtbl_res_success) {
-			mtbl_merger_destroy(&it->m);
-			free(it);
-			return (NULL);
-		}
+		mtbl_merger_add_reader(it->m, r);
+		reader_vec_add(it->readers, r);
 	}
 
 	it->m_iter = mtbl_merger_iter(it->m);
