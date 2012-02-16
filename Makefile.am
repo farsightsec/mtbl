@@ -63,9 +63,13 @@ CLEANFILES += mtbl/libmtbl.pc
 
 bin_PROGRAMS = \
 	src/mtbl_dump
-
 src_mtbl_dump_SOURCES = src/mtbl_dump.c
 src_mtbl_dump_LDADD = mtbl/libmtbl.la
+
+bin_PROGRAMS += \
+	src/mtbl_info
+src_mtbl_info_SOURCES = src/mtbl_info.c
+src_mtbl_info_LDADD = mtbl/libmtbl.la
 
 TESTS = \
 	src/test-mtbl \
