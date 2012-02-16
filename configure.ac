@@ -50,6 +50,7 @@ AC_MSG_RESULT([
         compiler:               ${CC}
         cflags:                 ${CFLAGS}
         ldflags:                ${LDFLAGS}
+        libs:                   ${LIBS}
 
         prefix:                 ${prefix}
         sysconfdir:             ${sysconfdir}
