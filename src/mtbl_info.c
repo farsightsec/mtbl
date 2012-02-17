@@ -84,11 +84,11 @@ dump(const char *fname)
 	fprintf(stderr, "compression algorithm: ");
 
 	if (t.compression_algorithm == MTBL_COMPRESSION_NONE) {
-		fputs("NONE\n", stderr);
+		fputs("none\n", stderr);
 	} else if (t.compression_algorithm == MTBL_COMPRESSION_SNAPPY) {
-		fputs("SNAPPY\n", stderr);
+		fputs("snappy\n", stderr);
 	} else if (t.compression_algorithm == MTBL_COMPRESSION_ZLIB) {
-		fputs("ZLIB\n", stderr);
+		fputs("zlib\n", stderr);
 	} else {
 		fprintf(stderr, "%" PRIu64 "\n", t.compression_algorithm);
 	}
