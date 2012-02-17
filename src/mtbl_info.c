@@ -72,30 +72,30 @@ dump(const char *fname)
 	double p_index = 100.0 * t.bytes_index_block / ss.st_size;
 	double compactness = 100.0 * ss.st_size / (t.bytes_keys + t.bytes_values);
 
-	fprintf(stderr, "file name:             %s\n", fname);
-	fprintf(stderr, "file size:             %'zd\n", (size_t) ss.st_size);
-	fprintf(stderr, "index block bytes:     %'" PRIu64 " (%'.2f%%)\n", t.bytes_index_block, p_index);
-	fprintf(stderr, "data block bytes       %'" PRIu64 " (%'.2f%%)\n", t.bytes_data_blocks, p_data);
-	fprintf(stderr, "data block size:       %'" PRIu64 "\n", t.data_block_size);
-	fprintf(stderr, "data block count       %'" PRIu64 "\n", t.count_data_blocks);
-	fprintf(stderr, "entry count:           %'" PRIu64 "\n", t.count_entries);
-	fprintf(stderr, "key bytes:             %'" PRIu64 "\n", t.bytes_keys);
-	fprintf(stderr, "value bytes:           %'" PRIu64 "\n", t.bytes_values);
-	fprintf(stderr, "compression algorithm: ");
+	printf("file name:             %s\n", fname);
+	printf("file size:             %'zd\n", (size_t) ss.st_size);
+	printf("index block bytes:     %'" PRIu64 " (%'.2f%%)\n", t.bytes_index_block, p_index);
+	printf("data block bytes       %'" PRIu64 " (%'.2f%%)\n", t.bytes_data_blocks, p_data);
+	printf("data block size:       %'" PRIu64 "\n", t.data_block_size);
+	printf("data block count       %'" PRIu64 "\n", t.count_data_blocks);
+	printf("entry count:           %'" PRIu64 "\n", t.count_entries);
+	printf("key bytes:             %'" PRIu64 "\n", t.bytes_keys);
+	printf("value bytes:           %'" PRIu64 "\n", t.bytes_values);
+	printf("compression algorithm: ");
 
 	if (t.compression_algorithm == MTBL_COMPRESSION_NONE) {
-		fputs("none\n", stderr);
+		puts("none");
 	} else if (t.compression_algorithm == MTBL_COMPRESSION_SNAPPY) {
-		fputs("snappy\n", stderr);
+		puts("snappy");
 	} else if (t.compression_algorithm == MTBL_COMPRESSION_ZLIB) {
-		fputs("zlib\n", stderr);
+		puts("zlib");
 	} else {
-		fprintf(stderr, "%" PRIu64 "\n", t.compression_algorithm);
+		printf("%" PRIu64 "\n", t.compression_algorithm);
 	}
 
-	fprintf(stderr, "compactness:           %'.2f%%\n", compactness);
+	printf("compactness:           %'.2f%%\n", compactness);
 
-	fputc('\n', stderr);
+	putchar('\n');
 }
 
 int
