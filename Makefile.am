@@ -42,6 +42,7 @@ mtbl_libmtbl_la_SOURCES = \
 	mtbl/print_string.h \
 	mtbl/reader.c \
 	mtbl/sorter.c \
+	mtbl/source.c \
 	mtbl/trailer.c \
 	mtbl/vector.h \
 	mtbl/vector_types.h \

@@ -39,6 +39,7 @@ typedef enum {
 /* exported types */
 
 struct mtbl_iter;
+struct mtbl_source;
 
 struct mtbl_reader;
 struct mtbl_reader_options;
@@ -56,13 +57,16 @@ typedef void (*mtbl_merge_func)(void *clos,
 	const uint8_t *val1, size_t len_val1,
 	uint8_t **merged_val, size_t *len_merged_val);
 
+typedef void *(*mtbl_merge_init_func)(void);
+typedef void (*mtbl_merge_free_func)(void *clos);
+
+/* iter */
+
 typedef mtbl_res (*mtbl_iter_next_func)(void *,
 	const uint8_t **key, size_t *len_key,
 	const uint8_t **val, size_t *len_val);
 
 typedef void (*mtbl_iter_free_func)(void *);
-
-/* iter */
 
 struct mtbl_iter *mtbl_iter_init(
 	mtbl_iter_next_func,
@@ -73,6 +77,34 @@ mtbl_res mtbl_iter_next(struct mtbl_iter *,
 	const uint8_t **key, size_t *len_key,
 	const uint8_t **val, size_t *len_val)
 	__attribute__((warn_unused_result));
+
+/* source */
+
+typedef struct mtbl_iter *(*mtbl_source_get_prefix_func)(void *,
+	const uint8_t *key, size_t len_key);
+
+typedef struct mtbl_iter *(*mtbl_source_get_range_func)(void *,
+	const uint8_t *key0, size_t len_key0,
+	const uint8_t *key1, size_t len_key1);
+
+typedef void (*mtbl_source_free_func)(void *);
+
+struct mtbl_source *mtbl_source_init(
+	mtbl_source_get_prefix_func,
+	mtbl_source_get_range_func,
+	mtbl_source_free_func,
+	void *clos);
+
+void mtbl_source_destroy(struct mtbl_source **);
+
+struct mtbl_iter *
+mtbl_source_get_prefix(struct mtbl_source *,
+	const uint8_t *key, size_t len_key);
+
+struct mtbl_iter *
+mtbl_source_get_range(struct mtbl_source *,
+	const uint8_t *key0, size_t len_key0,
+	const uint8_t *key1, size_t len_key1);
 
 /* writer */
 
