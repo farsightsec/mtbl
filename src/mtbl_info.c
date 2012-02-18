@@ -74,7 +74,7 @@ dump(const char *fname)
 
 	printf("file name:             %s\n", fname);
 	printf("file size:             %'zd\n", (size_t) ss.st_size);
-	printf("index block bytes:     %'" PRIu64 " (%'.2f%%)\n", t.bytes_index_block, p_index);
+	printf("index bytes:           %'" PRIu64 " (%'.2f%%)\n", t.bytes_index_block, p_index);
 	printf("data block bytes       %'" PRIu64 " (%'.2f%%)\n", t.bytes_data_blocks, p_data);
 	printf("data block size:       %'" PRIu64 "\n", t.data_block_size);
 	printf("data block count       %'" PRIu64 "\n", t.count_data_blocks);
