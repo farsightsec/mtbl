@@ -283,7 +283,8 @@ mtbl_merger_get(struct mtbl_merger *m, const uint8_t *key, size_t len_key)
 	struct merger_iter *it = merger_iter_init(m);
 	for (size_t i = 0; i < reader_vec_size(m->readers); i++) {
 		struct mtbl_reader *r = reader_vec_value(m->readers, i);
-		struct mtbl_iter *r_it = mtbl_reader_get_range(r, key, len_key, key, len_key);
+		struct mtbl_iter *r_it = mtbl_source_get_range(mtbl_reader_source(r),
+							       key, len_key, key, len_key);
 		if (r_it != NULL)
 			merger_iter_add_entry(it, r_it);
 	}
@@ -302,7 +303,8 @@ mtbl_merger_get_range(struct mtbl_merger *m,
 	struct merger_iter *it = merger_iter_init(m);
 	for (size_t i = 0; i < reader_vec_size(m->readers); i++) {
 		struct mtbl_reader *r = reader_vec_value(m->readers, i);
-		struct mtbl_iter *r_it = mtbl_reader_get_range(r, key0, len_key0, key1, len_key1);
+		struct mtbl_iter *r_it = mtbl_source_get_range(mtbl_reader_source(r),
+							       key0, len_key0, key1, len_key1);
 		if (r_it != NULL)
 			merger_iter_add_entry(it, r_it);
 	}
@@ -320,7 +322,8 @@ mtbl_merger_get_prefix(struct mtbl_merger *m,
 	struct merger_iter *it = merger_iter_init(m);
 	for (size_t i = 0; i < reader_vec_size(m->readers); i++) {
 		struct mtbl_reader *r = reader_vec_value(m->readers, i);
-		struct mtbl_iter *r_it = mtbl_reader_get_prefix(r, key, len_key);
+		struct mtbl_iter *r_it = mtbl_source_get_prefix(mtbl_reader_source(r),
+								key, len_key);
 		if (r_it != NULL)
 			merger_iter_add_entry(it, r_it);
 	}

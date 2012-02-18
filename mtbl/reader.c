@@ -48,10 +48,18 @@ struct mtbl_reader {
 
 	struct block			*index;
 	struct block_iter		*index_iter;
+
+	struct mtbl_source		*source;
 };
 
 static mtbl_res read_iter_next(void *, const uint8_t **, size_t *, const uint8_t **, size_t *);
 static void read_iter_free(void *);
+
+static struct mtbl_iter *
+reader_get_range(void *, const uint8_t *, size_t, const uint8_t *, size_t);
+
+static struct mtbl_iter *
+reader_get_prefix(void *, const uint8_t *, size_t);
 
 struct mtbl_reader_options *
 mtbl_reader_options_init(void)
@@ -118,6 +126,8 @@ mtbl_reader_init_fd(int orig_fd, const struct mtbl_reader_options *opt)
 	r->index = block_init(index_data, index_len, false);
 	r->index_iter = block_iter_init(r->index);
 
+	r->source = mtbl_source_init(reader_get_prefix, reader_get_range, NULL, r);
+
 	return (r);
 }
 
@@ -144,9 +154,16 @@ mtbl_reader_destroy(struct mtbl_reader **r)
 		block_destroy(&(*r)->index);
 		munmap((*r)->data, (*r)->len_data);
 		close((*r)->fd);
+		mtbl_source_destroy(&(*r)->source);
 		free(*r);
 		*r = NULL;
 	}
+}
+
+struct mtbl_source *
+mtbl_reader_source(struct mtbl_reader *r)
+{
+	return (r->source);
 }
 
 static struct block *
@@ -307,12 +324,12 @@ mtbl_reader_iter(struct mtbl_reader *r)
 	return (mtbl_iter_init(read_iter_next, read_iter_free, it));
 }
 
-struct mtbl_iter *
-mtbl_reader_get_range(struct mtbl_reader *r,
-		      const uint8_t *key0, size_t len_key0,
-		      const uint8_t *key1, size_t len_key1)
+static struct mtbl_iter *
+reader_get_range(void *r,
+		 const uint8_t *key0, size_t len_key0,
+		 const uint8_t *key1, size_t len_key1)
 {
-	struct read_iter *it = read_iter_init(r, key0, len_key0);
+	struct read_iter *it = read_iter_init((struct mtbl_reader *) r, key0, len_key0);
 	if (it == NULL)
 		return (NULL);
 	it->k = ubuf_init(len_key1);
@@ -321,11 +338,11 @@ mtbl_reader_get_range(struct mtbl_reader *r,
 	return (mtbl_iter_init(read_iter_next, read_iter_free, it));
 }
 
-struct mtbl_iter *
-mtbl_reader_get_prefix(struct mtbl_reader *r,
-		       const uint8_t *key, size_t len_key)
+static struct mtbl_iter *
+reader_get_prefix(void *r,
+		  const uint8_t *key, size_t len_key)
 {
-	struct read_iter *it = read_iter_init(r, key, len_key);
+	struct read_iter *it = read_iter_init((struct mtbl_reader *) r, key, len_key);
 	if (it == NULL)
 		return (NULL);
 	it->k = ubuf_init(len_key);

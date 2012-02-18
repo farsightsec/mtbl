@@ -146,11 +146,7 @@ mtbl_res mtbl_reader_get(struct mtbl_reader *,
 	const uint8_t *key, size_t len_key,
 	uint8_t **val, size_t *len_val);
 struct mtbl_iter *mtbl_reader_iter(struct mtbl_reader *);
-struct mtbl_iter *mtbl_reader_get_range(struct mtbl_reader *,
-	const uint8_t *key0, size_t len_key0,
-	const uint8_t *key1, size_t len_key1);
-struct mtbl_iter *mtbl_reader_get_prefix(struct mtbl_reader *,
-	const uint8_t *key, size_t len_key);
+struct mtbl_source *mtbl_reader_source(struct mtbl_reader *);
 
 /* reader options */
 
