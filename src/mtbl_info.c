@@ -103,11 +103,12 @@ main(int argc, char **argv)
 {
 	setlocale(LC_ALL, "");
 
-	if (argc != 2) {
-		fprintf(stderr, "Usage: %s <MTBL FILE>\n", argv[0]);
+	if (argc < 2) {
+		fprintf(stderr, "Usage: %s <MTBL FILE> [<MTBL FILE>...]\n", argv[0]);
 		exit(EXIT_FAILURE);
 	}
-	dump(argv[1]);
+	for (int i = 1; i < argc; i++)
+		dump(argv[i]);
 
 	return (EXIT_SUCCESS);
 }
