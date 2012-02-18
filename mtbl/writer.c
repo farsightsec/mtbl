@@ -16,6 +16,7 @@
 
 #include "mtbl-private.h"
 #include "vector_types.h"
+#include "bytes.h"
 
 struct mtbl_writer_options {
 	mtbl_compression_type		compression_type;
@@ -169,10 +170,10 @@ mtbl_writer_add(struct mtbl_writer *w,
 		_mtbl_writer_flush(w);
 
 	if (w->pending_index_entry) {
-		/* XXX use shortest separator */
 		uint8_t enc[10];
 		size_t len_enc;
 		assert(block_builder_empty(w->data));
+		bytes_shortest_separator(w->last_key, key, len_key);
 		len_enc = mtbl_varint_encode64(enc, w->last_offset);
 		/*
 		fprintf(stderr, "%s: writing index entry, key= '%s' (%zd) val= %" PRIu64 "\n",
