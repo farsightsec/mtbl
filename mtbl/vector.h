@@ -20,7 +20,7 @@
 typedef struct name##__vector {						\
 	type *		_v;						\
 	type *		_p;						\
-	unsigned	_n, _n_alloced, _hint;				\
+	size_t		_n, _n_alloced, _hint;				\
 } name;									\
 static inline name *							\
 name##_init(unsigned hint)						\
