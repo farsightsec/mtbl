@@ -73,6 +73,11 @@ bin_PROGRAMS += \
 src_mtbl_info_SOURCES = src/mtbl_info.c
 src_mtbl_info_LDADD = mtbl/libmtbl.la
 
+bin_PROGRAMS += \
+	src/mtbl_merge
+src_mtbl_merge_SOURCES = src/mtbl_merge.c
+src_mtbl_merge_LDADD = mtbl/libmtbl.la
+
 TESTS = \
 	src/test-mtbl \
 	src/test-crc32c \

@@ -43,6 +43,8 @@ AC_CHECK_LIB([z], [deflate], [], [
     AC_MSG_ERROR([required library not found])
 ])
 
+AC_SEARCH_LIBS([dlopen], [dl])
+
 AC_OUTPUT
 AC_MSG_RESULT([
     $PACKAGE $VERSION
