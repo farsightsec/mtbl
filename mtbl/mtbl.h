@@ -170,11 +170,7 @@ mtbl_res mtbl_merger_write(
 struct mtbl_iter *mtbl_merger_iter(struct mtbl_merger *);
 struct mtbl_iter *mtbl_merger_get(struct mtbl_merger *,
 	const uint8_t *key, size_t len_key);
-struct mtbl_iter *mtbl_merger_get_range(struct mtbl_merger *,
-	const uint8_t *key0, size_t len_key0,
-	const uint8_t *key1, size_t len_key1);
-struct mtbl_iter *mtbl_merger_get_prefix(struct mtbl_merger *,
-	const uint8_t *key, size_t len_key);
+struct mtbl_source *mtbl_merger_source(struct mtbl_merger *);
 
 /* merger options */
 

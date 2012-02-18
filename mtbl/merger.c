@@ -44,7 +44,14 @@ struct mtbl_merger_options {
 struct mtbl_merger {
 	reader_vec			*readers;
 	struct mtbl_merger_options	opt;
+	struct mtbl_source		*source;
 };
+
+static struct mtbl_iter *
+merger_get_prefix(void *, const uint8_t *, size_t);
+
+static struct mtbl_iter *
+merger_get_range(void *, const uint8_t *, size_t, const uint8_t *, size_t);
 
 struct mtbl_merger_options *
 mtbl_merger_options_init(void)
@@ -79,6 +86,7 @@ mtbl_merger_init(const struct mtbl_merger_options *opt)
 	assert(opt != NULL);
 	assert(opt->merge != NULL);
 	memcpy(&m->opt, opt, sizeof(*opt));
+	m->source = mtbl_source_init(merger_get_prefix, merger_get_range, NULL, m);
 
 	return (m);
 }
@@ -88,9 +96,16 @@ mtbl_merger_destroy(struct mtbl_merger **m)
 {
 	if (*m) {
 		reader_vec_destroy(&(*m)->readers);
+		mtbl_source_destroy(&(*m)->source);
 		free(*m);
 		*m = NULL;
 	}
+}
+
+struct mtbl_source *
+mtbl_merger_source(struct mtbl_merger *m)
+{
+	return (m->source);
 }
 
 void
@@ -295,11 +310,12 @@ mtbl_merger_get(struct mtbl_merger *m, const uint8_t *key, size_t len_key)
 	return (mtbl_iter_init(merger_iter_next, merger_iter_free, it));
 }
 
-struct mtbl_iter *
-mtbl_merger_get_range(struct mtbl_merger *m,
-		      const uint8_t *key0, size_t len_key0,
-		      const uint8_t *key1, size_t len_key1)
+static struct mtbl_iter *
+merger_get_range(void *clos,
+		 const uint8_t *key0, size_t len_key0,
+		 const uint8_t *key1, size_t len_key1)
 {
+	struct mtbl_merger *m = (struct mtbl_merger *) clos;;
 	struct merger_iter *it = merger_iter_init(m);
 	for (size_t i = 0; i < reader_vec_size(m->readers); i++) {
 		struct mtbl_reader *r = reader_vec_value(m->readers, i);
@@ -315,10 +331,11 @@ mtbl_merger_get_range(struct mtbl_merger *m,
 	return (mtbl_iter_init(merger_iter_next, merger_iter_free, it));
 }
 
-struct mtbl_iter *
-mtbl_merger_get_prefix(struct mtbl_merger *m,
-		       const uint8_t *key, size_t len_key)
+static struct mtbl_iter *
+merger_get_prefix(void *clos,
+		  const uint8_t *key, size_t len_key)
 {
+	struct mtbl_merger *m = (struct mtbl_merger *) clos;
 	struct merger_iter *it = merger_iter_init(m);
 	for (size_t i = 0; i < reader_vec_size(m->readers); i++) {
 		struct mtbl_reader *r = reader_vec_value(m->readers, i);
