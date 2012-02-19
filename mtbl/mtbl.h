@@ -120,6 +120,11 @@ mtbl_source_get_range(struct mtbl_source *,
 	const uint8_t *key0, size_t len_key0,
 	const uint8_t *key1, size_t len_key1);
 
+mtbl_res mtbl_source_write(
+	struct mtbl_source *,
+	struct mtbl_writer *)
+	__attribute__((warn_unused_result));
+
 /* writer */
 
 struct mtbl_writer *mtbl_writer_init(

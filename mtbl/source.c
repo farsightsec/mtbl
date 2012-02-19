@@ -85,3 +85,18 @@ mtbl_source_get_range(struct mtbl_source *s,
 {
 	return (s->source_get_range(s->clos, key0, len_key0, key1, len_key1));
 }
+
+mtbl_res
+mtbl_source_write(struct mtbl_source *s, struct mtbl_writer *w)
+{
+	const uint8_t *key, *val;
+	size_t len_key, len_val;
+	struct mtbl_iter *it = mtbl_source_iter(s);
+
+	if (it == NULL)
+		return (mtbl_res_failure);
+	while (mtbl_iter_next(it, &key, &len_key, &val, &len_val) == mtbl_res_success)
+		mtbl_writer_add(w, key, len_key, val, len_val);
+	mtbl_iter_destroy(&it);
+	return (mtbl_res_success);
+}
