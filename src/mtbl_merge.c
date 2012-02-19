@@ -128,7 +128,7 @@ merge(void)
 	size_t len_key, len_val;
 	struct mtbl_iter *it;
 
-	it = mtbl_merger_iter(merger);
+	it = mtbl_source_iter(mtbl_merger_source(merger));
 	assert(it != NULL);
 	while (mtbl_iter_next(it, &key, &len_key, &val, &len_val) == mtbl_res_success) {
 		mtbl_res res = mtbl_writer_add(writer, key, len_key, val, len_val);
