@@ -18,12 +18,13 @@
 #include "vector_types.h"
 
 typedef enum {
-	READ_ITER_TYPE_ALL,
-	READ_ITER_TYPE_RANGE,
-	READ_ITER_TYPE_PREFIX
-} read_iter_type;
+	READER_ITER_TYPE_ITER,
+	READER_ITER_TYPE_GET,
+	READER_ITER_TYPE_GET_PREFIX,
+	READER_ITER_TYPE_GET_RANGE,
+} reader_iter_type;
 
-struct read_iter {
+struct reader_iter {
 	struct mtbl_reader		*r;
 	struct block			*b;
 	struct block_iter		*bi;
@@ -31,7 +32,7 @@ struct read_iter {
 	ubuf				*k;
 	bool				first;
 	bool				valid;
-	read_iter_type			it_type;
+	reader_iter_type		it_type;
 };
 
 struct mtbl_reader_options {
@@ -43,23 +44,28 @@ struct mtbl_reader {
 	struct trailer			t;
 	uint8_t				*data;
 	size_t				len_data;
-
 	struct mtbl_reader_options	opt;
-
 	struct block			*index;
-	struct block_iter		*index_iter;
-
 	struct mtbl_source		*source;
 };
 
-static mtbl_res read_iter_next(void *, const uint8_t **, size_t *, const uint8_t **, size_t *);
-static void read_iter_free(void *);
+static mtbl_res
+reader_iter_next(void *, const uint8_t **, size_t *, const uint8_t **, size_t *);
+
+static void
+reader_iter_free(void *);
 
 static struct mtbl_iter *
-reader_get_range(void *, const uint8_t *, size_t, const uint8_t *, size_t);
+reader_iter(void *);
+
+static struct mtbl_iter *
+reader_get(void *, const uint8_t *, size_t);
 
 static struct mtbl_iter *
 reader_get_prefix(void *, const uint8_t *, size_t);
+
+static struct mtbl_iter *
+reader_get_range(void *, const uint8_t *, size_t, const uint8_t *, size_t);
 
 struct mtbl_reader_options *
 mtbl_reader_options_init(void)
@@ -124,10 +130,11 @@ mtbl_reader_init_fd(int orig_fd, const struct mtbl_reader_options *opt)
 	index_data = r->data + r->t.index_block_offset + 2 * sizeof(uint32_t);
 	assert(index_crc == mtbl_crc32c(index_data, index_len));
 	r->index = block_init(index_data, index_len, false);
-	r->index_iter = block_iter_init(r->index);
-
-	r->source = mtbl_source_init(reader_get_prefix, reader_get_range, NULL, r);
-
+	r->source = mtbl_source_init(reader_iter,
+				     reader_get,
+				     reader_get_prefix,
+				     reader_get_range,
+				     NULL, r);
 	return (r);
 }
 
@@ -150,7 +157,6 @@ void
 mtbl_reader_destroy(struct mtbl_reader **r)
 {
 	if (*r != NULL) {
-		block_iter_destroy(&(*r)->index_iter);
 		block_destroy(&(*r)->index);
 		munmap((*r)->data, (*r)->len_data);
 		close((*r)->fd);
@@ -244,39 +250,37 @@ get_block_at_index(struct mtbl_reader *r, struct block_iter *index_iter)
 	return (NULL);
 }
 
-mtbl_res
-mtbl_reader_get(struct mtbl_reader *r,
-		const uint8_t *key, size_t len_key,
-		uint8_t **val, size_t *len_val)
+static struct mtbl_iter *
+reader_iter(void *clos)
 {
-	struct block *b;
-	mtbl_res res = mtbl_res_failure;
-	const uint8_t *bkey, *bval;
-	size_t bkey_len, bval_len;
+	struct mtbl_reader *r = (struct mtbl_reader *) clos;
+	struct reader_iter *it = my_calloc(1, sizeof(*it));
 
-	block_iter_seek(r->index_iter, key, len_key);
-	b = get_block_at_index(r, r->index_iter);
-	if (b != NULL) {
-		struct block_iter *bi = block_iter_init(b);
-		block_iter_seek(bi, key, len_key);
-		block_iter_get(bi, &bkey, &bkey_len, &bval, &bval_len);
-		if (bytes_compare(key, len_key, bkey, bkey_len) == 0) {
-			*len_val = bval_len;
-			*val = my_malloc(bval_len);
-			memcpy(*val, bval, bval_len);
-			res = mtbl_res_success;
-		}
-		block_iter_destroy(&bi);
-		block_destroy(&b);
+	it->r = r;
+	it->index_iter = block_iter_init(r->index);
+
+	block_iter_seek_to_first(it->index_iter);
+	it->b = get_block_at_index(r, it->index_iter);
+	if (it->b == NULL) {
+		block_iter_destroy(&it->index_iter);
+		block_destroy(&it->b);
+		free(it);
+		return (NULL);
 	}
 
-	return (res);
+	it->bi = block_iter_init(it->b);
+	block_iter_seek_to_first(it->bi);
+
+	it->first = true;
+	it->valid = true;
+	it->it_type = READER_ITER_TYPE_ITER;
+	return (mtbl_iter_init(reader_iter_next, reader_iter_free, it));
 }
 
-static struct read_iter *
-read_iter_init(struct mtbl_reader *r, const uint8_t *key, size_t len_key)
+static struct reader_iter *
+reader_iter_init(struct mtbl_reader *r, const uint8_t *key, size_t len_key)
 {
-	struct read_iter *it = my_calloc(1, sizeof(*it));
+	struct reader_iter *it = my_calloc(1, sizeof(*it));
 
 	it->r = r;
 	it->index_iter = block_iter_init(r->index);
@@ -298,63 +302,51 @@ read_iter_init(struct mtbl_reader *r, const uint8_t *key, size_t len_key)
 	return (it);
 }
 
-struct mtbl_iter *
-mtbl_reader_iter(struct mtbl_reader *r)
-{
-	struct read_iter *it = my_calloc(1, sizeof(*it));
-
-	it->r = r;
-	it->index_iter = block_iter_init(r->index);
-
-	block_iter_seek_to_first(it->index_iter);
-	it->b = get_block_at_index(r, it->index_iter);
-	if (it->b == NULL) {
-		block_iter_destroy(&it->index_iter);
-		block_destroy(&it->b);
-		free(it);
-		return (NULL);
-	}
-
-	it->bi = block_iter_init(it->b);
-	block_iter_seek_to_first(it->bi);
-
-	it->first = true;
-	it->valid = true;
-	it->it_type = READ_ITER_TYPE_ALL;
-	return (mtbl_iter_init(read_iter_next, read_iter_free, it));
-}
-
 static struct mtbl_iter *
-reader_get_range(void *r,
-		 const uint8_t *key0, size_t len_key0,
-		 const uint8_t *key1, size_t len_key1)
+reader_get(void *clos, const uint8_t *key, size_t len_key)
 {
-	struct read_iter *it = read_iter_init((struct mtbl_reader *) r, key0, len_key0);
-	if (it == NULL)
-		return (NULL);
-	it->k = ubuf_init(len_key1);
-	ubuf_append(it->k, key1, len_key1);
-	it->it_type = READ_ITER_TYPE_RANGE;
-	return (mtbl_iter_init(read_iter_next, read_iter_free, it));
-}
-
-static struct mtbl_iter *
-reader_get_prefix(void *r,
-		  const uint8_t *key, size_t len_key)
-{
-	struct read_iter *it = read_iter_init((struct mtbl_reader *) r, key, len_key);
+	struct mtbl_reader *r = (struct mtbl_reader *) clos;
+	struct reader_iter *it = reader_iter_init(r, key, len_key);
 	if (it == NULL)
 		return (NULL);
 	it->k = ubuf_init(len_key);
 	ubuf_append(it->k, key, len_key);
-	it->it_type = READ_ITER_TYPE_PREFIX;
-	return (mtbl_iter_init(read_iter_next, read_iter_free, it));
+	it->it_type = READER_ITER_TYPE_GET;
+	return (mtbl_iter_init(reader_iter_next, reader_iter_free, it));
+}
+
+static struct mtbl_iter *
+reader_get_prefix(void *clos, const uint8_t *key, size_t len_key)
+{
+	struct mtbl_reader *r = (struct mtbl_reader *) clos;
+	struct reader_iter *it = reader_iter_init(r, key, len_key);
+	if (it == NULL)
+		return (NULL);
+	it->k = ubuf_init(len_key);
+	ubuf_append(it->k, key, len_key);
+	it->it_type = READER_ITER_TYPE_GET_PREFIX;
+	return (mtbl_iter_init(reader_iter_next, reader_iter_free, it));
+}
+
+static struct mtbl_iter *
+reader_get_range(void *clos,
+		 const uint8_t *key0, size_t len_key0,
+		 const uint8_t *key1, size_t len_key1)
+{
+	struct mtbl_reader *r = (struct mtbl_reader *) clos;
+	struct reader_iter *it = reader_iter_init(r, key0, len_key0);
+	if (it == NULL)
+		return (NULL);
+	it->k = ubuf_init(len_key1);
+	ubuf_append(it->k, key1, len_key1);
+	it->it_type = READER_ITER_TYPE_GET_RANGE;
+	return (mtbl_iter_init(reader_iter_next, reader_iter_free, it));
 }
 
 static void
-read_iter_free(void *v)
+reader_iter_free(void *v)
 {
-	struct read_iter *it = (struct read_iter *) v;
+	struct reader_iter *it = (struct reader_iter *) v;
 	if (it) {
 		ubuf_destroy(&it->k);
 		block_destroy(&it->b);
@@ -365,11 +357,11 @@ read_iter_free(void *v)
 }
 
 static mtbl_res
-read_iter_next(void *v,
+reader_iter_next(void *v,
 	       const uint8_t **key, size_t *len_key,
 	       const uint8_t **val, size_t *len_val)
 {
-	struct read_iter *it = (struct read_iter *) v;
+	struct reader_iter *it = (struct reader_iter *) v;
 	if (!it->valid)
 		return (mtbl_res_failure);
 
@@ -392,20 +384,22 @@ read_iter_next(void *v,
 	}
 
 	switch (it->it_type) {
-	case READ_ITER_TYPE_ALL:
+	case READER_ITER_TYPE_ITER:
 		break;
-	case READ_ITER_TYPE_RANGE:
-		if (bytes_compare(*key, *len_key, ubuf_data(it->k), ubuf_size(it->k)) > 0)
-		{
+	case READER_ITER_TYPE_GET:
+		if (bytes_compare(*key, *len_key, ubuf_data(it->k), ubuf_size(it->k)) != 0)
 			it->valid = false;
-		}
 		break;
-	case READ_ITER_TYPE_PREFIX:
+	case READER_ITER_TYPE_GET_PREFIX:
 		if (!(ubuf_size(it->k) <= *len_key &&
 		      memcmp(ubuf_data(it->k), *key, ubuf_size(it->k)) == 0))
 		{
 			it->valid = false;
 		}
+		break;
+	case READER_ITER_TYPE_GET_RANGE:
+		if (bytes_compare(*key, *len_key, ubuf_data(it->k), ubuf_size(it->k)) > 0)
+			it->valid = false;
 		break;
 	default:
 		assert(0);
