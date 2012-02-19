@@ -178,13 +178,6 @@ void mtbl_merger_destroy(struct mtbl_merger **);
 void mtbl_merger_add_reader(
 	struct mtbl_merger *,
 	struct mtbl_reader *);
-mtbl_res mtbl_merger_write(
-	struct mtbl_merger *,
-	struct mtbl_writer *)
-	__attribute__((warn_unused_result));
-struct mtbl_iter *mtbl_merger_iter(struct mtbl_merger *);
-struct mtbl_iter *mtbl_merger_get(struct mtbl_merger *,
-	const uint8_t *key, size_t len_key);
 struct mtbl_source *mtbl_merger_source(struct mtbl_merger *);
 
 /* merger options */
