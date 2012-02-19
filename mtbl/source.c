@@ -17,6 +17,8 @@
 #include "mtbl-private.h"
 
 struct mtbl_source {
+	mtbl_source_iter_func		source_iter;
+	mtbl_source_get_func		source_get;
 	mtbl_source_get_prefix_func	source_get_prefix;
 	mtbl_source_get_range_func	source_get_range;
 	mtbl_source_free_func		source_free;
@@ -24,14 +26,20 @@ struct mtbl_source {
 };
 
 struct mtbl_source *
-mtbl_source_init(mtbl_source_get_prefix_func source_get_prefix,
+mtbl_source_init(mtbl_source_iter_func source_iter,
+		 mtbl_source_get_func source_get,
+		 mtbl_source_get_prefix_func source_get_prefix,
 		 mtbl_source_get_range_func source_get_range,
 		 mtbl_source_free_func source_free,
 		 void *clos)
 {
+	assert(source_iter != NULL);
+	assert(source_get != NULL);
 	assert(source_get_prefix != NULL);
 	assert(source_get_range != NULL);
 	struct mtbl_source *s = my_calloc(1, sizeof(*s));
+	s->source_iter = source_iter;
+	s->source_get = source_get;
 	s->source_get_prefix = source_get_prefix;
 	s->source_get_range = source_get_range;
 	s->source_free = source_free;
@@ -48,6 +56,19 @@ mtbl_source_destroy(struct mtbl_source **s)
 		free(*s);
 		*s = NULL;
 	}
+}
+
+struct mtbl_iter *
+mtbl_source_iter(struct mtbl_source *s)
+{
+	return (s->source_iter(s->clos));
+}
+
+struct mtbl_iter *
+mtbl_source_get(struct mtbl_source *s,
+		const uint8_t *key, size_t len_key)
+{
+	return (s->source_get(s->clos, key, len_key));
 }
 
 struct mtbl_iter *

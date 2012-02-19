@@ -80,6 +80,11 @@ mtbl_res mtbl_iter_next(struct mtbl_iter *,
 
 /* source */
 
+typedef struct mtbl_iter *(*mtbl_source_iter_func)(void *);
+
+typedef struct mtbl_iter *(*mtbl_source_get_func)(void *,
+	const uint8_t *key, size_t len_key);
+
 typedef struct mtbl_iter *(*mtbl_source_get_prefix_func)(void *,
 	const uint8_t *key, size_t len_key);
 
@@ -90,12 +95,21 @@ typedef struct mtbl_iter *(*mtbl_source_get_range_func)(void *,
 typedef void (*mtbl_source_free_func)(void *);
 
 struct mtbl_source *mtbl_source_init(
+	mtbl_source_iter_func,
+	mtbl_source_get_func,
 	mtbl_source_get_prefix_func,
 	mtbl_source_get_range_func,
 	mtbl_source_free_func,
 	void *clos);
 
 void mtbl_source_destroy(struct mtbl_source **);
+
+struct mtbl_iter *
+mtbl_source_iter(struct mtbl_source *);
+
+struct mtbl_iter *
+mtbl_source_get(struct mtbl_source *,
+	const uint8_t *key, size_t len_key);
 
 struct mtbl_iter *
 mtbl_source_get_prefix(struct mtbl_source *,
