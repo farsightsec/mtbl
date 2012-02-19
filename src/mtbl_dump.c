@@ -32,7 +32,7 @@ dump(const char *fname)
 	r = mtbl_reader_init(fname, NULL);
 	assert(r != NULL);
 
-	it = mtbl_reader_iter(r);
+	it = mtbl_source_iter(mtbl_reader_source(r));
 	assert(it != NULL);
 
 	while (mtbl_iter_next(it, &key, &len_key, &val, &len_val)) {
