@@ -318,7 +318,7 @@ mtbl_sorter_iter(struct mtbl_sorter *s)
 		reader_vec_add(it->readers, r);
 	}
 
-	it->m_iter = mtbl_merger_iter(it->m);
+	it->m_iter = mtbl_source_iter(mtbl_merger_source(it->m));
 	s->iterating = true;
 	return (mtbl_iter_init(sorter_iter_next, sorter_iter_free, it));
 }
