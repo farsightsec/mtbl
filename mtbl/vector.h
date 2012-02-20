@@ -52,18 +52,6 @@ name##_destroy(name **vec)						\
 	}								\
 }									\
 static inline void							\
-name##_add(name *vec, type elem)					\
-{									\
-	if ((vec)->_n == (vec)->_n_alloced - 1) {			\
-		(vec)->_n_alloced *= 2;					\
-		(vec)->_v = my_realloc((vec)->_v, (vec)->_n_alloced	\
-				   * sizeof(type));			\
-	}								\
-	(vec)->_v[(vec)->_n] = elem;					\
-	(vec)->_n += 1;							\
-	(vec)->_p = &((vec)->_v[(vec)->_n]);				\
-}									\
-static inline void							\
 name##_reserve(name *vec, size_t n_elems)				\
 {									\
 	while ((n_elems) > ((vec)->_n_alloced - (vec)->_n)) {		\
@@ -72,6 +60,19 @@ name##_reserve(name *vec, size_t n_elems)				\
 				   * sizeof(type));			\
 		(vec)->_p = &((vec)->_v[(vec)->_n]);			\
 	}								\
+}									\
+static inline void							\
+name##_add(name *vec, type elem)					\
+{									\
+	while ((vec)->_n + 1 > (vec)->_n_alloced) {			\
+		(vec)->_n_alloced *= 2;					\
+		(vec)->_v = my_realloc((vec)->_v, (vec)->_n_alloced	\
+				   * sizeof(type));			\
+		(vec)->_p = &((vec)->_v[(vec)->_n]);			\
+	}								\
+	(vec)->_v[(vec)->_n] = elem;					\
+	(vec)->_n += 1;							\
+	(vec)->_p = &((vec)->_v[(vec)->_n]);				\
 }									\
 static inline void							\
 name##_append(name *vec, type const *elems, size_t n_elems)		\
