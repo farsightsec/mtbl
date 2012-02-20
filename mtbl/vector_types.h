@@ -21,3 +21,5 @@
 VECTOR_GENERATE(uint32_vec, uint32_t);
 
 VECTOR_GENERATE(ubuf, uint8_t);
+
+#define ubuf_append_str(u, s) do { ubuf_append(u, (const uint8_t *) s, strlen(s)); } while (0)
