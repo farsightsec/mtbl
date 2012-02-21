@@ -154,7 +154,8 @@ mtbl_res
 mtbl_writer_add(
 	struct mtbl_writer *,
 	const uint8_t *key, size_t len_key,
-	const uint8_t *val, size_t len_val);
+	const uint8_t *val, size_t len_val)
+__attribute__((warn_unused_result));
 
 /* writer options */
 
