@@ -92,11 +92,15 @@ mtbl_source_write(struct mtbl_source *s, struct mtbl_writer *w)
 	const uint8_t *key, *val;
 	size_t len_key, len_val;
 	struct mtbl_iter *it = mtbl_source_iter(s);
+	mtbl_res res = mtbl_res_success;
 
 	if (it == NULL)
 		return (mtbl_res_failure);
-	while (mtbl_iter_next(it, &key, &len_key, &val, &len_val) == mtbl_res_success)
-		mtbl_writer_add(w, key, len_key, val, len_val);
+	while (mtbl_iter_next(it, &key, &len_key, &val, &len_val) == mtbl_res_success) {
+		res = mtbl_writer_add(w, key, len_key, val, len_val);
+		if (res != mtbl_res_success)
+			break;
+	}
 	mtbl_iter_destroy(&it);
-	return (mtbl_res_success);
+	return (res);
 }
