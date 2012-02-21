@@ -153,6 +153,7 @@ _mtbl_sorter_compare(const void *va, const void *vb)
 static mtbl_res
 _mtbl_sorter_write_chunk(struct mtbl_sorter *s)
 {
+	mtbl_res res = mtbl_res_success;
 	assert(!s->iterating);
 	struct chunk *c = my_calloc(1, sizeof(*c));
 
@@ -210,18 +211,20 @@ _mtbl_sorter_write_chunk(struct mtbl_sorter *s)
 				continue;
 			}
 		}
-		mtbl_writer_add(w,
-				entry_key(ent), ent->len_key,
-				entry_val(ent), ent->len_val);
-		entries_written += 1;
+		res = mtbl_writer_add(w,
+				      entry_key(ent), ent->len_key,
+				      entry_val(ent), ent->len_val);
 		free(ent);
+		entries_written += 1;
+		if (res != mtbl_res_success)
+			break;
 	}
 	mtbl_writer_destroy(&w);
 	entry_vec_destroy(&s->vec);
 	s->vec = entry_vec_init(INITIAL_SORTER_VEC_SIZE);
 	s->entry_bytes = 0;
 	chunk_vec_add(s->chunks, c);
-	return (mtbl_res_success);
+	return (res);
 }
 
 mtbl_res
@@ -232,11 +235,17 @@ mtbl_sorter_write(struct mtbl_sorter *s, struct mtbl_writer *w)
 	struct mtbl_iter *it = mtbl_sorter_iter(s);
 	const uint8_t *key, *val;
 	size_t len_key, len_val;
+	mtbl_res res = mtbl_res_success;
 
-	while (mtbl_iter_next(it, &key, &len_key, &val, &len_val))
-		mtbl_writer_add(w, key, len_key, val, len_val);
+	if (it == NULL)
+		return (mtbl_res_failure);
+	while (mtbl_iter_next(it, &key, &len_key, &val, &len_val) == mtbl_res_success) {
+		res = mtbl_writer_add(w, key, len_key, val, len_val);
+		if (res != mtbl_res_success)
+			break;
+	}
 	mtbl_iter_destroy(&it);
-	return (mtbl_res_success);
+	return (res);
 }
 
 mtbl_res
