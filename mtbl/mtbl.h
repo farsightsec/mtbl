@@ -52,8 +52,7 @@ struct mtbl_sorter;
 struct mtbl_sorter_options;
 
 typedef void
-(*mtbl_merge_func)(
-	void *clos,
+(*mtbl_merge_func)(void *clos,
 	const uint8_t *key, size_t len_key,
 	const uint8_t *val0, size_t len_val0,
 	const uint8_t *val1, size_t len_val1,
