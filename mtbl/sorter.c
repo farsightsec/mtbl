@@ -323,7 +323,7 @@ mtbl_sorter_iter(struct mtbl_sorter *s)
 		struct chunk *c = chunk_vec_value(s->chunks, i);
 		struct mtbl_reader *r;
 		r = mtbl_reader_init_fd(c->fd, NULL);
-		mtbl_merger_add_reader(it->m, r);
+		mtbl_merger_add_source(it->m, mtbl_reader_source(r));
 		reader_vec_add(it->readers, r);
 	}
 
