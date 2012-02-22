@@ -252,7 +252,7 @@ main(int argc, char **argv)
 			fprintf(stderr, "Error: mtbl_reader_init() failed.\n\n");
 			usage();
 		}
-		mtbl_merger_add_reader(merger, readers[i]);
+		mtbl_merger_add_source(merger, mtbl_reader_source(readers[i]));
 	}
 
 	/* do merge */
