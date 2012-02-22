@@ -51,5 +51,7 @@ mtbl_iter_next(struct mtbl_iter *it,
 	       const uint8_t **key, size_t *len_key,
 	       const uint8_t **val, size_t *len_val)
 {
+	if (it == NULL)
+		return (mtbl_res_failure);
 	return (it->iter_next(it->clos, key, len_key, val, len_val));
 }
