@@ -213,7 +213,7 @@ void
 mtbl_merger_destroy(struct mtbl_merger **);
 
 void
-mtbl_merger_add_reader(struct mtbl_merger *, struct mtbl_reader *);
+mtbl_merger_add_source(struct mtbl_merger *, struct mtbl_source *);
 
 struct mtbl_source *
 mtbl_merger_source(struct mtbl_merger *);
