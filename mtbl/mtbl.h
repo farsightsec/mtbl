@@ -120,22 +120,22 @@ void
 mtbl_source_destroy(struct mtbl_source **);
 
 struct mtbl_iter *
-mtbl_source_iter(struct mtbl_source *);
+mtbl_source_iter(const struct mtbl_source *);
 
 struct mtbl_iter *
-mtbl_source_get(struct mtbl_source *, const uint8_t *key, size_t len_key);
+mtbl_source_get(const struct mtbl_source *, const uint8_t *key, size_t len_key);
 
 struct mtbl_iter *
-mtbl_source_get_prefix(struct mtbl_source *, const uint8_t *key, size_t len_key);
+mtbl_source_get_prefix(const struct mtbl_source *, const uint8_t *key, size_t len_key);
 
 struct mtbl_iter *
 mtbl_source_get_range(
-	struct mtbl_source *,
+	const struct mtbl_source *,
 	const uint8_t *key0, size_t len_key0,
 	const uint8_t *key1, size_t len_key1);
 
 mtbl_res
-mtbl_source_write(struct mtbl_source *, struct mtbl_writer *)
+mtbl_source_write(const struct mtbl_source *, struct mtbl_writer *)
 __attribute__((warn_unused_result));
 
 /* writer */
@@ -190,7 +190,7 @@ mtbl_reader_init_fd(int fd, const struct mtbl_reader_options *);
 void
 mtbl_reader_destroy(struct mtbl_reader **);
 
-struct mtbl_source *
+const struct mtbl_source *
 mtbl_reader_source(struct mtbl_reader *);
 
 /* reader options */
@@ -213,9 +213,9 @@ void
 mtbl_merger_destroy(struct mtbl_merger **);
 
 void
-mtbl_merger_add_source(struct mtbl_merger *, struct mtbl_source *);
+mtbl_merger_add_source(struct mtbl_merger *, const struct mtbl_source *);
 
-struct mtbl_source *
+const struct mtbl_source *
 mtbl_merger_source(struct mtbl_merger *);
 
 /* merger options */

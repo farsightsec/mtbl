@@ -25,7 +25,7 @@ struct entry {
 
 VECTOR_GENERATE(entry_vec, struct entry *);
 
-VECTOR_GENERATE(source_vec, struct mtbl_source *);
+VECTOR_GENERATE(source_vec, const struct mtbl_source *);
 
 struct merger_iter {
 	struct mtbl_merger		*m;
@@ -111,14 +111,14 @@ mtbl_merger_destroy(struct mtbl_merger **m)
 	}
 }
 
-struct mtbl_source *
+const struct mtbl_source *
 mtbl_merger_source(struct mtbl_merger *m)
 {
 	return (m->source);
 }
 
 void
-mtbl_merger_add_source(struct mtbl_merger *m, struct mtbl_source *s)
+mtbl_merger_add_source(struct mtbl_merger *m, const struct mtbl_source *s)
 {
 	source_vec_add(m->sources, s);
 }
@@ -283,7 +283,7 @@ merger_iter(void *clos)
 	struct mtbl_merger *m = (struct mtbl_merger *) clos;
 	struct merger_iter *it = merger_iter_init(m);
 	for (size_t i = 0; i < source_vec_size(m->sources); i++) {
-		struct mtbl_source *s = source_vec_value(m->sources, i);
+		const struct mtbl_source *s = source_vec_value(m->sources, i);
 		merger_iter_add_entry(it, mtbl_source_iter(s));
 	}
 	return (mtbl_iter_init(merger_iter_next, merger_iter_free, it));
@@ -295,7 +295,7 @@ merger_get(void *clos, const uint8_t *key, size_t len_key)
 	struct mtbl_merger *m = (struct mtbl_merger *) clos;
 	struct merger_iter *it = merger_iter_init(m);
 	for (size_t i = 0; i < source_vec_size(m->sources); i++) {
-		struct mtbl_source *s = source_vec_value(m->sources, i);
+		const struct mtbl_source *s = source_vec_value(m->sources, i);
 		struct mtbl_iter *s_it = mtbl_source_get_range(s, key, len_key, key, len_key);
 		if (s_it != NULL)
 			merger_iter_add_entry(it, s_it);
@@ -315,7 +315,7 @@ merger_get_range(void *clos,
 	struct mtbl_merger *m = (struct mtbl_merger *) clos;
 	struct merger_iter *it = merger_iter_init(m);
 	for (size_t i = 0; i < source_vec_size(m->sources); i++) {
-		struct mtbl_source *s = source_vec_value(m->sources, i);
+		const struct mtbl_source *s = source_vec_value(m->sources, i);
 		struct mtbl_iter *s_it = mtbl_source_get_range(s, key0, len_key0, key1, len_key1);
 		if (s_it != NULL)
 			merger_iter_add_entry(it, s_it);
@@ -334,7 +334,7 @@ merger_get_prefix(void *clos,
 	struct mtbl_merger *m = (struct mtbl_merger *) clos;
 	struct merger_iter *it = merger_iter_init(m);
 	for (size_t i = 0; i < source_vec_size(m->sources); i++) {
-		struct mtbl_source *s = source_vec_value(m->sources, i);
+		const struct mtbl_source *s = source_vec_value(m->sources, i);
 		struct mtbl_iter *s_it = mtbl_source_get_prefix(s, key, len_key);
 		if (s_it != NULL)
 			merger_iter_add_entry(it, s_it);

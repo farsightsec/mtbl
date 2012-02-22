@@ -166,7 +166,7 @@ mtbl_reader_destroy(struct mtbl_reader **r)
 	}
 }
 
-struct mtbl_source *
+const struct mtbl_source *
 mtbl_reader_source(struct mtbl_reader *r)
 {
 	return (r->source);

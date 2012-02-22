@@ -59,27 +59,27 @@ mtbl_source_destroy(struct mtbl_source **s)
 }
 
 struct mtbl_iter *
-mtbl_source_iter(struct mtbl_source *s)
+mtbl_source_iter(const struct mtbl_source *s)
 {
 	return (s->source_iter(s->clos));
 }
 
 struct mtbl_iter *
-mtbl_source_get(struct mtbl_source *s,
+mtbl_source_get(const struct mtbl_source *s,
 		const uint8_t *key, size_t len_key)
 {
 	return (s->source_get(s->clos, key, len_key));
 }
 
 struct mtbl_iter *
-mtbl_source_get_prefix(struct mtbl_source *s,
+mtbl_source_get_prefix(const struct mtbl_source *s,
 		       const uint8_t *key, size_t len_key)
 {
 	return (s->source_get_prefix(s->clos, key, len_key));
 }
 
 struct mtbl_iter *
-mtbl_source_get_range(struct mtbl_source *s,
+mtbl_source_get_range(const struct mtbl_source *s,
 		      const uint8_t *key0, size_t len_key0,
 		      const uint8_t *key1, size_t len_key1)
 {
@@ -87,7 +87,7 @@ mtbl_source_get_range(struct mtbl_source *s,
 }
 
 mtbl_res
-mtbl_source_write(struct mtbl_source *s, struct mtbl_writer *w)
+mtbl_source_write(const struct mtbl_source *s, struct mtbl_writer *w)
 {
 	const uint8_t *key, *val;
 	size_t len_key, len_val;
