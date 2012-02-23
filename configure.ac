@@ -8,7 +8,7 @@ AC_USE_SYSTEM_EXTENSIONS
 AC_SYS_LARGEFILE
 AC_CONFIG_MACRO_DIR([m4])
 AM_SILENT_RULES([yes])
-LT_INIT([disable-static pic-only])
+LT_INIT
 
 my_CFLAGS="-Wall \
 -Wmissing-declarations -Wmissing-prototypes \
