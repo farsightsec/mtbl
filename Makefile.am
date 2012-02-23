@@ -132,13 +132,13 @@ dist_man_MANS = \
 	man/mtbl.7
 
 EXTRA_DIST += \
-	man/mtbl_iter.txt \
-	man/mtbl_source.txt \
-	man/mtbl_reader.txt \
-	man/mtbl_writer.txt \
-	man/mtbl_merger.txt \
-	man/mtbl_sorter.txt \
-	man/mtbl_crc32c.txt \
-	man/mtbl_fixed.txt \
-	man/mtbl_varint.txt \
-	man/mtbl.txt
+	man/mtbl_iter.3.txt \
+	man/mtbl_source.3.txt \
+	man/mtbl_reader.3.txt \
+	man/mtbl_writer.3.txt \
+	man/mtbl_merger.3.txt \
+	man/mtbl_sorter.3.txt \
+	man/mtbl_crc32c.3.txt \
+	man/mtbl_fixed.3.txt \
+	man/mtbl_varint.3.txt \
+	man/mtbl.7.txt
