@@ -10,7 +10,7 @@ mtbl_varint - Variable-width encoding and decoding of 32 and 64 bit integers
 
 ^unsigned mtbl_varint_length(uint64_t 'value');^
 
-^unsigned mtbl_varint_length_packed(const uint8_t *'buf');^
+^unsigned mtbl_varint_length_packed(const uint8_t *'buf', size_t 'len_buf');^
 
 ^size_t mtbl_varint_encode32(uint8_t *'ptr', uint32_t 'value');^
 
@@ -45,5 +45,6 @@ bytes read from _ptr_.
 would require in the variable-width encoding.
 
 ^mtbl_varint_length_packed^() returns the number of bytes consumed by the
-variable-width encoded quantity at its argument _data_. It will read at most 10
-bytes from _data_.
+variable-width encoded quantity at its argument _data_. It will read at most
+_len_buf_ bytes from _data_. The value 0 is returned if a valid varint is not
+present.
