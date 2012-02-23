@@ -74,13 +74,16 @@ mtbl_varint_length(uint64_t v)
 }
 
 unsigned
-mtbl_varint_length_packed(const uint8_t *data)
+mtbl_varint_length_packed(const uint8_t *data, size_t len_data)
 {
-	unsigned i;
-	for (i = 0; i < 10; i++)
+	unsigned i = 0;
+	size_t len = len_data;
+	while (len--) {
 		if ((data[i] & 0x80) == 0)
 			break;
-	if (i == 10)
+		i++;
+	}
+	if (i == len_data)
 		return (0);
 	return (i + 1);
 }
@@ -130,7 +133,7 @@ mtbl_varint_encode64(uint8_t *src_ptr, uint64_t v)
 size_t
 mtbl_varint_decode32(const uint8_t *data, uint32_t *value)
 {
-	unsigned len = mtbl_varint_length_packed(data);
+	unsigned len = mtbl_varint_length_packed(data, 5);
 	uint32_t val = data[0] & 0x7f;
 	if (len > 1) {
 		val |= ((data[1] & 0x7f) << 7);
@@ -150,7 +153,7 @@ mtbl_varint_decode32(const uint8_t *data, uint32_t *value)
 size_t
 mtbl_varint_decode64(const uint8_t *data, uint64_t *value) {
 	unsigned shift, i;
-	unsigned len = mtbl_varint_length_packed(data);
+	unsigned len = mtbl_varint_length_packed(data, 10);
 	uint64_t val;
 	if (len < 5) {
 		size_t tmp_len;

@@ -302,7 +302,7 @@ unsigned
 mtbl_varint_length(uint64_t v);
 
 unsigned
-mtbl_varint_length_packed(const uint8_t *buf);
+mtbl_varint_length_packed(const uint8_t *buf, size_t len_buf);
 
 size_t
 mtbl_varint_encode32(uint8_t *ptr, uint32_t value);
