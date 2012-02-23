@@ -1,0 +1,45 @@
+= mtbl_info(1) =
+
+== NAME ==
+
+mtbl_info - display information about an MTBL file
+
+== SYNOPSIS ==
+
+^mtbl_info^ 'FILE' ['FILE']...
+
+== DESCRIPTION ==
+
+^mtbl_info^(1) displays the following information about the MTBL files
+specified on the command line.
+
+'file name' -- the name of the MTBL file.
+
+'file size' -- the total size of the MTBL file, in bytes.
+
+'index bytes' -- the total number of bytes and proportion of the total file
+size consumed by the index.
+
+'data block bytes' -- the total number of bytes and proportion of the total
+file size consumed by data blocks.
+
+'data block size' -- the maximum size of an uncompressed data block.
+
+'data block count' -- the total number of data blocks.
+
+'entry count' -- the total number of key-value entries.
+
+'key bytes' -- the total number of bytes that all keys in the file would
+occupy if stored end-to-end in a byte array with no delimiters.
+
+'value bytes' -- the total number of bytes that all values in the file would
+occupy if stored end-to-end in a byte array with no delimiters.
+
+'compression algorithm' -- the algorithm used to compress data blocks.
+Possible values are "none", "snappy" and "zlib".
+
+'compactness' -- a rough metric comparing the total number of bytes in the
+key-value entries with the total size of the MTBL file. It is calculated as
+(file size) / (key bytes + value bytes), and thus takes into account the gains
+of data block compression and prefix key compression against the overhead of
+the index, trailer, and data block offset arrays.

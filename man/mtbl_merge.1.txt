@@ -1,0 +1,58 @@
+= mtbl_merge(1) =
+
+== NAME ==
+
+mtbl_merge - merge MTBL data from multiple input files into a single output file
+
+== SYNOPSIS ==
+
+User-provided functions:
+
+[verse]
+^typedef void *
+(*mtbl_merge_init_func)(void);^
+
+[verse]
+^typedef void
+(*mtbl_merge_free_func)(void *clos);^
+
+[verse]
+^typedef void
+(*mtbl_merge_func)(void *'clos',
+        const uint8_t *'key', size_t 'len_key',
+        const uint8_t *'val0', size_t 'len_val0',
+        const uint8_t *'val1', size_t 'len_val1',
+        uint8_t **'merged_val', size_t *'len_merged_val');^
+
+Command line tool:
+
+[verse]
+^export MTBL_MERGE_DSO="'libexample.so.0'"^
+^export MTBL_MERGE_FUNC_PREFIX="'example_merge'"^
+^mtbl_merge^ 'INPUT' ['INPUT']... 'OUTPUT'
+
+== DESCRIPTION ==
+
+^mtbl_merge^(1) is a command-line driver for the ^mtbl_merger^(3) interface.
+The ^mtbl_merger^(3) interface requires a user-provided merge function, which
+is loaded from a shared object whose filename is specified in the environment
+variable 'MTBL_MERGE_DSO'.
+
+The user-provided merge function must have the same type as the
+'mtbl_merge_func' function type given above in the synopsis. The symbol name
+of the merge function to be loaded from the user-provided DSO will be
+constructed by appending "_func" to the string provided in the
+'MTBL_MERGE_FUNC_PREFIX' environment variable, which must be non-empty.
+
+Additionally, two optional functions may be provided: an "init" function whose
+symbol name is "_init" appended to the function prefix, and a "free" function
+whose symbol name is "_free" appended to the function prefix. If the "init"
+function exists, it will be called at the beginning, before any calls to the
+merge function, and the return value from the init function will be passed as
+the first argument to the merge function. If the "free" function exists, it will
+be called at the end, after any calls to the merge function, and its argument
+will be the return value of the "init" function.
+
+== SEE ALSO ==
+
+^mtbl_merger^(3)

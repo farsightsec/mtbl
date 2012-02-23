@@ -109,9 +109,12 @@ check_PROGRAMS += src/test-vector
 src_test_vector_SOURCES = src/test-vector.c
 src_test_vector_LDADD = mtbl/libmtbl.la
 
-SUFFIXES = .3.txt .7.txt .3 .7
+SUFFIXES = .1.txt .3.txt .7.txt .1 .3 .7
 
 ASCIIDOC_PROCESS = a2x -f manpage --asciidoc-opt="-f man/asciidoc.conf" $<
+
+.1.txt.1:
+	$(ASCIIDOC_PROCESS)
 
 .3.txt.3:
 	$(ASCIIDOC_PROCESS)
@@ -120,6 +123,9 @@ ASCIIDOC_PROCESS = a2x -f manpage --asciidoc-opt="-f man/asciidoc.conf" $<
 	$(ASCIIDOC_PROCESS)
 
 dist_man_MANS = \
+	man/mtbl_dump.1 \
+	man/mtbl_info.1 \
+	man/mtbl_merge.1 \
 	man/mtbl_iter.3 \
 	man/mtbl_source.3 \
 	man/mtbl_reader.3 \
@@ -132,6 +138,9 @@ dist_man_MANS = \
 	man/mtbl.7
 
 EXTRA_DIST += \
+	man/mtbl_dump.1.txt \
+	man/mtbl_info.1.txt \
+	man/mtbl_merge.1.txt \
 	man/mtbl_iter.3.txt \
 	man/mtbl_source.3.txt \
 	man/mtbl_reader.3.txt \

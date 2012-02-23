@@ -1,0 +1,17 @@
+= mtbl_dump(1) =
+
+== NAME ==
+
+mtbl_dump - print key-value entries from an MTBL file
+
+== SYNOPSIS ==
+
+^mtbl_dump^ 'FILE'
+
+== DESCRIPTION ==
+
+^mtbl_dump^(1) prints all key-value entries from an MTBL file to stdout, in
+file order. Each entry is printed on its own line, with double quotes
+surrounding the key and the value, with a single space character separating
+the two. Unprintable characters and embedded double quote characters are
+escaped using the Python string literal syntax.
