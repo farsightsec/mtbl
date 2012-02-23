@@ -63,54 +63,51 @@ pkgconfig_DATA = mtbl/libmtbl.pc
 EXTRA_DIST += mtbl/libmtbl.pc.in
 CLEANFILES += mtbl/libmtbl.pc
 
-bin_PROGRAMS = \
-	src/mtbl_dump
+TESTS =
+check_PROGRAMS =
+bin_PROGRAMS =
+
+bin_PROGRAMS += src/mtbl_dump
 src_mtbl_dump_SOURCES = src/mtbl_dump.c
 src_mtbl_dump_LDADD = mtbl/libmtbl.la
 
-bin_PROGRAMS += \
-	src/mtbl_info
+bin_PROGRAMS += src/mtbl_info
 src_mtbl_info_SOURCES = src/mtbl_info.c
 src_mtbl_info_LDADD = mtbl/libmtbl.la
 
-bin_PROGRAMS += \
-	src/mtbl_merge
+bin_PROGRAMS += src/mtbl_merge
 src_mtbl_merge_SOURCES = src/mtbl_merge.c
 src_mtbl_merge_LDADD = mtbl/libmtbl.la
 
-TESTS = \
-	src/test-mtbl \
-	src/test-crc32c \
-	src/test-fixed \
-	src/test-trailer \
-	src/test-varint
-
-check_PROGRAMS = \
-	src/test-mtbl \
-	src/test-block_builder \
-	src/test-crc32c \
-	src/test-fixed \
-	src/test-trailer \
-	src/test-varint \
-	src/test-vector \
-	src/test-writer
-
-src_test_mtbl_SOURCES = src/test-mtbl.c
-src_test_mtbl_LDADD = mtbl/libmtbl.la
+TESTS += src/test-block_builder
+check_PROGRAMS += src/test-block_builder
 src_test_block_builder_SOURCES = src/test-block_builder.c
 src_test_block_builder_LDADD = mtbl/libmtbl.la
+
+TESTS += src/test-crc32c
+check_PROGRAMS += src/test-crc32c
 src_test_crc32c_SOURCES = src/test-crc32c.c
 src_test_crc32c_LDADD = mtbl/libmtbl.la
+
+TESTS += src/test-fixed
+check_PROGRAMS += src/test-fixed
 src_test_fixed_SOURCES = src/test-fixed.c
 src_test_fixed_LDADD = mtbl/libmtbl.la
+
+TESTS += src/test-trailer
+check_PROGRAMS += src/test-trailer
 src_test_trailer_SOURCES = src/test-trailer.c
 src_test_trailer_LDADD = mtbl/libmtbl.la
+
+TESTS += src/test-varint
+check_PROGRAMS += src/test-varint
 src_test_varint_SOURCES = src/test-varint.c
 src_test_varint_LDADD = mtbl/libmtbl.la
+
+TESTS += src/test-vector
+check_PROGRAMS += src/test-vector
 src_test_vector_SOURCES = src/test-vector.c
 src_test_vector_LDADD = mtbl/libmtbl.la
-src_test_writer_SOURCES = src/test-writer.c
-src_test_writer_LDADD = mtbl/libmtbl.la
 
 SUFFIXES = .3.txt .7.txt .3 .7
 

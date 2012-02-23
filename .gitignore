@@ -23,8 +23,6 @@ src/mtbl_merge
 src/test-block_builder
 src/test-crc32c
 src/test-fixed
-src/test-memtable
-src/test-mtbl
 src/test-trailer
 src/test-varint
 src/test-vector
