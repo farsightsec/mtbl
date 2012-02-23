@@ -1,0 +1,63 @@
+= mtbl(7) =
+
+== NAME ==
+
+mtbl - immutable sorted string library
+
+== SYNOPSIS ==
+
+^#include <mtbl.h>^
+
+^gcc ['flags'] 'files' -lmtbl ['libraries']^
+
+== DESCRIPTION ==
+
+The mtbl library provides interfaces for creating, searching, and merging
+Sorted String Table (SSTable) files in the _MTBL_ format, which provide an
+immutable mapping of keys to values. Sorted String Tables are compact and
+provide fast random access to keys and key ranges. Keys and values are
+arbitrary byte arrays, and MTBL SSTables may not contain duplicate keys.
+
+The six main interfaces provided by the mtbl library are:
+
+link:mtbl_iter[3]::
+Iterator objects provide a consistent interface for iterating over the
+key-value entries returned by other interfaces.
+
+link:mtbl_source[3]::
+Source objects provide functions for obtaining iterators from an underlying
+data source. The ^mtbl_reader^ and ^mtbl_merger^ interfaces provide functions
+for obtaining references to a source object. The source methods return an
+^mtbl_iter^ object.
+
+link:mtbl_reader[3]::
+Reader objects provide read-only access to _MTBL_ files.
+
+link:mtbl_writer[3]::
+Writer objects initialize a new _MTBL_ file from a sequence of key-value
+entries provided by the caller. Keys must be in sorted order based on
+lexicographical byte value, and keys may not be duplicated.
+
+link:mtbl_merger[3]::
+Merger objects receive multiple sequences of key-value entries from one or
+more ^mtbl_source^ objects and combine them into a single, sorted sequence.
+The combined, merged output sequence is provided via the ^mtbl_source^
+interface.
+
+link:mtbl_sorter[3]::
+Sorter objects receive a sequence of key-value entries provided by the caller
+and return them in sorted order. The caller must provide a callback function
+to merge values in the case of entries with duplicate keys. The sorted output
+sequence may be retrieved via the ^mtbl_iter^ interface or be dumped to an
+^mtbl_writer^ object.  
+
+Additionally, several utility interfaces are provided:
+
+link:mtbl_crc32c[3]::
+Calculates the CRC32C checksum of a byte array.
+
+link:mtbl_fixed[3]::
+Functions for fixed-width encoding and decoding of 32 and 64 bit integers.
+
+link:mtbl_varint[3]::
+Functions for varint encoding and decoding of 32 and 64 bit integers.

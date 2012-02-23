@@ -1,0 +1,74 @@
+= MTBL_READER(3) =
+
+== NAME ==
+
+mtbl_reader - read an MTBL file
+
+== SYNOPSIS ==
+
+^#include <mtbl.h>^
+
+Reader objects:
+
+[verse]
+^struct mtbl_reader *
+mtbl_reader_init(const char *'fname', const struct mtbl_reader_options *'ropt');^
+
+[verse]
+^struct mtbl_reader *
+mtbl_reader_init_fd(int 'fd', const struct mtbl_reader_options *'ropt');^
+
+[verse]
+^void
+mtbl_reader_destroy(struct mtbl_reader **'r');^
+
+[verse]
+^const struct mtbl_source *
+mtbl_reader_source(struct mtbl_reader *'r');^
+
+Reader options:
+
+[verse]
+^struct mtbl_reader_options *
+mtbl_reader_options_init(void);^
+
+[verse]
+^void
+mtbl_reader_options_destroy(struct mtbl_reader_options **'ropt');^
+
+[verse]
+^void
+mtbl_reader_options_set_verify_checksums(
+        struct mtbl_reader_options *'ropt',
+        bool 'verify_checksums');^
+
+== DESCRIPTION ==
+
+MTBL files are accessed by creating an ^mtbl_reader^ object, calling
+^mtbl_reader_source^() to obtain an ^mtbl_source^ handle, and using the
+^mtbl_source^(3) interface to read entries.
+
+^mtbl_reader^ objects may be created by calling ^mtbl_reader_init^() with an
+_fname_ argument specifying the filename to be opened, or
+^mtbl_reader_init_fd^() may be called with an _fd_ argument specifying an open,
+readable file descriptor. Since MTBL files are immutable, the same MTBL file
+may be opened and read from concurrently by independent threads or processes.
+
+If the _ropt_ parameter to ^mtbl_reader_init^() or ^mtbl_reader_init_fd^() is
+non-NULL, the parameters specified in the ^mtbl_reader_options^ object will be
+configured into the ^mtbl_reader^ object.
+
+=== Reader options ===
+
+==== verify_checksums ====
+
+Specifies whether or not the CRC32C checksum on each data block should be
+verified or not. If _verify_checksums_ is enabled, a checksum mismatch will
+cause a runtime error. Note that the checksum on the index block is always
+verified, since the overhead of doing this once when the reader object is
+instantiated is minimal. The default is to not verify data block checksums.
+
+== RETURN VALUE ==
+
+^mtbl_reader_init^() and ^mtbl_reader_init_fd^() return NULL on failure, and
+non-NULL on success.

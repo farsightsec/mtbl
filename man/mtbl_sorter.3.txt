@@ -1,0 +1,120 @@
+= mtbl_sorter(3) =
+
+== NAME ==
+
+mtbl_sorter - sort a sequence of unordered key-value pairs
+
+== SYNOPSIS ==
+
+^#include <mtbl.h>^
+
+Sorter objects:
+
+[verse]
+^struct mtbl_sorter *
+mtbl_sorter_init(struct mtbl_sorter_options *'sopt');^
+
+[verse]
+^void
+mtbl_sorter_destroy(struct mtbl_sorter **'s');^
+
+[verse]
+^mtbl_res
+mtbl_sorter_add(struct mtbl_sorter *'s',
+        const uint8_t *'key', size_t 'len_key',
+        const uint8_t *'val', size_t 'len_val');^
+
+[verse]
+^mtbl_res
+mtbl_sorter_write(struct mtbl_sorter *'s', struct mtbl_writer *'w');^
+
+[verse]
+^struct mtbl_iter *
+mtbl_sorter_iter(struct mtbl_sorter *'s');^
+
+Sorter options:
+
+[verse]
+^struct mtbl_sorter_options *
+mtbl_sorter_options_init(void);^
+
+[verse]
+^void
+mtbl_sorter_options_destroy(struct mtbl_sorter_options **'sopt');^
+
+[verse]
+^void
+mtbl_sorter_options_set_merge_func(
+        struct mtbl_sorter_options *'sopt',
+        mtbl_merge_func 'fp',
+        void *'clos');^
+
+[verse]
+^void
+mtbl_sorter_options_set_temp_dir(
+        struct mtbl_sorter_options *'sopt',
+        const char *'temp_dir');^
+
+[verse]
+^void
+mtbl_sorter_options_set_max_memory(
+        struct mtbl_sorter_options *'sopt',
+        size_t 'max_memory');^
+
+== DESCRIPTION ==
+
+The ^mtbl_sorter^ interface accepts a sequence of key-value pairs with keys in
+arbitrary order and provides these entries in sorted order. The sorted entries
+may be consumed via the ^mtbl_iter^ interface using the ^mtbl_sorter_iter^()
+function, or they may be dumped to an ^mtbl_writer^ object using the
+^mtbl_sorter_write^() function. The ^mtbl_sorter^ implementation buffers entries
+in memory up to a configurable limit before sorting them and writing them to
+disk in chunks. When the caller has finishing adding entries and requests the
+sorted output, entries from these sorted chunks are then read back and merged.
+(Thus, ^mtbl_sorter^(3) is an "external sorting" implementation.)
+
+Because the MTBL format does not allow duplicate keys, the caller must provide a
+function which will accept a key and two conflicting values for that key and
+return a replacement value. This function may be called multiple times for the
+same key if the same key is inserted more than twice.
+
+^mtbl_sorter^ objects are created with the ^mtbl_sorter_init^() function, which
+requires a non-NULL _sopt_ argument which has been configured with a merge
+function _fp_.
+
+^mtbl_sorter_add^() copies key-value pairs from the caller into the
+^mtbl_sorter^ object. Keys are specified as a pointer to a buffer, _key_, and
+the length of that buffer, _len_key_. Values are specified as a pointer to a
+buffer, _val_, and the length of that buffer, _len_val_.
+
+Once the caller has finished adding entries to the ^mtbl_sorter^ object,
+either ^mtbl_sorter_write^() or ^mtbl_sorter_iter^() should be called in
+order to consume the sorted output. It is a runtime error to call
+^mtbl_sorter_add^() on an ^mtbl_sorter^ object after iteration has begun,
+and once the sorted output has been consumed, it is also a runtime error to call
+any other function but ^mtbl_sorter_destroy^() on the depleted ^mtbl_sorter^
+object.
+
+=== Sorter options ===
+
+==== temp_dir ====
+Specifies the temporary directory to use. Defaults to /var/tmp.
+
+==== max_memory ====
+Specifies the maximum amount of memory to use for in-memory sorting, in bytes.
+Defaults to 1 Gigabyte. This specifies a limit on the total number of bytes
+allocated for key-value entries and does not include any allocation overhead.
+
+==== merge_func ====
+See ^mtbl_merger^(3). An ^mtbl_merger^ object is used internally for the
+external sort.
+
+== RETURN VALUE ==
+
+If the merge function callback is unable to provide a merged value (that is, it
+fails to return a non-NULL value in its _merged_val_ argument), the sort process
+will be aborted, and ^mtbl_sorter_write^() or ^mtbl_iter_next^() will return
+^mtbl_res_failure^.
+
+^mtbl_sorter_write^() returns ^mtbl_res_success^ if the sorted output was
+successfully written, and ^mtbl_res_failure^ otherwise.

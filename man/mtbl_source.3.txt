@@ -1,0 +1,73 @@
+= mtbl_source(3) =
+
+== NAME ==
+
+mtbl_source - obtain key-value entries from a data source
+
+== SYNOPSIS ==
+
+^#include <mtbl.h>^
+
+[verse]
+^struct mtbl_iter *
+mtbl_source_iter(const struct mtbl_source *'s');^
+
+[verse]
+^struct mtbl_iter *
+mtbl_source_get(const struct mtbl_source *'s', const uint8_t *'key', size_t 'len_key');^
+
+[verse]
+^struct mtbl_iter *
+mtbl_source_get_prefix(
+        const struct mtbl_source *'s',
+        const uint8_t *'prefix', size_t 'len_prefix');^
+
+[verse]
+^struct mtbl_iter *
+mtbl_source_get_range(
+        const struct mtbl_source *'s',
+        const uint8_t *'key0', size_t 'len_key0',
+        const uint8_t *'key1', size_t 'len_key1');^
+
+[verse]
+^mtbl_res
+mtbl_source_write(const struct mtbl_source *'s', struct mtbl_writer *'w');^
+
+[verse]
+^void
+mtbl_source_destroy(struct mtbl_source **'s');^
+
+== DESCRIPTION ==
+
+The ^mtbl_source^ iterface provides an abstraction for reading key-value entries
+from mtbl data sources.
+
+^mtbl_source_iter^() provides an iterator over all of the entries in the data
+source.
+
+^mtbl_source_get^() provides an exact match iterator which returns all entries
+whose key matches the key provided in the arguments _key_ and _len_key_.
+
+^mtbl_source_get_prefix^() provides a prefix iterator which returns all entries
+whose keys start with _prefix_ and are at least _len_prefix_ bytes long.
+
+^mtbl_source_get_range^() provides a range iterator which returns all entries
+whose keys are between _key0_ and _key1_ inclusive.
+
+^mtbl_source_write^() is a convenience function for reading all of the entries
+from a source and writing them to an ^mtbl_writer^ object. It is equivalent to
+calling ^mtbl_writer_add^() on all of the entries returned from
+^mtbl_source_iter^().
+
+== RETURN VALUE ==
+
+^mtbl_source_iter^(), ^mtbl_source_get^(), ^mtbl_source_get_prefix^(),
+and ^mtbl_source_get_range^() return ^mtbl_iter^ objects.
+
+^mtbl_source_write^() returns ^mtbl_res_success^ if all of the entries in the
+data source were successfully written to the ^mtbl_writer^ argument, and
+^mtbl_res_failure^ otherwise.
+
+== SEE ALSO ==
+
+link:mtbl_iter[3]

@@ -112,3 +112,36 @@ src_test_vector_LDADD = mtbl/libmtbl.la
 src_test_writer_SOURCES = src/test-writer.c
 src_test_writer_LDADD = mtbl/libmtbl.la
 
+SUFFIXES = .3.txt .7.txt .3 .7
+
+ASCIIDOC_PROCESS = a2x -f manpage --asciidoc-opt="-f man/asciidoc.conf" $<
+
+.3.txt.3:
+	$(ASCIIDOC_PROCESS)
+
+.7.txt.7:
+	$(ASCIIDOC_PROCESS)
+
+dist_man_MANS = \
+	man/mtbl_iter.3 \
+	man/mtbl_source.3 \
+	man/mtbl_reader.3 \
+	man/mtbl_writer.3 \
+	man/mtbl_merger.3 \
+	man/mtbl_sorter.3 \
+	man/mtbl_crc32c.3 \
+	man/mtbl_fixed.3 \
+	man/mtbl_varint.3 \
+	man/mtbl.7
+
+EXTRA_DIST += \
+	man/mtbl_iter.txt \
+	man/mtbl_source.txt \
+	man/mtbl_reader.txt \
+	man/mtbl_writer.txt \
+	man/mtbl_merger.txt \
+	man/mtbl_sorter.txt \
+	man/mtbl_crc32c.txt \
+	man/mtbl_fixed.txt \
+	man/mtbl_varint.txt \
+	man/mtbl.txt
