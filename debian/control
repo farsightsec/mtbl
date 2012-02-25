@@ -33,7 +33,7 @@ Section: debug
 Priority: extra
 Architecture: any
 Depends: libmtbl0 (= ${binary:Version}), ${misc:Depends}
-Description: detached debugging symbols for libmtbl
+Description: immutable sorted string table library (debug symbols)
  mtbl is a C library implementation of the Sorted String Table (SSTable)
  data structure, based on the SSTable implementation in the open source
  Google LevelDB library. An SSTable is a file containing an immutable
@@ -55,7 +55,7 @@ Section: libdevel
 Architecture: any
 Depends: ${misc:Depends}, libmtbl0 (= ${binary:Version})
 Multi-Arch: same
-Description: static library, header file, and docs for libmtbl
+Description: immutable sorted string table library (development files)
  mtbl is a C library implementation of the Sorted String Table (SSTable)
  data structure, based on the SSTable implementation in the open source
  Google LevelDB library. An SSTable is a file containing an immutable
@@ -77,7 +77,7 @@ Package: mtbl-bin
 Section: database
 Architecture: any
 Depends: ${misc:Depends}, ${shlibs:Depends}
-Description: immutable sorted string table utilities
+Description: immutable sorted string table library (utilities)
  mtbl is a C library implementation of the Sorted String Table (SSTable)
  data structure, based on the SSTable implementation in the open source
  Google LevelDB library. An SSTable is a file containing an immutable
