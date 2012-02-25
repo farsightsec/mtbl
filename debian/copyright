@@ -60,3 +60,10 @@ License: Apache-2.0
  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
  implied. See the License for the specific language governing
  permissions and limitations under the License.
+
+Files: debian/*
+Copyright: 2012 Robert S. Edmonds <edmonds@debian.org>
+License: permissive
+ Copying and distribution of this package, with or without modification,
+ are permitted in any medium without royalty provided the copyright notice
+ and this notice are preserved.
