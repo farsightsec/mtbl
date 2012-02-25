@@ -15,7 +15,7 @@ License: ISC
  ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
  OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-Files: mtbl/block.c, mtbl/crc32c.c, mtbl/fixed.c, mtbl/varint.c
+Files: mtbl/block.c mtbl/crc32c.c mtbl/fixed.c mtbl/varint.c
 Copyright: 2011 The LevelDB Authors
 License: BSD-3-Clause
  Redistribution and use in source and binary forms, with or without
