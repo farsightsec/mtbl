@@ -1,2 +1,6 @@
-.*swp
+*.lo
 *.o
+.*swp
+.deps/
+.dirstamp
+.libs/
