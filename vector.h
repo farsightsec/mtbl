@@ -16,6 +16,8 @@
 
 #include <assert.h>
 
+#include "my_alloc.h"
+
 #define VECTOR_GENERATE(name, type)					\
 typedef struct name##__vector {						\
 	type *		_v;						\
