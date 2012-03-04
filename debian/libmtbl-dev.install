@@ -1,6 +1,6 @@
 usr/include/mtbl.h
-usr/lib/*/*.a
-usr/lib/*/*.so
-usr/lib/*/pkgconfig/libmtbl.pc
+usr/lib/*.a
+usr/lib/*.so
+usr/lib/pkgconfig/libmtbl.pc
 usr/share/man/man3/*.3
 usr/share/man/man7/*.7
