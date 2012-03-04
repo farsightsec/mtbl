@@ -17,16 +17,74 @@
 #ifndef RSF_UBUF_H
 #define RSF_UBUF_H
 
+#include <stdarg.h>
+#include <stdbool.h>
 #include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 #include "vector.h"
 
 VECTOR_GENERATE(ubuf, uint8_t);
 
-#define ubuf_append_str(u, s) do { \
-	ubuf_append(u, (const uint8_t *) s, strlen(s)); } \
-while (0)
+static inline ubuf *
+ubuf_new(void)
+{
+	return (ubuf_init(64));
+}
 
-#define ubuf_cstr(u) ((char *) ubuf_data(u))
+static inline ubuf *
+ubuf_dup_cstr(const char *s)
+{
+	size_t len = strlen(s);
+	ubuf *u = ubuf_init(len + 1);
+	ubuf_append(u, (const uint8_t *) s, len);
+	return (u);
+}
+
+static inline void
+ubuf_add_cstr(ubuf *u, const char *s)
+{
+	ubuf_append(u, (const uint8_t *) s, strlen(s));
+}
+
+static inline void
+ubuf_cterm(ubuf *u)
+{
+	if (ubuf_size(u) == 0 ||
+	    (ubuf_size(u) > 0 && ubuf_value(u, ubuf_size(u) - 1) != '\x00'))
+	{
+		ubuf_append(u, (const uint8_t *) "\x00", 1);
+	}
+}
+
+static inline char *
+ubuf_cstr(ubuf *u)
+{
+	ubuf_cterm(u);
+	return ((char *) ubuf_data(u));
+}
+
+static inline void
+ubuf_add_fmt(ubuf *u, const char *fmt, ...)
+{
+	va_list args, args_copy;
+	int status, needed;
+
+	va_start(args, fmt);
+
+	va_copy(args_copy, args);
+	needed = vsnprintf(NULL, 0, fmt, args_copy);
+	assert(needed >= 0);
+	va_end(args_copy);
+
+	ubuf_reserve(u, ubuf_size(u) + needed + 1);
+	status = vsnprintf((char *) ubuf_ptr(u), needed + 1, fmt, args);
+	assert(status >= 0);
+	ubuf_advance(u, needed);
+
+	va_end(args);
+}
 
 #endif /* RSF_UBUF_H */
