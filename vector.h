@@ -85,6 +85,11 @@ name##_append(name *vec, type const *elems, size_t n_elems)		\
 	(vec)->_p = &((vec)->_v[(vec)->_n]);				\
 }									\
 static inline void							\
+name##_extend(name *vec0, name *vec1)					\
+{									\
+	name##_append(vec0, (vec1)->_v, (vec1)->_n);			\
+}									\
+static inline void							\
 name##_reset(name *vec)							\
 {									\
 	(vec)->_n = 0;							\
