@@ -75,7 +75,7 @@ Description: immutable sorted string table library (development files)
  for libmtbl.
 
 Package: mtbl-bin
-Section: database
+Section: utils
 Architecture: any
 Depends: ${misc:Depends}, ${shlibs:Depends}
 Description: immutable sorted string table library (utilities)
