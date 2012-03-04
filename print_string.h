@@ -22,11 +22,12 @@
 #include <stdint.h>
 
 static inline void
-print_string(const uint8_t *data, size_t len, FILE *out)
+print_string(const void *data, size_t len, FILE *out)
 {
+	uint8_t *str = (uint8_t *) data;
 	fputc('"', out);
 	while (len-- != 0) {
-		unsigned c = *(data++);
+		unsigned c = *(str++);
 		if (isprint(c)) {
 			if (c == '"')
 				fputs("\\\"", out);
