@@ -46,6 +46,8 @@ ubuf_dup_cstr(const char *s)
 static inline void
 ubuf_add_cstr(ubuf *u, const char *s)
 {
+	if (ubuf_size(u) > 0 && ubuf_value(u, ubuf_size(u) - 1) == '\x00')
+		ubuf_clip(u, ubuf_size(u) - 1);
 	ubuf_append(u, (const uint8_t *) s, strlen(s));
 }
 
@@ -71,6 +73,9 @@ ubuf_add_fmt(ubuf *u, const char *fmt, ...)
 {
 	va_list args, args_copy;
 	int status, needed;
+
+	if (ubuf_size(u) > 0 && ubuf_value(u, ubuf_size(u) - 1) == '\x00')
+		ubuf_clip(u, ubuf_size(u) - 1);
 
 	va_start(args, fmt);
 
