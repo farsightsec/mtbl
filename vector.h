@@ -103,8 +103,10 @@ name##_reset(name *vec)							\
 static inline void							\
 name##_clip(name *vec, size_t n_elems)					\
 {									\
-	if (n_elems < (vec)->_n)					\
+	if (n_elems < (vec)->_n) {					\
 		(vec)->_n = n_elems;					\
+		(vec)->_p = &((vec)->_v[(vec)->_n]);			\
+	}								\
 }									\
 static inline size_t							\
 name##_bytes(name *vec)							\
