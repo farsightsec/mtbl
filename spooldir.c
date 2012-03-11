@@ -180,7 +180,6 @@ spooldir_next(struct spooldir *s)
 
 	assert(fname != NULL);
 
-	
 	src_fname = ubuf_init(UBUFSZ);
 	ubuf_extend(src_fname, s->dname_incoming);
 	ubuf_add_fmt(src_fname, "/%s", fname);
