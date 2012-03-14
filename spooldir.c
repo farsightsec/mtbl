@@ -14,7 +14,6 @@
  * OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-#include <sys/inotify.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <dirent.h>
@@ -38,9 +37,6 @@ struct spooldir {
 	ubuf		*fname;
 	ubuf		*dname_active;
 	ubuf		*dname_incoming;
-	int		i_fd;
-	uint8_t		*buf;
-	size_t		len_buf;
 };
 
 static bool
@@ -92,7 +88,6 @@ spooldir_init(const char *path)
 	struct spooldir *s = my_calloc(1, sizeof(*s));
 	bool res;
 	char *dname;
-	int watch;
 
 	pthread_mutex_init(&s->lock, NULL);
 
@@ -120,17 +115,6 @@ spooldir_init(const char *path)
 
 	s->fname = ubuf_init(UBUFSZ);
 
-	s->i_fd = inotify_init();
-	assert(s->i_fd >= 0);
-
-	watch = inotify_add_watch(s->i_fd, ubuf_cstr(s->dname_incoming),
-				  IN_MOVED_TO | IN_CLOSE_WRITE);
-	assert(watch >= 0);
-
-	s->len_buf = sizeof(struct inotify_event) +
-			pathconf(ubuf_cstr(s->dname_incoming), _PC_NAME_MAX) + 1;
-	s->buf = my_calloc(1, s->len_buf);
-
 	return (s);
 }
 
@@ -139,12 +123,10 @@ spooldir_destroy(struct spooldir **s)
 {
 	if (*s != NULL) {
 		pthread_mutex_destroy(&(*s)->lock);
-		close((*s)->i_fd);
 		closedir((*s)->dir);
 		ubuf_destroy(&(*s)->fname);
 		ubuf_destroy(&(*s)->dname_active);
 		ubuf_destroy(&(*s)->dname_incoming);
-		free((*s)->buf);
 		free(*s);
 		*s = NULL;
 	}
@@ -154,7 +136,7 @@ char *
 spooldir_next(struct spooldir *s)
 {
 	struct dirent *de;
-	char *ret;
+	char *ret = NULL;
 	size_t retsz;
 	char *fname = NULL;
 	ubuf *src_fname;
@@ -171,11 +153,12 @@ spooldir_next(struct spooldir *s)
 		}
 
 		if (fname == NULL) {
-			ssize_t bytes_read = read(s->i_fd, s->buf, s->len_buf);
-			if (bytes_read == -1)
-				assert(errno != EINVAL);
+			rewinddir(s->dir);
+			usleep(500*1000);
+			pthread_mutex_unlock(&s->lock);
+			usleep(500*1000);
+			return (NULL);
 		}
-		rewinddir(s->dir);
 	}
 
 	assert(fname != NULL);
@@ -198,13 +181,14 @@ spooldir_next(struct spooldir *s)
 
 	int rename_ret = rename(ubuf_cstr(src_fname), ubuf_cstr(s->fname));
 	if (rename_ret != 0) {
-		perror("rename");
-		assert(rename_ret == 0);
+		fprintf(stderr, "rename(%s, %s): %s\n",
+			ubuf_cstr(src_fname), ubuf_cstr(s->fname), strerror(errno));
+		goto out;
 	}
 
 	ubuf_detach(s->fname, (uint8_t **) &ret, &retsz);
+out:
 	ubuf_destroy(&src_fname);
-
 	pthread_mutex_unlock(&s->lock);
 	return (ret);
 }
