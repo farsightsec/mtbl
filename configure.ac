@@ -2,7 +2,7 @@ AC_PREREQ(2.60)
 AC_INIT([mtbl], [0.1])
 AC_CONFIG_SRCDIR([mtbl/mtbl.h])
 AC_CONFIG_AUX_DIR([build-aux])
-AM_INIT_AUTOMAKE([foreign 1.11 -Wall -Wno-portability silent-rules color-tests])
+AM_INIT_AUTOMAKE([foreign 1.11 -Wall -Wno-portability silent-rules subdir-objects color-tests])
 AC_PROG_CC_STDC
 AC_USE_SYSTEM_EXTENSIONS
 AC_SYS_LARGEFILE
