@@ -17,6 +17,8 @@
 #include "mtbl-private.h"
 #include "vector_types.h"
 
+#include "librsf/heap.h"
+
 struct entry {
 	struct mtbl_iter		*it;
 	ubuf				*key;
