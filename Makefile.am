@@ -30,6 +30,7 @@ include_HEADERS = mtbl/mtbl.h
 lib_LTLIBRARIES = mtbl/libmtbl.la
 
 mtbl_libmtbl_la_SOURCES = \
+	librsf/crc32c.c librsf/crc32c.h \
 	librsf/heap.c librsf/heap.h \
 	librsf/my_alloc.h \
 	librsf/ubuf.h \
@@ -37,7 +38,7 @@ mtbl_libmtbl_la_SOURCES = \
 	mtbl/block.c \
 	mtbl/block_builder.c \
 	mtbl/bytes.h \
-	mtbl/crc32c.c \
+	mtbl/crc32c_wrap.c \
 	mtbl/fixed.c \
 	mtbl/iter.c \
 	mtbl/merger.c \
