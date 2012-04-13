@@ -92,4 +92,14 @@ ubuf_add_fmt(ubuf *u, const char *fmt, ...)
 	va_end(args);
 }
 
+static inline void
+ubuf_rstrip(ubuf *u, char s)
+{
+	if (ubuf_size(u) > 0 &&
+	    ubuf_value(u, ubuf_size(u) - 1) == ((uint8_t) s))
+	{
+		ubuf_clip(u, ubuf_size(u) - 1);
+	}
+}
+
 #endif /* RSF_UBUF_H */
