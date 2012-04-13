@@ -15,7 +15,9 @@
  */
 
 #include "mtbl-private.h"
-#include "vector_types.h"
+
+#include "librsf/ubuf.h"
+#include "librsf/vector.h"
 
 VECTOR_GENERATE(reader_vec, struct mtbl_reader *);
 

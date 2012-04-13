@@ -15,9 +15,10 @@
  */
 
 #include "mtbl-private.h"
-#include "vector_types.h"
 
 #include "librsf/heap.h"
+#include "librsf/ubuf.h"
+#include "librsf/vector.h"
 
 struct entry {
 	struct mtbl_iter		*it;

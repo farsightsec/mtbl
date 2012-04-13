@@ -15,7 +15,11 @@
  */
 
 #include "mtbl-private.h"
-#include "vector_types.h"
+
+#include "librsf/ubuf.h"
+#include "librsf/vector.h"
+
+VECTOR_GENERATE(uint32_vec, uint32_t);
 
 struct block_builder {
 	size_t		block_restart_interval;

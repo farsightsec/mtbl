@@ -25,7 +25,8 @@
 
 #include <mtbl.h>
 #include "mtbl-private.h"
-#include "vector_types.h"
+
+#include "librsf/ubuf.h"
 
 #define STATS_INTERVAL		1000000
 

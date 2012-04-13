@@ -15,8 +15,9 @@
  */
 
 #include "mtbl-private.h"
-#include "vector_types.h"
 #include "bytes.h"
+
+#include "librsf/ubuf.h"
 
 struct mtbl_writer_options {
 	mtbl_compression_type		compression_type;
