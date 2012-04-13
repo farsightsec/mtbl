@@ -30,6 +30,7 @@ include_HEADERS = mtbl/mtbl.h
 lib_LTLIBRARIES = mtbl/libmtbl.la
 
 mtbl_libmtbl_la_SOURCES = \
+	librsf/my_alloc.h \
 	mtbl/block.c \
 	mtbl/block_builder.c \
 	mtbl/bytes.h \
