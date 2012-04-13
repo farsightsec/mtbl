@@ -67,7 +67,7 @@ check_PROGRAMS =
 bin_PROGRAMS =
 
 bin_PROGRAMS += src/mtbl_dump
-src_mtbl_dump_SOURCES = src/mtbl_dump.c
+src_mtbl_dump_SOURCES = src/mtbl_dump.c librsf/print_string.h
 src_mtbl_dump_LDADD = mtbl/libmtbl.la
 
 bin_PROGRAMS += src/mtbl_info
