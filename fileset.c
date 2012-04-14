@@ -171,11 +171,8 @@ fileset_reload(struct fileset *fs)
 	new_entries = entry_vec_init(1);
 
 	fp = fopen(fs->setfile, "r");
-	if (fp == NULL) {
-		fprintf(stderr, "%s: fopen('%s') failed: %s",
-			__func__, fs->setfile, strerror(errno));
+	if (fp == NULL)
 		return;
-	}
 
 	while (getline(&line, &len, fp) != -1) {
 		ubuf_clip(u, 0);
@@ -185,12 +182,6 @@ fileset_reload(struct fileset *fs)
 		ubuf_rstrip(u, '\n');
 		fname = ubuf_cstr(u);
 		if (path_exists(fname)) {
-			entptr = fetch_entry(new_entries, fname);
-			if (entptr != NULL) {
-				fprintf(stderr, "%s: warning: duplicate filename '%s' in "
-					"fileset index\n", __func__, fname);
-				continue;
-			}
 			entptr = fetch_entry(fs->entries, fname);
 			if (entptr == NULL) {
 				ent = my_calloc(1, sizeof(*ent));
@@ -199,14 +190,10 @@ fileset_reload(struct fileset *fs)
 					ent->ptr = fs->load(fs, fname);
 				entry_vec_add(new_entries, ent);
 			} else {
-				fprintf(stderr, "%s: moving %s into new_entries vector\n",
-					__func__, fname);
 				ent = *entptr;
 				*entptr = NULL;
 				entry_vec_add(new_entries, ent);
 			}
-		} else {
-			fprintf(stderr, "%s: file vanished: %s\n", __func__, ubuf_cstr(u));
 		}
 	}
 	free(line);
