@@ -1,6 +1,8 @@
 #ifndef RSF_FILESET_H
 #define RSF_FILESET_H
 
+#include <stdbool.h>
+
 struct fileset;
 
 typedef void *(*fileset_load_func)(struct fileset *, const char *fname);
@@ -14,5 +16,6 @@ struct fileset *fileset_init(
 void fileset_destroy(struct fileset **);
 void *fileset_user(struct fileset *);
 void fileset_reload(struct fileset *);
+bool fileset_get(struct fileset *, size_t, const char **, void **);
 
 #endif /* RSF_FILESET_H */

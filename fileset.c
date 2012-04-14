@@ -230,3 +230,14 @@ fileset_reload(struct fileset *fs)
 	fs->entries = new_entries;
 	ubuf_destroy(&u);
 }
+
+bool
+fileset_get(struct fileset *fs, size_t i, const char **fname_out, void **ptr_out)
+{
+	if (i < entry_vec_size(fs->entries)) {
+		*fname_out = entry_vec_value(fs->entries, i)->fname;
+		*ptr_out = entry_vec_value(fs->entries, i)->ptr;
+		return (true);
+	}
+	return (false);
+}
