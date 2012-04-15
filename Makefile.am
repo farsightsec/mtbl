@@ -33,12 +33,14 @@ mtbl_libmtbl_la_SOURCES = \
 	librsf/crc32c.c librsf/crc32c.h \
 	librsf/heap.c librsf/heap.h \
 	librsf/my_alloc.h \
+	librsf/rsf_fileset.c librsf/rsf_fileset.h \
 	librsf/ubuf.h \
 	librsf/vector.h \
 	mtbl/block.c \
 	mtbl/block_builder.c \
 	mtbl/bytes.h \
 	mtbl/crc32c_wrap.c \
+	mtbl/fileset.c \
 	mtbl/fixed.c \
 	mtbl/iter.c \
 	mtbl/merger.c \

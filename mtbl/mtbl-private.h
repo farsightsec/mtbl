@@ -62,6 +62,8 @@
 #define MIN_SORTER_MEMORY		10485760
 #define INITIAL_SORTER_VEC_SIZE		131072
 
+#define DEFAULT_FILESET_RELOAD_FREQ	60
+
 /* types */
 
 struct block;
