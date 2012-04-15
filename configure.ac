@@ -44,6 +44,7 @@ AC_CHECK_LIB([z], [deflate], [], [
 ])
 
 AC_SEARCH_LIBS([dlopen], [dl])
+AC_SEARCH_LIBS([clock_gettime], [rt])
 
 AC_OUTPUT
 AC_MSG_RESULT([
