@@ -29,6 +29,7 @@
 #include "vector.h"
 
 struct fileset_entry {
+	bool			keep;
 	char			*fname;
 	void			*ptr;
 };
@@ -81,17 +82,15 @@ setfile_updated(struct rsf_fileset *fs)
 static int
 cmp_fileset_entry(const void *a, const void *b)
 {
+	struct fileset_entry *fs0 = *((struct fileset_entry **) a);
+	struct fileset_entry *fs1 = *((struct fileset_entry **) b);
 	assert(a != NULL);
 	assert(b != NULL);
-	struct fileset_entry *ent0 = *((struct fileset_entry **) a);
-	struct fileset_entry *ent1 = *((struct fileset_entry **) b);
-	if (ent0 == NULL)
-		return (1);
-	if (ent1 == NULL)
-		return (-1);
-	assert(ent0->fname != NULL);
-	assert(ent1->fname != NULL);
-	return (strcmp(ent0->fname, ent1->fname));
+	assert(fs0 != NULL);
+	assert(fs1 != NULL);
+	assert(fs0->fname != NULL);
+	assert(fs1->fname != NULL);
+	return (strcmp(fs0->fname, fs1->fname));
 }
 
 static struct fileset_entry **
@@ -190,8 +189,10 @@ rsf_fileset_reload(struct rsf_fileset *fs)
 					ent->ptr = fs->load(fs, fname);
 				entry_vec_add(new_entries, ent);
 			} else {
-				ent = *entptr;
-				*entptr = NULL;
+				ent = my_calloc(1, sizeof(*ent));
+				ent->fname = my_strdup(fname);
+				ent->ptr = (*entptr)->ptr;
+				(*entptr)->keep = true;
 				entry_vec_add(new_entries, ent);
 			}
 		}
@@ -206,12 +207,11 @@ rsf_fileset_reload(struct rsf_fileset *fs)
 
 	for (size_t i = 0; i < entry_vec_size(fs->entries); i++) {
 		ent = entry_vec_value(fs->entries, i);
-		if (ent != NULL) {
-			if (fs->unload)
-				fs->unload(fs, ent->fname, ent->ptr);
-			free(ent->fname);
-			free(ent);
-		}
+		assert(ent != NULL);
+		if (ent->keep == false && fs->unload)
+			fs->unload(fs, ent->fname, ent->ptr);
+		free(ent->fname);
+		free(ent);
 	}
 	entry_vec_destroy(&fs->entries);
 	fs->entries = new_entries;
