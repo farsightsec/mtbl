@@ -53,6 +53,9 @@ the first argument to the merge function. If the "free" function exists, it will
 be called at the end, after any calls to the merge function, and its argument
 will be the return value of the "init" function.
 
+The environment variable 'MTBL_MERGE_BLOCK_SIZE' may optionally be set in order
+to configure the MTBL block size (in bytes) of the output file.
+
 == SEE ALSO ==
 
 ^mtbl_merger^(3)
