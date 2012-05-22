@@ -111,7 +111,7 @@ int	argv_usage_type = ARGV_USAGE_LONG;
  * encountered.  The usage information accompanies the error message.
  * Default is ARGV_USAGE_SEE.
  */
-int	argv_error_type = ARGV_USAGE_SEE;
+int	argv_error_type = ARGV_USAGE_LONG;
 
 /*
  * Set to 1 (the default) if you want the library look for associated
