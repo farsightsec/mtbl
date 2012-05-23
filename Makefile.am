@@ -135,6 +135,7 @@ dist_man_MANS = \
 	man/mtbl_writer.3 \
 	man/mtbl_merger.3 \
 	man/mtbl_sorter.3 \
+	man/mtbl_fileset.3 \
 	man/mtbl_crc32c.3 \
 	man/mtbl_fixed.3 \
 	man/mtbl_varint.3 \
@@ -150,6 +151,7 @@ EXTRA_DIST += \
 	man/mtbl_writer.3.txt \
 	man/mtbl_merger.3.txt \
 	man/mtbl_sorter.3.txt \
+	man/mtbl_fileset.3.txt \
 	man/mtbl_crc32c.3.txt \
 	man/mtbl_fixed.3.txt \
 	man/mtbl_varint.3.txt \
