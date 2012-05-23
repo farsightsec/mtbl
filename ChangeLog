@@ -1,0 +1,19 @@
+mtbl (0.2)
+
+  * Add mtbl_fileset(3) interface.
+
+  * mtbl_merger(3): handle corner case where iterator is NULL after initial
+    entry fill.
+
+  * mtbl_merge(1): set MTBL block size of output via MTBL_MERGE_BLOCK_SIZE
+    environment variable.
+
+  * Refactor using common functions in librsf submodule.
+
+ -- Robert Edmonds <edmonds@isc.org>  Wed, 23 May 2012 16:03:16 -0400
+
+mtbl (0.1)
+
+  * Initial release.
+
+ -- Robert Edmonds <edmonds@isc.org>  Fri, 24 Feb 2012 19:05:54 -0500
