@@ -106,7 +106,7 @@ mtbl_sorter_options_set_max_memory(struct mtbl_sorter_options *opt,
 }
 
 struct mtbl_sorter *
-mtbl_sorter_init(struct mtbl_sorter_options *opt)
+mtbl_sorter_init(const struct mtbl_sorter_options *opt)
 {
 	struct mtbl_sorter *s;
 

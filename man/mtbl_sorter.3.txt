@@ -12,7 +12,7 @@ Sorter objects:
 
 [verse]
 ^struct mtbl_sorter *
-mtbl_sorter_init(struct mtbl_sorter_options *'sopt');^
+mtbl_sorter_init(const struct mtbl_sorter_options *'sopt');^
 
 [verse]
 ^void
