@@ -263,14 +263,14 @@ mtbl_fileset_options_set_merge_func(
 	void *clos);
 
 void
-mtbl_fileset_options_set_reload_frequency(
+mtbl_fileset_options_set_reload_interval(
 	struct mtbl_fileset_options *,
-	uint32_t reload_frequency);
+	uint32_t reload_interval);
 
 /* sorter */
 
 struct mtbl_sorter *
-mtbl_sorter_init(struct mtbl_sorter_options *);
+mtbl_sorter_init(const struct mtbl_sorter_options *);
 
 void
 mtbl_sorter_destroy(struct mtbl_sorter **);

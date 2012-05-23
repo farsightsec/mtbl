@@ -21,13 +21,13 @@
 #include "librsf/rsf_fileset.h"
 
 struct mtbl_fileset_options {
-	size_t				reload_frequency;
+	size_t				reload_interval;
 	mtbl_merge_func			merge;
 	void				*merge_clos;
 };
 
 struct mtbl_fileset {
-	uint32_t			reload_frequency;
+	uint32_t			reload_interval;
 	size_t				n_loaded, n_unloaded;
 	struct timespec			last;
 	struct rsf_fileset		*fs;
@@ -76,7 +76,7 @@ mtbl_fileset_options_init(void)
 {
 	struct mtbl_fileset_options *opt;
 	opt = my_calloc(1, sizeof(*opt));
-	opt->reload_frequency = DEFAULT_FILESET_RELOAD_FREQ;
+	opt->reload_interval = DEFAULT_FILESET_RELOAD_INTERVAL;
 	return (opt);
 }
 
@@ -98,10 +98,10 @@ mtbl_fileset_options_set_merge_func(struct mtbl_fileset_options *opt,
 }
 
 void
-mtbl_fileset_options_set_reload_frequency(struct mtbl_fileset_options *opt,
-					  uint32_t reload_frequency)
+mtbl_fileset_options_set_reload_interval(struct mtbl_fileset_options *opt,
+					  uint32_t reload_interval)
 {
-	opt->reload_frequency = reload_frequency;
+	opt->reload_interval = reload_interval;
 }
 
 static void *
@@ -127,7 +127,7 @@ mtbl_fileset_init(const char *fname, const struct mtbl_fileset_options *opt)
 	assert(opt != NULL);
 	assert(opt->merge != NULL);
 	struct mtbl_fileset *f = my_calloc(1, sizeof(*f));
-	f->reload_frequency = opt->reload_frequency;
+	f->reload_interval = opt->reload_interval;
 	f->mopt = mtbl_merger_options_init();
 	mtbl_merger_options_set_merge_func(f->mopt, opt->merge, opt->merge_clos);
 	f->merger = mtbl_merger_init(f->mopt);
@@ -186,7 +186,7 @@ mtbl_fileset_reload(struct mtbl_fileset *f)
 	res = clock_gettime(CLOCK_MONOTONIC, &now);
 	assert(res == 0);
 
-	if (now.tv_sec - f->last.tv_sec > f->reload_frequency) {
+	if (now.tv_sec - f->last.tv_sec > f->reload_interval) {
 		f->n_loaded = 0;
 		f->n_unloaded = 0;
 		rsf_fileset_reload(f->fs);
