@@ -36,13 +36,11 @@ struct mtbl_fileset {
 	struct mtbl_source		*source;
 };
 
-static void fileset_check_reload(struct mtbl_fileset *f);
-
 static struct mtbl_iter *
 fileset_source_iter(void *clos)
 {
 	struct mtbl_fileset *f = (struct mtbl_fileset *) clos;
-	fileset_check_reload(f);
+	mtbl_fileset_reload(f);
 	return mtbl_source_iter(mtbl_merger_source(f->merger));
 }
 
@@ -50,7 +48,7 @@ static struct mtbl_iter *
 fileset_source_get(void *clos, const uint8_t *key, size_t len_key)
 {
 	struct mtbl_fileset *f = (struct mtbl_fileset *) clos;
-	fileset_check_reload(f);
+	mtbl_fileset_reload(f);
 	return mtbl_source_get(mtbl_merger_source(f->merger), key, len_key);
 }
 
@@ -58,7 +56,7 @@ static struct mtbl_iter *
 fileset_source_get_prefix(void *clos, const uint8_t *key, size_t len_key)
 {
 	struct mtbl_fileset *f = (struct mtbl_fileset *) clos;
-	fileset_check_reload(f);
+	mtbl_fileset_reload(f);
 	return mtbl_source_get_prefix(mtbl_merger_source(f->merger), key, len_key);
 }
 
@@ -68,7 +66,7 @@ fileset_source_get_range(void *clos,
 			 const uint8_t *key1, size_t len_key1)
 {
 	struct mtbl_fileset *f = (struct mtbl_fileset *) clos;
-	fileset_check_reload(f);
+	mtbl_fileset_reload(f);
 	return mtbl_source_get_range(mtbl_merger_source(f->merger),
 				     key0, len_key0, key1, len_key1);
 }
@@ -140,7 +138,7 @@ mtbl_fileset_init(const char *fname, const struct mtbl_fileset_options *opt)
 				     fileset_source_get_prefix,
 				     fileset_source_get_range,
 				     NULL, f);
-	fileset_check_reload(f);
+	mtbl_fileset_reload(f);
 	return (f);
 }
 
@@ -179,8 +177,8 @@ fs_reinit_merger(struct mtbl_fileset *f)
 		mtbl_merger_add_source(f->merger, mtbl_reader_source(reader));
 }
 
-static void
-fileset_check_reload(struct mtbl_fileset *f)
+void
+mtbl_fileset_reload(struct mtbl_fileset *f)
 {
 	struct timespec now;
 	int res;

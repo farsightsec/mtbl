@@ -242,6 +242,9 @@ mtbl_fileset_init(const char *fname, const struct mtbl_fileset_options *);
 void
 mtbl_fileset_destroy(struct mtbl_fileset **);
 
+void
+mtbl_fileset_reload(struct mtbl_fileset *);
+
 const struct mtbl_source *
 mtbl_fileset_source(struct mtbl_fileset *);
 
