@@ -1,5 +1,13 @@
 libmtbl.so.0 libmtbl0 #MINVER#
  mtbl_crc32c@Base 0.1
+ mtbl_fileset_destroy@Base 0.2
+ mtbl_fileset_init@Base 0.2
+ mtbl_fileset_options_destroy@Base 0.2
+ mtbl_fileset_options_init@Base 0.2
+ mtbl_fileset_options_set_merge_func@Base 0.2
+ mtbl_fileset_options_set_reload_interval@Base 0.2
+ mtbl_fileset_reload@Base 0.2
+ mtbl_fileset_source@Base 0.2
  mtbl_fixed_decode32@Base 0.1
  mtbl_fixed_decode64@Base 0.1
  mtbl_fixed_encode32@Base 0.1
