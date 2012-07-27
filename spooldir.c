@@ -34,6 +34,7 @@
 struct spooldir {
 	pthread_mutex_t	lock;
 	DIR		*dir;
+	int		dir_fd;
 	ubuf		*fname;
 	ubuf		*dname_active;
 	ubuf		*dname_incoming;
@@ -113,6 +114,9 @@ spooldir_init(const char *path)
 	s->dir = opendir(ubuf_cstr(s->dname_incoming));
 	assert(s->dir != NULL);
 
+	s->dir_fd = dirfd(s->dir);
+	assert(s->dir_fd != -1);
+
 	s->fname = ubuf_init(UBUFSZ);
 
 	return (s);
@@ -135,6 +139,7 @@ spooldir_destroy(struct spooldir **s)
 char *
 spooldir_next(struct spooldir *s)
 {
+	struct stat sb;
 	struct dirent *de;
 	char *ret = NULL;
 	size_t retsz;
@@ -145,8 +150,14 @@ spooldir_next(struct spooldir *s)
 
 	while (fname == NULL) {
 		while ((de = readdir(s->dir)) != NULL) {
-			assert(de->d_type != DT_UNKNOWN);
-			if (de->d_type != DT_REG || de->d_name[0] == '.')
+			if (de->d_name[0] == '.')
+				continue;
+			if (fstatat(s->dir_fd, de->d_name, &sb, 0) == -1) {
+				fprintf(stderr, "%s: fstatat() failed: %s\n",
+					__func__, strerror(errno));
+				continue;
+			}
+			if (!S_ISREG(sb.st_mode))
 				continue;
 			fname = de->d_name;
 			break;
