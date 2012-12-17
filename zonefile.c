@@ -7,7 +7,6 @@
 #include <ldns/ldns.h>
 
 #include "librsf/my_alloc.h"
-#include "librsf/print_string.h"
 #include "librsf/ubuf.h"
 
 #include "zonefile.h"
