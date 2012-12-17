@@ -8,11 +8,13 @@
 
 #include "librsf/my_alloc.h"
 #include "librsf/print_string.h"
+#include "librsf/ubuf.h"
 
 #include "zonefile.h"
 
 struct zonefile {
 	FILE		*fp;
+	bool		is_pipe;
 	bool		valid;
 	ldns_rdf	*domain;
 	ldns_rdf	*origin;
@@ -64,15 +66,28 @@ out:
 struct zonefile *
 zonefile_init_fname(const char *fname)
 {
-	FILE *fp;
+	struct zonefile *z = my_calloc(1, sizeof(struct zonefile));
 
-	fp = fopen(fname, "r");
-	if (fp == NULL)
+	size_t len_fname = strlen(fname);
+	if (len_fname >= 3 &&
+	    fname[len_fname - 3] == '.' &&
+	    fname[len_fname - 2] == 'g' &&
+	    fname[len_fname - 1] == 'z')
+	{
+		ubuf *u = ubuf_new();
+		ubuf_add_cstr(u, "zcat ");
+		ubuf_add_cstr(u, fname);
+		z->fp = popen(ubuf_cstr(u), "r");
+		z->is_pipe = true;
+		ubuf_destroy(&u);
+	} else {
+		z->fp = fopen(fname, "r");
+	}
+
+	if (z->fp == NULL)
 		return (NULL);
 
-	struct zonefile *z = my_calloc(1, sizeof(struct zonefile));
 	z->valid = true;
-	z->fp = fp;
 	if (read_soa(z) != LDNS_STATUS_OK)
 		zonefile_destroy(&z);
 
@@ -83,8 +98,12 @@ void
 zonefile_destroy(struct zonefile **z)
 {
 	if (*z) {
-		if ((*z)->fp)
-			fclose((*z)->fp);
+		if ((*z)->fp) {
+			if ((*z)->is_pipe)
+				pclose((*z)->fp);
+			else
+				fclose((*z)->fp);
+		}
 		if ((*z)->origin)
 			ldns_rdf_deep_free((*z)->origin);
 		if ((*z)->prev)
