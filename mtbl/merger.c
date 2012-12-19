@@ -197,8 +197,8 @@ merger_iter_next(void *v,
 
 		if (ubuf_size(it->cur_key) == 0) {
 			ubuf_clip(it->cur_val, 0);
-			ubuf_append(it->cur_key, ubuf_data(e->key), ubuf_size(e->key));
-			ubuf_append(it->cur_val, ubuf_data(e->val), ubuf_size(e->val));
+			ubuf_extend(it->cur_key, e->key);
+			ubuf_extend(it->cur_val, e->val);
 			res = entry_fill(e);
 			if (res == mtbl_res_success)
 				heap_replace(it->h, e);
