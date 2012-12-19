@@ -14,7 +14,6 @@
  * OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-#include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -22,7 +21,7 @@
 
 #include "librsf/print_string.h"
 
-static void
+static bool
 dump(const char *fname)
 {
 	const uint8_t *key, *val;
@@ -31,11 +30,12 @@ dump(const char *fname)
 	struct mtbl_iter *it;
 
 	r = mtbl_reader_init(fname, NULL);
-	assert(r != NULL);
+	if (r == NULL) {
+		fprintf(stderr, "Error: mtbl_reader_init() on %s failed\n", fname);
+		return (false);
+	}
 
 	it = mtbl_source_iter(mtbl_reader_source(r));
-	assert(it != NULL);
-
 	while (mtbl_iter_next(it, &key, &len_key, &val, &len_val)) {
 		print_string(key, len_key, stdout);
 		fputc(' ', stdout);
@@ -45,6 +45,8 @@ dump(const char *fname)
 	
 	mtbl_iter_destroy(&it);
 	mtbl_reader_destroy(&r);
+
+	return (true);
 }
 
 int
@@ -58,7 +60,7 @@ main(int argc, char **argv)
 	}
 	fname = argv[1];
 
-	dump(fname);
-
+	if (!dump(fname))
+		return (EXIT_FAILURE);
 	return (EXIT_SUCCESS);
 }
