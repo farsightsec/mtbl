@@ -37,6 +37,7 @@ struct merger_iter {
 	ubuf				*cur_key;
 	ubuf				*cur_val;
 	bool				finished;
+	bool				pending;
 };
 
 struct mtbl_merger_options {
@@ -199,6 +200,7 @@ merger_iter_next(void *v,
 			ubuf_clip(it->cur_val, 0);
 			ubuf_extend(it->cur_key, e->key);
 			ubuf_extend(it->cur_val, e->val);
+			it->pending = true;
 			res = entry_fill(e);
 			if (res == mtbl_res_success)
 				heap_replace(it->h, e);
@@ -228,12 +230,16 @@ merger_iter_next(void *v,
 		}
 	}
 
-	*out_key = ubuf_data(it->cur_key);
-	*out_val = ubuf_data(it->cur_val);
-	*out_len_key = ubuf_size(it->cur_key);
-	*out_len_val = ubuf_size(it->cur_val);
-
-	return (mtbl_res_success);
+	if (it->pending) {
+		it->pending = false;
+		*out_key = ubuf_data(it->cur_key);
+		*out_val = ubuf_data(it->cur_val);
+		*out_len_key = ubuf_size(it->cur_key);
+		*out_len_val = ubuf_size(it->cur_val);
+		return (mtbl_res_success);
+	} else {
+		return (mtbl_res_failure);
+	}
 }
 
 static void
