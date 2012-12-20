@@ -147,8 +147,6 @@ _mtbl_merger_compare(const void *va, const void *vb)
 static mtbl_res
 entry_fill(struct entry *ent)
 {
-	assert(ent->it != NULL);
-
 	const uint8_t *key, *val;
 	size_t len_key, len_val;
 	mtbl_res res;
