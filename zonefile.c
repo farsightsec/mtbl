@@ -153,6 +153,11 @@ zonefile_read(struct zonefile *z, ldns_rr **out)
 	for (;;) {
 		if (feof(z->fp)) {
 			*out = NULL;
+			if (z->is_pipe)
+				pclose(z->fp);
+			else
+				fclose(z->fp);
+			z->fp = NULL;
 			return (LDNS_STATUS_OK);
 		}
 		status = ldns_rr_new_frm_fp_l(&rr, z->fp, &z->ttl, &z->origin, &z->prev, NULL);
