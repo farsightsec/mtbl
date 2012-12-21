@@ -128,6 +128,14 @@ zonefile_get_count(struct zonefile *z)
 	return (z->count);
 }
 
+uint32_t
+zonefile_get_serial(struct zonefile *z)
+{
+	ldns_rdf *rdf = ldns_rr_rdf(z->rr_soa, 2);
+	assert(rdf != NULL);
+	return (ldns_rdf2native_int32(rdf));
+}
+
 ldns_status
 zonefile_read(struct zonefile *z, ldns_rr **out)
 {
