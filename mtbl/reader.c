@@ -170,6 +170,7 @@ mtbl_reader_destroy(struct mtbl_reader **r)
 const struct mtbl_source *
 mtbl_reader_source(struct mtbl_reader *r)
 {
+	assert(r != NULL);
 	return (r->source);
 }
 
