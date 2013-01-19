@@ -181,6 +181,7 @@ fs_reinit_merger(struct mtbl_fileset *f)
 void
 mtbl_fileset_reload(struct mtbl_fileset *f)
 {
+	assert(f != NULL);
 	struct timespec now;
 	int res;
 
@@ -190,6 +191,7 @@ mtbl_fileset_reload(struct mtbl_fileset *f)
 	if (now.tv_sec - f->last.tv_sec > f->reload_interval) {
 		f->n_loaded = 0;
 		f->n_unloaded = 0;
+		assert(f->fs != NULL);
 		rsf_fileset_reload(f->fs);
 		if (f->n_loaded > 0 || f->n_unloaded > 0)
 			fs_reinit_merger(f);
