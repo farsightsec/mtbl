@@ -158,6 +158,7 @@ mtbl_fileset_destroy(struct mtbl_fileset **f)
 const struct mtbl_source *
 mtbl_fileset_source(struct mtbl_fileset *f)
 {
+	assert(f != NULL);
 	assert(f->source != NULL);
 	return (f->source);
 }
