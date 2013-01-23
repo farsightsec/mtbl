@@ -2,8 +2,17 @@
 #define RSF_TIME
 
 #include <sys/time.h>
+#include <assert.h>
 #include <errno.h>
 #include <time.h>
+
+static inline void
+my_gettime(clockid_t clk_id, struct timespec *ts)
+{
+	int res;
+	res = clock_gettime(clk_id, ts);
+	assert(res == 0);
+}
 
 static inline void
 my_timespec_sub(const struct timespec *a, struct timespec *b) {
