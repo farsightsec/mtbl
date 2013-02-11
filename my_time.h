@@ -1,5 +1,5 @@
-#ifndef RSF_TIME
-#define RSF_TIME
+#ifndef RSF_TIME_H
+#define RSF_TIME_H
 
 #include <sys/time.h>
 #include <assert.h>
@@ -15,7 +15,8 @@ my_gettime(clockid_t clk_id, struct timespec *ts)
 }
 
 static inline void
-my_timespec_sub(const struct timespec *a, struct timespec *b) {
+my_timespec_sub(const struct timespec *a, struct timespec *b)
+{
 	b->tv_sec -= a->tv_sec;
 	b->tv_nsec -= a->tv_nsec;
 	if (b->tv_nsec < 0) {
@@ -25,7 +26,8 @@ my_timespec_sub(const struct timespec *a, struct timespec *b) {
 }
 
 static inline double
-my_timespec_to_double(const struct timespec *ts) {
+my_timespec_to_double(const struct timespec *ts)
+{
 	return (ts->tv_sec + ts->tv_nsec / 1E9);
 }
 
@@ -38,4 +40,4 @@ my_nanosleep(const struct timespec *ts)
 		;
 }
 
-#endif /* RSF_TIME */
+#endif /* RSF_TIME_H */
