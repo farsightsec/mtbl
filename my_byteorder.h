@@ -1,6 +1,14 @@
 #ifndef RSF_BYTEORDER_H
 #define RSF_BYTEORDER_H
 
+#ifdef HAVE_ENDIAN_H
+# include <endian.h>
+#else
+# ifdef HAVE_SYS_ENDIAN_H
+#  include <sys/endian.h>
+# endif
+#endif
+
 static inline uint32_t
 my_bswap32(uint32_t x)
 {
