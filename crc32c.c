@@ -47,13 +47,7 @@
 #include <stdint.h>
 #include <string.h>
 
-#ifdef HAVE_ENDIAN_H
-# include <endian.h>
-#else
-# ifdef HAVE_SYS_ENDIAN_H
-#  include <sys/endian.h>
-# endif
-#endif
+#include "my_byteorder.h"
 
 #include "crc32c.h"
 
@@ -330,7 +324,7 @@ LE_LOAD32(const uint8_t *p)
 {
 	uint32_t val;
 	memcpy(&val, p, sizeof(val));
-	return (htole32(val));
+	return (my_htole32(val));
 }
 
 uint32_t
