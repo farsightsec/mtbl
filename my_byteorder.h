@@ -1,5 +1,5 @@
-#ifndef RSF_BYTEORDER_H
-#define RSF_BYTEORDER_H
+#ifndef MY_BYTEORDER_H
+#define MY_BYTEORDER_H
 
 #ifdef HAVE_ENDIAN_H
 # include <endian.h>
@@ -38,4 +38,4 @@ my_bswap32(uint32_t x)
 # endif
 #endif
 
-#endif /* RSF_BYTEORDER_H */
+#endif /* MY_BYTEORDER_H */
