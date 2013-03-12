@@ -328,7 +328,7 @@ LE_LOAD32(const uint8_t *p)
 }
 
 uint32_t
-rsf_crc32c(const uint8_t *buf, size_t length)
+my_crc32c(const uint8_t *buf, size_t length)
 {
 	const uint8_t *p = buf;
 	const uint8_t *e = p + length;

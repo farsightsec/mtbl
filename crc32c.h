@@ -1,8 +1,8 @@
-#ifndef RSF_CRC32C_H
-#define RSF_CRC32C_H
+#ifndef MY_CRC32C_H
+#define MY_CRC32C_H
 
 #include <stdint.h>
 
-uint32_t rsf_crc32c(const uint8_t *buffer, size_t length);
+uint32_t my_crc32c(const uint8_t *buffer, size_t length);
 
-#endif /* RSF_CRC32C_H */
+#endif /* MY_CRC32C_H */
