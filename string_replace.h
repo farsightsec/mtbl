@@ -14,8 +14,8 @@
  * OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-#ifndef RSF_STRING_REPLACE_H
-#define RSF_STRING_REPLACE_H
+#ifndef MY_STRING_REPLACE_H
+#define MY_STRING_REPLACE_H
 
 #include <string.h>
 
@@ -53,4 +53,4 @@ string_replace(const char *str, const char *old, const char *new)
 	return (ret);
 }
 
-#endif /* RSF_STRING_REPLACE_H */
+#endif /* MY_STRING_REPLACE_H */
