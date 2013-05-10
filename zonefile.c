@@ -6,9 +6,8 @@
 
 #include <ldns/ldns.h>
 
-#include "librsf/my_alloc.h"
-#include "librsf/ubuf.h"
-
+#include "my_alloc.h"
+#include "ubuf.h"
 #include "zonefile.h"
 
 struct zonefile {

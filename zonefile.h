@@ -1,5 +1,5 @@
-#ifndef RSF_ZONEFILE_H
-#define RSF_ZONEFILE_H
+#ifndef MY_ZONEFILE_H
+#define MY_ZONEFILE_H
 
 #include <ldns/ldns.h>
 
@@ -23,4 +23,4 @@ zonefile_get_serial(struct zonefile *);
 ldns_status
 zonefile_read(struct zonefile *, ldns_rr **);
 
-#endif /* RSF_ZONEFILE_H */
+#endif /* MY_ZONEFILE_H */
