@@ -14,8 +14,8 @@
  * OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-#ifndef RSF_PRINT_STRING_H
-#define RSF_PRINT_STRING_H
+#ifndef MY_PRINT_STRING_H
+#define MY_PRINT_STRING_H
 
 #include <ctype.h>
 #include <stdio.h>
@@ -40,4 +40,4 @@ print_string(const void *data, size_t len, FILE *out)
 	fputc('"', out);
 }
 
-#endif /* RSF_PRINT_STRING_H */
+#endif /* MY_PRINT_STRING_H */
