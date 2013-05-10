@@ -14,8 +14,8 @@
  * OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-#ifndef RSF_IPARITH_H
-#define RSF_IPARITH_H
+#ifndef MY_IP_ARITH_H
+#define MY_IP_ARITH_H
 
 #ifdef HAVE_ENDIAN_H
 # include <endian.h>
@@ -120,4 +120,4 @@ ip6_incr(void *address) {
 	memcpy(address, addr, 16);
 }
 
-#endif /* RSF_IPARITH_H */
+#endif /* MY_IP_ARITH_H */
