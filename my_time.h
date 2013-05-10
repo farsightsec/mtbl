@@ -1,5 +1,5 @@
-#ifndef RSF_TIME_H
-#define RSF_TIME_H
+#ifndef MY_TIME_H
+#define MY_TIME_H
 
 #include <sys/time.h>
 #include <assert.h>
@@ -40,4 +40,4 @@ my_nanosleep(const struct timespec *ts)
 		;
 }
 
-#endif /* RSF_TIME_H */
+#endif /* MY_TIME_H */
