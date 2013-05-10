@@ -1,5 +1,5 @@
-#ifndef RSF_GETENV_INT_H
-#define RSF_GETENV_INT_H
+#ifndef MY_GETENV_INT_H
+#define MY_GETENV_INT_H
 
 #include <stdbool.h>
 #include <stdlib.h>
@@ -19,4 +19,4 @@ getenv_int(const char *name, uint64_t *value) {
 	return (true);
 }
 
-#endif /* RSF_GETENV_INT_H */
+#endif /* MY_GETENV_INT_H */
