@@ -1,5 +1,5 @@
-#ifndef RSF_ATOMIC_PTR_H
-#define RSF_ATOMIC_PTR_H
+#ifndef MY_ATOMIC_PTR_H
+#define MY_ATOMIC_PTR_H
 
 typedef struct {
     volatile void *ptr;
@@ -16,4 +16,4 @@ atomic_ptr_set(atomic_ptr_t *v, void *new_ptr) {
 	return (__sync_bool_compare_and_swap(&v->ptr, old_ptr, new_ptr));
 }
 
-#endif /* RSF_ATOMIC_PTR_H */
+#endif /* MY_ATOMIC_PTR_H */
