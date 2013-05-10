@@ -14,8 +14,8 @@
  * OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-#ifndef RSF_HEX_DECODE_H
-#define RSF_HEX_DECODE_H
+#ifndef MY_HEX_DECODE_H
+#define MY_HEX_DECODE_H
 
 #include <ctype.h>
 #include <stdbool.h>
@@ -85,4 +85,4 @@ err:
 	return (false);
 }
 
-#endif /* RSF_HEX_DECODE_H */
+#endif /* MY_HEX_DECODE_H */
