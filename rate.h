@@ -14,8 +14,8 @@
  * OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-#ifndef RSF_RATE_H
-#define RSF_RATE_H
+#ifndef MY_RATE_H
+#define MY_RATE_H
 
 /*
  * Tight loops can be slowed down by repeated calls to rate_sleep(). This
@@ -44,4 +44,4 @@ rate_destroy(struct rate **r);
 void
 rate_sleep(struct rate *r);
 
-#endif /* RSF_RATE_H */
+#endif /* MY_RATE_H */
