@@ -1,5 +1,5 @@
-#ifndef RSF_ATOMIC_64_H
-#define RSF_ATOMIC_64_H
+#ifndef MY_ATOMIC_64_H
+#define MY_ATOMIC_64_H
 
 #include <stdint.h>
 
@@ -139,4 +139,4 @@ atomic64_add_negative(int i, atomic64_t *v) {
        return (__sync_add_and_fetch(&v->counter, i) < 0);
 }
 
-#endif /* RSF_ATOMIC_H */
+#endif /* MY_ATOMIC_H */
