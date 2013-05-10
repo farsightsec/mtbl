@@ -1,5 +1,5 @@
-#ifndef RSF_HEAP_H
-#define RSF_HEAP_H
+#ifndef MY_HEAP_H
+#define MY_HEAP_H
 
 struct heap;
 
@@ -14,4 +14,4 @@ void *heap_peek(struct heap *);
 void *heap_get(struct heap *, size_t);
 size_t heap_size(struct heap *);
 
-#endif /* RSF_HEAP_H */
+#endif /* MY_HEAP_H */
