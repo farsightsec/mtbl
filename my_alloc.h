@@ -1,5 +1,5 @@
-#ifndef RSF_ALLOC
-#define RSF_ALLOC
+#ifndef MY_ALLOC_H
+#define MY_ALLOC_H
 
 #include <assert.h>
 #include <stdlib.h>
@@ -37,4 +37,4 @@ my_strdup(const char *s)
 	return (ptr);
 }
 
-#endif /* RSF_ALLOC */
+#endif /* MY_ALLOC_H */
