@@ -14,8 +14,8 @@
  * OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-#ifndef RSF_UBUF_H
-#define RSF_UBUF_H
+#ifndef MY_UBUF_H
+#define MY_UBUF_H
 
 #include <stdarg.h>
 #include <stdbool.h>
@@ -102,4 +102,4 @@ ubuf_rstrip(ubuf *u, char s)
 	}
 }
 
-#endif /* RSF_UBUF_H */
+#endif /* MY_UBUF_H */
