@@ -15,6 +15,16 @@ my_gettime(clockid_t clk_id, struct timespec *ts)
 }
 
 static inline void
+my_timespec_add(const struct timespec *a, struct timespec *b) {
+	b->tv_sec += a->tv_sec;
+	b->tv_nsec += a->tv_nsec;
+	while (b->tv_nsec >= 1000000000) {
+		b->tv_sec += 1;
+		b->tv_nsec -= 1000000000;
+	}
+}
+
+static inline void
 my_timespec_sub(const struct timespec *a, struct timespec *b)
 {
 	b->tv_sec -= a->tv_sec;
@@ -29,6 +39,12 @@ static inline double
 my_timespec_to_double(const struct timespec *ts)
 {
 	return (ts->tv_sec + ts->tv_nsec / 1E9);
+}
+
+static inline void
+my_timespec_from_double(double seconds, struct timespec *ts) {
+	ts->tv_sec = (time_t) seconds;
+	ts->tv_nsec = (long) ((seconds - ((int) seconds)) * 1E9);
 }
 
 static inline void
