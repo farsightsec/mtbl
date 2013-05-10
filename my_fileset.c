@@ -23,8 +23,8 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-#include "rsf_fileset.h"
 #include "my_alloc.h"
+#include "my_fileset.h"
 #include "ubuf.h"
 #include "vector.h"
 
@@ -36,13 +36,13 @@ struct fileset_entry {
 
 VECTOR_GENERATE(entry_vec, struct fileset_entry *);
 
-struct rsf_fileset {
+struct my_fileset {
 	ino_t			last_ino;
 	time_t			last_mtime;
 	char			*setfile;
 	char			*setdir;
-	rsf_fileset_load_func	load;
-	rsf_fileset_unload_func	unload;
+	my_fileset_load_func	load;
+	my_fileset_unload_func	unload;
 	void			*user;
 	entry_vec		*entries;
 };
@@ -60,7 +60,7 @@ path_exists(const char *path)
 }
 
 static bool
-setfile_updated(struct rsf_fileset *fs)
+setfile_updated(struct my_fileset *fs)
 {
 	struct stat ss;
 	int ret;
@@ -107,15 +107,15 @@ fetch_entry(entry_vec *entries, char *fname)
 	return (ent);
 }
 
-struct rsf_fileset *
-rsf_fileset_init(
+struct my_fileset *
+my_fileset_init(
 	const char *setfile,
-	rsf_fileset_load_func load,
-	rsf_fileset_unload_func unload,
+	my_fileset_load_func load,
+	my_fileset_unload_func unload,
 	void *user)
 {
 	assert(path_exists(setfile));
-	struct rsf_fileset *fs = my_calloc(1, sizeof(*fs));
+	struct my_fileset *fs = my_calloc(1, sizeof(*fs));
 	char *t = my_strdup(setfile);
 	fs->setdir = my_strdup(dirname(t));
 	free(t);
@@ -128,7 +128,7 @@ rsf_fileset_init(
 }
 
 void
-rsf_fileset_destroy(struct rsf_fileset **fs)
+my_fileset_destroy(struct my_fileset **fs)
 {
 	if (*fs != NULL) {
 		for (size_t i = 0; i < entry_vec_size((*fs)->entries); i++) {
@@ -147,13 +147,13 @@ rsf_fileset_destroy(struct rsf_fileset **fs)
 }
 
 void *
-rsf_fileset_user(struct rsf_fileset *fs)
+my_fileset_user(struct my_fileset *fs)
 {
 	return (fs->user);
 }
 
 void
-rsf_fileset_reload(struct rsf_fileset *fs)
+my_fileset_reload(struct my_fileset *fs)
 {
 	assert(fs != NULL);
 	struct fileset_entry *ent, **entptr;
@@ -219,8 +219,8 @@ rsf_fileset_reload(struct rsf_fileset *fs)
 }
 
 bool
-rsf_fileset_get(
-	struct rsf_fileset *fs,
+my_fileset_get(
+	struct my_fileset *fs,
 	size_t i,
 	const char **fname_out,
 	void **ptr_out)
