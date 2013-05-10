@@ -7,7 +7,7 @@ static int next_threadnum = 0;
 static __thread int threadnum;
 
 void
-rsf_threadnum_register(void) {
+my_threadnum_register(void) {
 	pthread_mutex_lock(&lock);
 	threadnum = next_threadnum;
 	next_threadnum += 1;
@@ -15,6 +15,6 @@ rsf_threadnum_register(void) {
 }
 
 int
-rsf_threadnum(void) {
+my_threadnum(void) {
 	return (threadnum);
 }

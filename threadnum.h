@@ -1,7 +1,7 @@
-#ifndef RSF_THREADNUM_H
-#define RSF_THREADNUM_H
+#ifndef MY_THREADNUM_H
+#define MY_THREADNUM_H
 
-void rsf_threadnum_register(void);
-int rsf_threadnum(void);
+void my_threadnum_register(void);
+int my_threadnum(void);
 
-#endif /* RSF_THREADNUM_H */
+#endif /* MY_THREADNUM_H */
