@@ -40,6 +40,7 @@ name##_detach(name *vec, type **out, size_t *outsz)			\
 {									\
 	*(out) = (vec)->_v;						\
 	*(outsz) = (vec)->_n;						\
+	(vec)->_n = 0;							\
 	(vec)->_n_alloced = (vec)->_hint;				\
 	(vec)->_v = my_malloc((vec)->_n_alloced * sizeof(type));	\
 	(vec)->_p = &(vec->_v[0]);					\
