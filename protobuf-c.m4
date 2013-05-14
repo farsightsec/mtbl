@@ -1,0 +1,3 @@
+m4_include([libmy/byteorder.m4])
+AC_CHECK_PROG([HAVE_PROTOBUF_C_COMPILER], [protoc-c], true, false)
+AM_CONDITIONAL([HAVE_PROTOBUF_C_COMPILER], $HAVE_PROTOBUF_C_COMPILER)
