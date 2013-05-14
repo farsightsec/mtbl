@@ -36,6 +36,15 @@ name##_init(unsigned hint)						\
 	return (vec);							\
 }									\
 static inline void							\
+name##_reinit(unsigned hint, name *vec)					\
+{									\
+	if (hint == 0) hint = 1;					\
+	vec->_hint = vec->_n_alloced = hint;				\
+	vec->_n = 0;							\
+	vec->_v = my_malloc(vec->_n_alloced * sizeof(type));		\
+	vec->_p = &(vec->_v[0]);					\
+}									\
+static inline void							\
 name##_detach(name *vec, type **out, size_t *outsz)			\
 {									\
 	*(out) = (vec)->_v;						\
