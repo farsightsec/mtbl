@@ -35,6 +35,11 @@
 #if HAVE_PROTOBUF_C_CONFIG_H
 #include "protobuf-c-config.h"
 #endif
+
+#if !defined(IS_LITTLE_ENDIAN)
+# error "IS_LITTLE_ENDIAN must be defined to 0 or 1"
+#endif
+
 #include <stdio.h>                      /* for occasional printf()s */
 #include <stdlib.h>                     /* for abort(), malloc() etc */
 #include <string.h>                     /* for strlen(), memcpy(), memmove() */
