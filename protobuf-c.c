@@ -32,9 +32,7 @@
      * use size_t consistently
  */
 
-#if HAVE_PROTOBUF_C_CONFIG_H
-#include "protobuf-c-config.h"
-#endif
+#include "config.h"
 
 #if !defined(IS_LITTLE_ENDIAN)
 # error "IS_LITTLE_ENDIAN must be defined to 0 or 1"
