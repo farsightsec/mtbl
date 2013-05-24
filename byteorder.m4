@@ -36,4 +36,4 @@ AC_MSG_RESULT($result)
 
 AC_DEFINE_UNQUOTED([IS_LITTLE_ENDIAN],
                    $is_little_endian,
-                   [Define to 1 if machine is little endian])
+                   [Define to 1 if machine is little endian, 0 otherwise])
