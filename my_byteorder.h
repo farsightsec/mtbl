@@ -1,6 +1,12 @@
 #ifndef MY_BYTEORDER_H
 #define MY_BYTEORDER_H
 
+#include "config.h"
+
+#if !defined(IS_LITTLE_ENDIAN)
+# error "IS_LITTLE_ENDIAN must be defined to 0 or 1"
+#endif
+
 #ifdef HAVE_ENDIAN_H
 # include <endian.h>
 #else
