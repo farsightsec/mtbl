@@ -1,9 +1,9 @@
 SUFFIXES += .proto .pb-c.c .pb-c.h
 
 PROTOBUF_C_SOURCES = \
-	libmy/protobuf-c-private.h \
-	libmy/protobuf-c.c \
-	libmy/protobuf-c.h
+	libmy/protobuf-c/google/protobuf-c/protobuf-c-private.h \
+	libmy/protobuf-c/google/protobuf-c/protobuf-c.c \
+	libmy/protobuf-c/google/protobuf-c/protobuf-c.h
 
 if HAVE_PROTOBUF_C_COMPILER
 .proto.pb-c.c:
