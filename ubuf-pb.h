@@ -17,7 +17,8 @@
 #ifndef MY_UBUF_PB_H
 #define MY_UBUF_PB_H
 
-#include "protobuf-c.h"
+#include <google/protobuf-c/protobuf-c.h>
+
 #include "ubuf.h"
 
 struct ubuf_protobuf_c_buffer {
