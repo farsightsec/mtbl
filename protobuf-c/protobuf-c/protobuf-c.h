@@ -1,18 +1,31 @@
 /* --- protobuf-c.h: public protobuf c runtime api --- */
 
 /*
- * Copyright 2008, Dave Benson.
- * 
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with
- * the License. You may obtain a copy of the License
- * at http://www.apache.org/licenses/LICENSE-2.0 Unless
- * required by applicable law or agreed to in writing,
- * software distributed under the License is distributed on
- * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- * KIND, either express or implied. See the License for the
- * specific language governing permissions and limitations
- * under the License.
+ * Copyright (c) 2008-2013, Dave Benson.  All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are
+ * met:
+ *
+ *     * Redistributions of source code must retain the above copyright
+ * notice, this list of conditions and the following disclaimer.
+ *
+ *     * Redistributions in binary form must reproduce the above
+ * copyright notice, this list of conditions and the following disclaimer
+ * in the documentation and/or other materials provided with the
+ * distribution.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+ * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+ * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
 #ifndef __PROTOBUF_C_RUNTIME_H_
@@ -20,6 +33,7 @@
 
 #include <stddef.h>
 #include <assert.h>
+#include <limits.h>
 
 #ifdef __cplusplus
 # define PROTOBUF_C_BEGIN_DECLS    extern "C" {
@@ -34,6 +48,14 @@
 #else
 #define PROTOBUF_C_DEPRECATED
 #endif
+
+/* The version of protobuf-c you are compiling against. */
+#define PROTOBUF_C_MAJOR                0
+#define PROTOBUF_C_MINOR                16
+
+/* The version of protobuf-c you are linking against. */
+extern unsigned protobuf_c_major;
+extern unsigned protobuf_c_minor;
 
 /* Define int32_t, int64_t, uint32_t, uint64_t, uint8_t.
 
@@ -73,6 +95,7 @@
 #else
 # define PROTOBUF_C_API
 #endif
+
 
 PROTOBUF_C_BEGIN_DECLS
 
@@ -243,6 +266,8 @@ typedef void (*ProtobufCMessageInit)(ProtobufCMessage *);
  *        otherwise NULL.
  * 'default_value' is a pointer to a default value for this field,
  *        where allowed.
+ * 'packed' is only for REPEATED fields (it is 0 otherwise); this is if
+ *        the repeated fields is marked with the 'packed' options.
  */
 struct _ProtobufCFieldDescriptor
 {
@@ -352,6 +377,9 @@ PROTOBUF_C_API ProtobufCMessage *
 PROTOBUF_C_API void      protobuf_c_message_free_unpacked  (ProtobufCMessage    *message,
                                              ProtobufCAllocator  *allocator);
 
+PROTOBUF_C_API protobuf_c_boolean
+                         protobuf_c_message_check (const ProtobufCMessage *message);
+
 /* WARNING: 'message' must be a block of memory 
    of size descriptor->sizeof_message. */
 PROTOBUF_C_API void      protobuf_c_message_init           (const ProtobufCMessageDescriptor *,
@@ -457,7 +485,15 @@ struct _ProtobufCBufferSimple
   do { if ((simp_buf)->must_free_data) \
          protobuf_c_default_allocator.free (&protobuf_c_default_allocator.allocator_data, (simp_buf)->data); } while (0)
 
-
+#ifdef PROTOBUF_C_PLEASE_INCLUDE_CTYPE
+// This type is meant to reduce duplicated logic between
+// various iterators.  It tells what type to expect at
+// the "offset" within the message (or, for repeated fields,
+// the contents of the buffer.)
+//
+// Because the names are confusing, and because this mechanism tends to be
+// seldom used, you have to specifically request
+// this API via #define PROTOBUF_C_PLEASE_INCLUDE_CTYPE.
 typedef enum
 {
   PROTOBUF_C_CTYPE_INT32,
@@ -471,11 +507,12 @@ typedef enum
   PROTOBUF_C_CTYPE_STRING,
   PROTOBUF_C_CTYPE_BYTES,
   PROTOBUF_C_CTYPE_MESSAGE,
-} ProtobufCCType;
+} ProtobufC_CType;
 
-extern ProtobufCCType protobuf_c_type_to_ctype (ProtobufCType type);
+extern ProtobufC_CType protobuf_c_type_to_ctype (ProtobufCType type);
 #define protobuf_c_type_to_ctype(type) \
-  ((ProtobufCCType)(protobuf_c_type_to_ctype_array[(type)]))
+  ((ProtobufC_CType)(protobuf_c_type_to_ctype_array[(type)]))
+#endif
 
 /* ====== private ====== */
 #include "protobuf-c-private.h"

@@ -1,18 +1,31 @@
 /* --- protobuf-c.c: public protobuf c runtime implementation --- */
 
 /*
- * Copyright 2008, Dave Benson.
- * 
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with
- * the License. You may obtain a copy of the License
- * at http://www.apache.org/licenses/LICENSE-2.0 Unless
- * required by applicable law or agreed to in writing,
- * software distributed under the License is distributed on
- * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- * KIND, either express or implied. See the License for the
- * specific language governing permissions and limitations
- * under the License.
+ * Copyright (c) 2008-2013, Dave Benson.  All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are
+ * met:
+ *
+ *     * Redistributions of source code must retain the above copyright
+ * notice, this list of conditions and the following disclaimer.
+ *
+ *     * Redistributions in binary form must reproduce the above
+ * copyright notice, this list of conditions and the following disclaimer
+ * in the documentation and/or other materials provided with the
+ * distribution.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+ * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+ * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
 /* TODO items:
@@ -32,20 +45,9 @@
      * use size_t consistently
  */
 
-#include "config.h"
-
-#if !defined(IS_LITTLE_ENDIAN)
-# error "IS_LITTLE_ENDIAN must be defined to 0 or 1"
-#endif
-
 #include <stdio.h>                      /* for occasional printf()s */
 #include <stdlib.h>                     /* for abort(), malloc() etc */
 #include <string.h>                     /* for strlen(), memcpy(), memmove() */
-#if HAVE_ALLOCA_H
-#include <alloca.h>
-#elif HAVE_MALLOC_H
-#include <malloc.h>
-#endif
 
 #ifndef PRINT_UNPACK_ERRORS
 #define PRINT_UNPACK_ERRORS              1
@@ -53,7 +55,18 @@
 
 #include "protobuf-c.h"
 
+unsigned protobuf_c_major = PROTOBUF_C_MAJOR;
+unsigned protobuf_c_minor = PROTOBUF_C_MINOR;
+
 #define MAX_UINT64_ENCODED_SIZE 10
+
+/* This should be roughly the biggest message you think you'll encounter.
+   However, the only point of the hashing is to detect uninitialized required members.
+   I doubt many messages have 128 REQUIRED fields, so hopefully this'll be fine.
+
+   TODO: A better solution is to separately in the descriptor index the required fields,
+   and use the allcoator if the required field count is too big.  */
+#define MAX_MEMBERS_FOR_HASH_SIZE       128
 
 /* convenience macros */
 #define TMPALLOC(allocator, size) ((allocator)->tmp_alloc ((allocator)->allocator_data, (size)))
@@ -137,9 +150,9 @@ ProtobufCAllocator protobuf_c_default_allocator =
 {
   system_alloc,
   system_free,
-  NULL,
-  8192,
-  NULL
+  NULL,         /* tmp_alloc */
+  8192,         /* max_alloca */
+  NULL          /* allocator_data */
 };
 
 /* Users should NOT modify this structure,
@@ -150,10 +163,11 @@ ProtobufCAllocator protobuf_c_system_allocator =
 {
   system_alloc,
   system_free,
-  NULL,
-  8192,
-  NULL
+  NULL,         /* tmp_alloc */
+  8192,         /* max_alloca */
+  NULL          /* allocator_data */
 };
+
 
 /* === buffer-simple === */
 void
@@ -550,7 +564,7 @@ int32_pack (int32_t value, uint8_t *out)
     return uint32_pack (value, out);
 }
 
-/* Pack a 32-bit integer in zigwag encoding. */
+/* Pack a 32-bit integer in zigzag encoding. */
 static inline size_t
 sint32_pack (int32_t value, uint8_t *out)
 {
@@ -629,7 +643,7 @@ fixed64_pack (uint64_t value, void *out)
   memcpy (out, &value, 8);
 #else
   fixed32_pack (value, out);
-  fixed32_pack (value>>32, out+4);
+  fixed32_pack (value>>32, ((char*)out)+4);
 #endif
   return 8;
 }
@@ -970,6 +984,7 @@ repeated_field_pack (const ProtobufCFieldDescriptor *field,
     }
   else
     {
+      // not "packed" cased
       /* CONSIDER: optimize this case a bit (by putting the loop inside the switch) */
       size_t rv = 0;
       unsigned siz = sizeof_elt_in_repeated_array (field->type);
@@ -1315,9 +1330,7 @@ pack_buffer_packed_payload (const ProtobufCFieldDescriptor *field,
     }
   return rv;
 
-#if IS_LITTLE_ENDIAN
 no_packing_needed:
-#endif
   buffer->append (buffer, rv, array);
   return rv;
 }
@@ -1981,12 +1994,18 @@ parse_packed_repeated_member (ScannedMember *scanned_member,
   *p_n += count;
   return TRUE;
 
-#if IS_LITTLE_ENDIAN
 no_unpacking_needed:
-#endif
   memcpy (array, at, count * siz);
   *p_n += count;
   return TRUE;
+}
+
+static protobuf_c_boolean
+is_packable_type (ProtobufCType type)
+{
+  return type != PROTOBUF_C_TYPE_STRING
+     &&  type != PROTOBUF_C_TYPE_BYTES
+     &&  type != PROTOBUF_C_TYPE_MESSAGE;
 }
 
 static protobuf_c_boolean
@@ -2014,8 +2033,8 @@ parse_member (ScannedMember *scanned_member,
     case PROTOBUF_C_LABEL_OPTIONAL:
       return parse_optional_member (scanned_member, member, message, allocator);
     case PROTOBUF_C_LABEL_REPEATED:
-      if (field->packed
-       && scanned_member->wire_type == PROTOBUF_C_WIRE_TYPE_LENGTH_PREFIXED)
+      if (scanned_member->wire_type == PROTOBUF_C_WIRE_TYPE_LENGTH_PREFIXED
+       && (field->packed || is_packable_type (field->type)))
         return parse_packed_repeated_member (scanned_member, member, message);
       else
         return parse_repeated_member (scanned_member, member, message, allocator);
@@ -2028,7 +2047,7 @@ parse_member (ScannedMember *scanned_member,
 /* TODO: expose/use this function if desc->message_init==NULL 
    (which occurs for old code, and may be useful for certain
    programatic techniques for generating descriptors). */
-static void
+void
 protobuf_c_message_init_generic (const ProtobufCMessageDescriptor *desc,
                                  ProtobufCMessage *message)
 {
@@ -2123,8 +2142,7 @@ protobuf_c_message_unpack         (const ProtobufCMessageDescriptor *desc,
   unsigned f;
   unsigned i_slab;
   unsigned last_field_index = 0;
-  unsigned long *required_fields_bitmap;
-  unsigned required_fields_bitmap_len;
+  unsigned char required_fields_bitmap[MAX_MEMBERS_FOR_HASH_SIZE/8] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,};
   static const unsigned word_bits = sizeof(long) * 8;
 
   ASSERT_IS_MESSAGE_DESCRIPTOR (desc);
@@ -2132,9 +2150,11 @@ protobuf_c_message_unpack         (const ProtobufCMessageDescriptor *desc,
   if (allocator == NULL)
     allocator = &protobuf_c_default_allocator;
 
-  required_fields_bitmap_len = (desc->n_fields + word_bits - 1) / word_bits;
-  required_fields_bitmap = alloca(required_fields_bitmap_len * sizeof(long));
-  memset(required_fields_bitmap, 0, required_fields_bitmap_len * sizeof(long));
+  /* We treat all fields % (16*8), which should be good enough. */
+#define REQUIRED_FIELD_BITMAP_SET(index)   \
+  required_fields_bitmap[(index/8)%sizeof(required_fields_bitmap)] |= (1<<((index)%8))
+#define REQUIRED_FIELD_BITMAP_IS_SET(index)   \
+  required_fields_bitmap[(index/8)%sizeof(required_fields_bitmap)] & (1<<((index)%8))
 
   DO_ALLOC (rv, allocator, desc->sizeof_message, return NULL);
   scanned_member_slabs[0] = first_member_slab;
@@ -2185,7 +2205,7 @@ protobuf_c_message_unpack         (const ProtobufCMessageDescriptor *desc,
         field = last_field;
 
       if (field != NULL && field->label == PROTOBUF_C_LABEL_REQUIRED)
-        required_fields_bitmap[last_field_index / word_bits] |= (1UL << (last_field_index % word_bits));
+        REQUIRED_FIELD_BITMAP_SET (last_field_index);
 
       at += used;
       rem -= used;
@@ -2257,7 +2277,6 @@ protobuf_c_message_unpack         (const ProtobufCMessageDescriptor *desc,
             }
           which_slab++;
           size = sizeof(ScannedMember) << (which_slab+FIRST_SCANNED_MEMBER_SLAB_SIZE_LOG2);
-          /* TODO: consider using alloca() ! */
           if (allocator->tmp_alloc != NULL)
             scanned_member_slabs[which_slab] = TMPALLOC(allocator, size);
           else
@@ -2268,8 +2287,8 @@ protobuf_c_message_unpack         (const ProtobufCMessageDescriptor *desc,
       if (field != NULL && field->label == PROTOBUF_C_LABEL_REPEATED)
         {
           size_t *n = STRUCT_MEMBER_PTR (size_t, rv, field->quantifier_offset);
-          if (field->packed
-           && wire_type == PROTOBUF_C_WIRE_TYPE_LENGTH_PREFIXED)
+          if (wire_type == PROTOBUF_C_WIRE_TYPE_LENGTH_PREFIXED
+           && (field->packed || is_packable_type (field->type)))
             {
               size_t count;
               if (!count_packed_elements (field->type,
@@ -2292,39 +2311,41 @@ protobuf_c_message_unpack         (const ProtobufCMessageDescriptor *desc,
 
   /* allocate space for repeated fields, also check that all required fields have been set */
   for (f = 0; f < desc->n_fields; f++)
-  {
-    const ProtobufCFieldDescriptor *field = desc->fields + f;
-    if (field->label == PROTOBUF_C_LABEL_REPEATED)
     {
-        size_t siz = sizeof_elt_in_repeated_array (field->type);
-        size_t *n_ptr = STRUCT_MEMBER_PTR (size_t, rv, field->quantifier_offset);
-        if (*n_ptr != 0)
-          {
-            unsigned n = *n_ptr;
-            *n_ptr = 0;
-            assert(rv->descriptor != NULL);
-#define CLEAR_REMAINING_N_PTRS()                                            \
-            for(f++;f < desc->n_fields; f++)                                \
-              {                                                             \
-                field = desc->fields + f;                                   \
-                if (field->label == PROTOBUF_C_LABEL_REPEATED)              \
-                  STRUCT_MEMBER (size_t, rv, field->quantifier_offset) = 0; \
-              }
-            DO_ALLOC (STRUCT_MEMBER (void *, rv, field->offset),
-                      allocator, siz * n,
-                      CLEAR_REMAINING_N_PTRS (); goto error_cleanup);
+      const ProtobufCFieldDescriptor *field = desc->fields + f;
+      if (field->label == PROTOBUF_C_LABEL_REPEATED)
+        {
+          size_t siz = sizeof_elt_in_repeated_array (field->type);
+          size_t *n_ptr = STRUCT_MEMBER_PTR (size_t, rv, field->quantifier_offset);
+          if (*n_ptr != 0)
+            {
+              unsigned n = *n_ptr;
+              *n_ptr = 0;
+              assert(rv->descriptor != NULL);
+#define CLEAR_REMAINING_N_PTRS()                                              \
+              for(f++;f < desc->n_fields; f++)                                \
+                {                                                             \
+                  field = desc->fields + f;                                   \
+                  if (field->label == PROTOBUF_C_LABEL_REPEATED)              \
+                    STRUCT_MEMBER (size_t, rv, field->quantifier_offset) = 0; \
+                }
+              DO_ALLOC (STRUCT_MEMBER (void *, rv, field->offset),
+                        allocator, siz * n,
+                        CLEAR_REMAINING_N_PTRS (); goto error_cleanup);
+            }
+        }
+      else if (field->label == PROTOBUF_C_LABEL_REQUIRED)
+        {
+          if (field->default_value == NULL
+           && !REQUIRED_FIELD_BITMAP_IS_SET (f))
+            {
+              CLEAR_REMAINING_N_PTRS ();
+              UNPACK_ERROR (("message '%s': missing required field '%s'", desc->name, field->name));
+              goto error_cleanup;
+            }
+        }
+    }
 #undef CLEAR_REMAINING_N_PTRS
-          }
-    }
-    else if (field->label == PROTOBUF_C_LABEL_REQUIRED)
-    {
-      if (field->default_value == NULL && 0 == (required_fields_bitmap[f / word_bits] & (1UL << (f % word_bits))))
-      {
-        UNPACK_ERROR (("message '%s': missing required field '%s'", desc->name, field->name));
-        goto error_cleanup;
-      }
-    }
-  }
 
   /* allocate space for unknown fields */
   if (n_unknown)
@@ -2458,6 +2479,56 @@ protobuf_c_message_init (const ProtobufCMessageDescriptor *descriptor,
 {
   descriptor->message_init((ProtobufCMessage*) (message));
 }
+
+protobuf_c_boolean protobuf_c_message_check (const ProtobufCMessage *message)
+{
+  unsigned f;
+  for (f = 0; f < message->descriptor->n_fields; f++)
+    {
+      ProtobufCType type = message->descriptor->fields[f].type;
+      ProtobufCLabel label = message->descriptor->fields[f].label;
+      if (type == PROTOBUF_C_TYPE_MESSAGE)
+        {
+          unsigned offset = message->descriptor->fields[f].offset;
+          if (label == PROTOBUF_C_LABEL_REQUIRED)
+            {
+              ProtobufCMessage *sub = * (ProtobufCMessage**) ((char*)message + offset);
+              if (sub == NULL)
+                return FALSE;
+              if (!protobuf_c_message_check(sub))
+                return FALSE;
+            }
+          else if (label == PROTOBUF_C_LABEL_OPTIONAL)
+            {
+              ProtobufCMessage *sub = * (ProtobufCMessage**) ((char*)message + offset);
+              if (sub != NULL && !protobuf_c_message_check(sub))
+                return FALSE;
+            }
+          else if (label == PROTOBUF_C_LABEL_REPEATED)
+            {
+              unsigned n = * (unsigned *) ((char*)message + message->descriptor->fields[f].quantifier_offset);
+              ProtobufCMessage **subs = * (ProtobufCMessage***) ((char*)message + offset);
+              unsigned i;
+              for (i = 0; i < n; i++)
+                if (!protobuf_c_message_check (subs[i]))
+                  return FALSE;
+            }
+        }
+      else if (type == PROTOBUF_C_TYPE_STRING)
+        {
+          if (label == PROTOBUF_C_LABEL_REQUIRED)
+            {
+              char *str = * (char **) ((char*)message + message->descriptor->fields[f].offset);
+              if (str == NULL)
+                return FALSE;
+            }
+        }
+    }
+  return TRUE;
+}
+
+
+     
 
 /* === services === */
 typedef void (*GenericHandler)(void *service,
