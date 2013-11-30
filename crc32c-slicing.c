@@ -28,6 +28,8 @@
 #include <stddef.h>
 #include <stdint.h>
 
+uint32_t my_crc32c_slicing(const uint8_t *, size_t);
+
 static const uint32_t g_crc_slicing[8][256] = {
 #ifdef WORDS_BIGENDIAN
 	/*

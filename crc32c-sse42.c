@@ -77,6 +77,10 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define CPUID_FEATURES		(1)
 #define SSE42_FEATURE_BIT	(1 << 20)
 
+bool my_crc32c_sse42_supported(void);
+
+uint32_t my_crc32c_sse42(const uint8_t *, size_t);
+
 static uint32_t
 cpuid(uint32_t level)
 {
