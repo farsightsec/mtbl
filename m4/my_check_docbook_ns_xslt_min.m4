@@ -1,22 +1,18 @@
-# =============================================================================
-#  http://www.gnu.org/software/autoconf-archive/ax_check_docbook_xslt_min.html
-# =============================================================================
-#
 # SYNOPSIS
 #
-#   AX_CHECK_DOCBOOK_XSLT_MIN(min-xslt-version)
+#   MY_CHECK_DOCBOOK_NS_XSLT_MIN(min-xslt-version)
 #
 # DESCRIPTION
 #
 #   Check that the 'current' version of docbook is at least version
 #   min-xslt-version. If the test is successful,
-#   $DOCBOOK_XSLT_CURRENT_VERSION will be set to the current docbook
+#   $DOCBOOK_NS_XSLT_CURRENT_VERSION will be set to the current docbook
 #   version; if not, it will be set to 'no'.
 #
 #   Example:
 #
-#    AX_CHECK_DOCBOOK_XSLT_MIN(1.72.0)
-#    if test "x$DOCBOOK_XSLT_CURRENT_VERSION" = "xno"; then
+#    MY_CHECK_DOCBOOK_NS_XSLT_MIN(1.72.0)
+#    if test "x$DOCBOOK_NS_XSLT_CURRENT_VERSION" = "xno"; then
 #    ...
 #
 # LICENSE
@@ -52,14 +48,13 @@
 
 #serial 5
 
-AU_ALIAS([AC_CHECK_DOCBOOK_XSLT_MIN], [AX_CHECK_DOCBOOK_XSLT_MIN])
-AC_DEFUN([AX_CHECK_DOCBOOK_XSLT_MIN],
+AC_DEFUN([MY_CHECK_DOCBOOK_NS_XSLT_MIN],
 [
     AC_REQUIRE([AX_PROG_XSLTPROC])
 
-    AC_CACHE_CHECK([for current Docbook XSLT version], [ac_cv_docbook_xslt_current_version],
+    AC_CACHE_CHECK([for current DocBook-NS XSLT version], [ac_cv_docbook_ns_xslt_current_version],
     [
-        ac_cv_docbook_xslt_current_version=no
+        ac_cv_docbook_ns_xslt_current_version=no
 
         if test -n "$XSLTPROC"; then
             cat >conftest.xsl <<EOF
@@ -75,36 +70,36 @@ AC_DEFUN([AX_CHECK_DOCBOOK_XSLT_MIN],
                     <xsl:template match="text()"/>
                 </xsl:stylesheet>
 EOF
-            echo "Trying '$XSLTPROC $XSLTPROC_FLAGS http://docbook.sourceforge.net/release/xsl/current/VERSION' with input:" >&AS_MESSAGE_LOG_FD
+            echo "Trying '$XSLTPROC $XSLTPROC_FLAGS http://docbook.sourceforge.net/release/xsl-ns/current/VERSION' with input:" >&AS_MESSAGE_LOG_FD
             echo "====" >&AS_MESSAGE_LOG_FD
             cat conftest.xsl >&AS_MESSAGE_LOG_FD
             echo "====" >&AS_MESSAGE_LOG_FD
 
-            ac_cv_docbook_xslt_current_version=`$XSLTPROC $XSLTPROC_FLAGS conftest.xsl http://docbook.sourceforge.net/release/xsl/current/VERSION 2>&AS_MESSAGE_LOG_FD`
+            ac_cv_docbook_ns_xslt_current_version=`$XSLTPROC $XSLTPROC_FLAGS conftest.xsl http://docbook.sourceforge.net/release/xsl-ns/current/VERSION 2>&AS_MESSAGE_LOG_FD`
 
             if test "$?" != 0; then
-                ac_cv_docbook_xslt_current_version='no'
+                ac_cv_docbook_ns_xslt_current_version='no'
             fi
 
             rm conftest.xsl
         fi
     ])
 
-    DOCBOOK_XSLT_CURRENT_VERSION="$ac_cv_docbook_xslt_current_version"
-    AC_MSG_CHECKING([whether Docbook XSLT version is $1 or newer])
+    DOCBOOK_NS_XSLT_CURRENT_VERSION="$ac_cv_docbook_ns_xslt_current_version"
+    AC_MSG_CHECKING([whether DocBook-NS XSLT version is $1 or newer])
 
-    if test x"$DOCBOOK_XSLT_CURRENT_VERSION" = x"no"; then
+    if test x"$DOCBOOK_NS_XSLT_CURRENT_VERSION" = x"no"; then
         AC_MSG_RESULT([no])
     else
-        AX_COMPARE_VERSION([$DOCBOOK_XSLT_CURRENT_VERSION], [lt], [$1], [
+        AX_COMPARE_VERSION([$DOCBOOK_NS_XSLT_CURRENT_VERSION], [lt], [$1], [
             # version is less than required, so mark it as "no"
-            DOCBOOK_XSLT_CURRENT_VERSION=no
+            DOCBOOK_NS_XSLT_CURRENT_VERSION=no
         ])
 
-        if test x"$DOCBOOK_XSLT_CURRENT_VERSION" = x"no"; then
+        if test x"$DOCBOOK_NS_XSLT_CURRENT_VERSION" = x"no"; then
             AC_MSG_RESULT([no])
         else
-            AC_MSG_RESULT([yes ($DOCBOOK_XSLT_CURRENT_VERSION)])
+            AC_MSG_RESULT([yes ($DOCBOOK_NS_XSLT_CURRENT_VERSION)])
         fi
     fi
 ])
