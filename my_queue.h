@@ -42,11 +42,12 @@ struct my_queue;
 /**
  * Initialize a new queue.
  *
- * \param[in] sz Number of elements in the queue. Must be >=2, and a power-of-2.
+ * \param[in] num_entries Number of elements in the queue. Must be >=2, and a power-of-2.
+ * \param[in] size_entry Size in bytes of each queue entry.
  * \return Opaque pointer that is NULL on failure or non-NULL on success.
  */
 struct my_queue *
-my_queue_init(unsigned sz);
+my_queue_init(unsigned num_entries, unsigned size_entry);
 
 /**
  * Destroy a queue.
@@ -77,13 +78,13 @@ my_queue_insert(struct my_queue *q, void *elem, unsigned *space);
  * Remove an element from the queue.
  *
  * \param[in] q Queue object.
- * \param[out] pelem Pointer to where the element object will be stored.
+ * \param[out] elem Where the element object will be copied.
  * \param[out] count If non-NULL, pointer to store the count of elements
  *	remaining in the queue.
  * \return true if an element was removed from the queue,
  *	false if the queue is empty.
  */
 bool
-my_queue_remove(struct my_queue *q, void **pelem, unsigned *count);
+my_queue_remove(struct my_queue *q, void *elem, unsigned *count);
 
 #endif /* MY_QUEUE_H */

@@ -15,6 +15,8 @@
  */
 
 #include <stdbool.h>
+#include <stdint.h>
+#include <string.h>
 
 #include "my_alloc.h"
 #include "my_memory_barrier.h"
@@ -28,21 +30,23 @@
 #define MY_ACCESS_ONCE(x) (*(volatile typeof(x) *)&(x))
 
 struct my_queue {
-	void		**elems;
-	unsigned	size;
+	uint8_t		*data;
+	unsigned	num_elems;
+	unsigned	sizeof_elem;
 	unsigned	head;
 	unsigned	tail;
 };
 
 struct my_queue *
-my_queue_init(unsigned size)
+my_queue_init(unsigned num_elems, unsigned sizeof_elem)
 {
 	struct my_queue *q;
-	if (size < 2 || ((size - 1) & size) != 0)
+	if (num_elems < 2 || ((num_elems - 1) & num_elems) != 0)
 		return (NULL);
 	q = my_calloc(1, sizeof(*q));
-	q->size = size;
-	q->elems = my_calloc(size, sizeof(void *));
+	q->num_elems = num_elems;
+	q->sizeof_elem = sizeof_elem;
+	q->data = my_calloc(q->num_elems, q->sizeof_elem);
 	return (q);
 }
 
@@ -50,7 +54,7 @@ void
 my_queue_destroy(struct my_queue **q)
 {
 	if (*q) {
-		free((*q)->elems);
+		free((*q)->data);
 		free(*q);
 		*q = NULL;
 	}
@@ -80,11 +84,11 @@ my_queue_insert(struct my_queue *q, void *item, unsigned *pspace)
 	bool res = false;
 	unsigned head = q->head;
 	unsigned tail = MY_ACCESS_ONCE(q->tail);
-	unsigned space = q_space(head, tail, q->size);
+	unsigned space = q_space(head, tail, q->num_elems);
 	if (space >= 1) {
-		q->elems[head] = item;
+		memcpy(&q->data[head * q->sizeof_elem], item, q->sizeof_elem);
 		smp_wmb();
-		q->head = (head + 1) & (q->size - 1);
+		q->head = (head + 1) & (q->num_elems - 1);
 		smp_wmb();
 		res = true;
 		space--;
@@ -95,16 +99,16 @@ my_queue_insert(struct my_queue *q, void *item, unsigned *pspace)
 }
 
 bool
-my_queue_remove(struct my_queue *q, void **pitem, unsigned *pcount)
+my_queue_remove(struct my_queue *q, void *item, unsigned *pcount)
 {
 	bool res = false;
 	unsigned head = MY_ACCESS_ONCE(q->head);
 	unsigned tail = q->tail;
-	unsigned count = q_count(head, tail, q->size);
+	unsigned count = q_count(head, tail, q->num_elems);
 	if (count >= 1) {
-		*pitem = q->elems[tail];
+		memcpy(item, &q->data[tail * q->sizeof_elem], q->sizeof_elem);
 		smp_mb();
-		q->tail = (tail + 1) & (q->size - 1);
+		q->tail = (tail + 1) & (q->num_elems - 1);
 		res = true;
 		count--;
 	}
