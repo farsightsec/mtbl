@@ -87,4 +87,12 @@ my_queue_insert(struct my_queue *q, void *elem, unsigned *space);
 bool
 my_queue_remove(struct my_queue *q, void *elem, unsigned *count);
 
+struct my_queue_ops {
+	struct my_queue *(*init)(unsigned, unsigned);
+	void (*destroy)(struct my_queue **);
+	const char *(*impl_type)(void);
+	bool (*insert)(struct my_queue *, void *, unsigned *);
+	bool (*remove)(struct my_queue *, void *, unsigned *);
+};
+
 #endif /* MY_QUEUE_H */

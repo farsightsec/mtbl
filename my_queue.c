@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013 by Farsight Security, Inc.
+ * Copyright (c) 2013, 2014 by Farsight Security, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,17 @@
 #include "my_memory_barrier.h"
 
 #ifdef MY_HAVE_MEMORY_BARRIERS
+# define my_queue_mb_init		my_queue_init
+# define my_queue_mb_destroy		my_queue_destroy
+# define my_queue_mb_impl_type		my_queue_impl_type
+# define my_queue_mb_insert		my_queue_insert
+# define my_queue_mb_remove		my_queue_remove
 # include "my_queue_mb.c"
 #else
+# define my_queue_mutex_init		my_queue_init
+# define my_queue_mutex_destroy		my_queue_destroy
+# define my_queue_mutex_impl_type	my_queue_impl_type
+# define my_queue_mutex_insert		my_queue_insert
+# define my_queue_mutex_remove		my_queue_remove
 # include "my_queue_mutex.c"
 #endif

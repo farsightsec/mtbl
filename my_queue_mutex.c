@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013 by Farsight Security, Inc.
+ * Copyright (c) 2013, 2014 by Farsight Security, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,7 +40,22 @@ struct my_queue {
 };
 
 struct my_queue *
-my_queue_init(unsigned num_elems, unsigned sizeof_elem)
+my_queue_mutex_init(unsigned, unsigned);
+
+void
+my_queue_mutex_destroy(struct my_queue **);
+
+const char *
+my_queue_mutex_impl_type(void);
+
+bool
+my_queue_mutex_insert(struct my_queue *, void *, unsigned *);
+
+bool
+my_queue_mutex_remove(struct my_queue *, void *, unsigned *);
+
+struct my_queue *
+my_queue_mutex_init(unsigned num_elems, unsigned sizeof_elem)
 {
 	struct my_queue *q;
 	if (num_elems < 2 || ((num_elems - 1) & num_elems) != 0)
@@ -55,7 +70,7 @@ my_queue_init(unsigned num_elems, unsigned sizeof_elem)
 }
 
 void
-my_queue_destroy(struct my_queue **q)
+my_queue_mutex_destroy(struct my_queue **q)
 {
 	if (*q) {
 		pthread_mutex_destroy(&(*q)->lock);
@@ -66,7 +81,7 @@ my_queue_destroy(struct my_queue **q)
 }
 
 const char *
-my_queue_impl_type(void)
+my_queue_mutex_impl_type(void)
 {
 	return ("pthread mutex");
 }
@@ -98,7 +113,7 @@ q_count(unsigned head, unsigned tail, unsigned size)
 }
 
 bool
-my_queue_insert(struct my_queue *q, void *item, unsigned *pspace)
+my_queue_mutex_insert(struct my_queue *q, void *item, unsigned *pspace)
 {
 	q_lock(q);
 	bool res = false;
@@ -118,7 +133,7 @@ my_queue_insert(struct my_queue *q, void *item, unsigned *pspace)
 }
 
 bool
-my_queue_remove(struct my_queue *q, void *item, unsigned *pcount)
+my_queue_mutex_remove(struct my_queue *q, void *item, unsigned *pcount)
 {
 	q_lock(q);
 	bool res = false;
@@ -136,3 +151,16 @@ my_queue_remove(struct my_queue *q, void *item, unsigned *pcount)
 		*pcount = count;
 	return (res);
 }
+
+const struct my_queue_ops my_queue_mutex_ops = {
+	.init =
+		my_queue_mutex_init,
+	.destroy =
+		my_queue_mutex_destroy,
+	.impl_type =
+		my_queue_mutex_impl_type,
+	.insert =
+		my_queue_mutex_insert,
+	.remove =
+		my_queue_mutex_remove,
+};
