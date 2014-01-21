@@ -58,9 +58,6 @@ mtbl_libmtbl_la_LDFLAGS = $(AM_LDFLAGS) \
 	-version-info $(LIBMTBL_CURRENT):$(LIBMTBL_REVISION):$(LIBMTBL_AGE) \
 	-export-symbols-regex "^(mtbl_[a-z].*)"
 
-install-exec-hook:
-	rm -f $(DESTDIR)$(libdir)/libmtbl.la
-
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = mtbl/libmtbl.pc
 EXTRA_DIST += mtbl/libmtbl.pc.in
