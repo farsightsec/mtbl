@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012 by Farsight Security, Inc.
+ * Copyright (c) 2012, 2014 by Farsight Security, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,8 @@
 
 #include "mtbl-private.h"
 
-#include "librsf/heap.h"
-#include "librsf/ubuf.h"
-#include "librsf/vector.h"
+#include "libmy/heap.h"
+#include "libmy/ubuf.h"
 
 struct entry {
 	struct mtbl_iter		*it;

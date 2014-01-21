@@ -30,12 +30,12 @@ include_HEADERS = mtbl/mtbl.h
 lib_LTLIBRARIES = mtbl/libmtbl.la
 
 mtbl_libmtbl_la_SOURCES = \
-	librsf/crc32c.c librsf/crc32c.h \
-	librsf/heap.c librsf/heap.h \
-	librsf/my_alloc.h \
-	librsf/rsf_fileset.c librsf/rsf_fileset.h \
-	librsf/ubuf.h \
-	librsf/vector.h \
+	libmy/crc32c.c libmy/crc32c.h libmy/crc32c-slicing.c libmy/crc32c-sse42.c \
+	libmy/heap.c libmy/heap.h \
+	libmy/my_alloc.h \
+	libmy/my_fileset.c libmy/my_fileset.h \
+	libmy/ubuf.h \
+	libmy/vector.h \
 	mtbl/block.c \
 	mtbl/block_builder.c \
 	mtbl/bytes.h \
@@ -71,7 +71,7 @@ check_PROGRAMS =
 bin_PROGRAMS =
 
 bin_PROGRAMS += src/mtbl_dump
-src_mtbl_dump_SOURCES = src/mtbl_dump.c librsf/print_string.h
+src_mtbl_dump_SOURCES = src/mtbl_dump.c libmy/print_string.h
 src_mtbl_dump_LDADD = mtbl/libmtbl.la
 
 bin_PROGRAMS += src/mtbl_info
@@ -79,7 +79,7 @@ src_mtbl_info_SOURCES = src/mtbl_info.c
 src_mtbl_info_LDADD = mtbl/libmtbl.la
 
 bin_PROGRAMS += src/mtbl_merge
-src_mtbl_merge_SOURCES = src/mtbl_merge.c librsf/getenv_int.h
+src_mtbl_merge_SOURCES = src/mtbl_merge.c libmy/getenv_int.h
 src_mtbl_merge_LDADD = mtbl/libmtbl.la
 
 TESTS += src/test-block_builder

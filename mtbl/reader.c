@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, 2013 by Farsight Security, Inc.
+ * Copyright (c) 2012-2014 by Farsight Security, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 #include "mtbl-private.h"
 
-#include "librsf/ubuf.h"
+#include "libmy/ubuf.h"
 
 typedef enum {
 	READER_ITER_TYPE_ITER,

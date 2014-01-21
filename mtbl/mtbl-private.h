@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012 by Farsight Security, Inc.
+ * Copyright (c) 2012, 2014 by Farsight Security, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -47,7 +47,7 @@
 #include <snappy-c.h>
 #include <zlib.h>
 
-#include "librsf/my_alloc.h"
+#include "libmy/my_alloc.h"
 
 #define MTBL_MAGIC			0x77846676
 #define MTBL_TRAILER_SIZE		512

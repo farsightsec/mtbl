@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012 by Farsight Security, Inc.
+ * Copyright (c) 2012, 2014 by Farsight Security, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,10 +15,10 @@
  */
 
 #include "mtbl-private.h"
-#include "librsf/crc32c.h"
+#include "libmy/crc32c.h"
 
 uint32_t
 mtbl_crc32c(const uint8_t *buf, size_t size)
 {
-	return (rsf_crc32c(buf, size));
+	return (my_crc32c(buf, size));
 }

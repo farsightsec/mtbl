@@ -9,8 +9,7 @@
 #include <mtbl.h>
 
 #include "mtbl-private.h"
-#include "librsf/ubuf.h"
-#include "librsf/vector.h"
+#include "libmy/ubuf.h"
 
 #define NAME	"test-vector"
 

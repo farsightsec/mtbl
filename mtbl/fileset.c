@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, 2013 by Farsight Security, Inc.
+ * Copyright (c) 2012-2014 by Farsight Security, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,7 @@
 
 #include "mtbl-private.h"
 
-#include "librsf/rsf_fileset.h"
+#include "libmy/my_fileset.h"
 
 struct mtbl_fileset_options {
 	size_t				reload_interval;
@@ -30,7 +30,7 @@ struct mtbl_fileset {
 	uint32_t			reload_interval;
 	size_t				n_loaded, n_unloaded;
 	struct timespec			last;
-	struct rsf_fileset		*fs;
+	struct my_fileset		*fs;
 	struct mtbl_merger		*merger;
 	struct mtbl_merger_options	*mopt;
 	struct mtbl_source		*source;
@@ -105,17 +105,17 @@ mtbl_fileset_options_set_reload_interval(struct mtbl_fileset_options *opt,
 }
 
 static void *
-fs_load(struct rsf_fileset *fs, const char *fname)
+fs_load(struct my_fileset *fs, const char *fname)
 {
-	struct mtbl_fileset *f = (struct mtbl_fileset *) rsf_fileset_user(fs);
+	struct mtbl_fileset *f = (struct mtbl_fileset *) my_fileset_user(fs);
 	f->n_loaded++;
 	return (mtbl_reader_init(fname, NULL));
 }
 
 static void
-fs_unload(struct rsf_fileset *fs, const char *fname, void *ptr)
+fs_unload(struct my_fileset *fs, const char *fname, void *ptr)
 {
-	struct mtbl_fileset *f = (struct mtbl_fileset *) rsf_fileset_user(fs);
+	struct mtbl_fileset *f = (struct mtbl_fileset *) my_fileset_user(fs);
 	struct mtbl_reader *r = (struct mtbl_reader *) ptr;
 	f->n_unloaded++;
 	mtbl_reader_destroy(&r);
@@ -131,7 +131,7 @@ mtbl_fileset_init(const char *fname, const struct mtbl_fileset_options *opt)
 	f->mopt = mtbl_merger_options_init();
 	mtbl_merger_options_set_merge_func(f->mopt, opt->merge, opt->merge_clos);
 	f->merger = mtbl_merger_init(f->mopt);
-	f->fs = rsf_fileset_init(fname, fs_load, fs_unload, f);
+	f->fs = my_fileset_init(fname, fs_load, fs_unload, f);
 	assert(f->fs != NULL);
 	f->source = mtbl_source_init(fileset_source_iter,
 				     fileset_source_get,
@@ -146,7 +146,7 @@ void
 mtbl_fileset_destroy(struct mtbl_fileset **f)
 {
 	if (*f) {
-		rsf_fileset_destroy(&(*f)->fs);
+		my_fileset_destroy(&(*f)->fs);
 		mtbl_merger_destroy(&(*f)->merger);
 		mtbl_merger_options_destroy(&(*f)->mopt);
 		mtbl_source_destroy(&(*f)->source);
@@ -174,7 +174,7 @@ fs_reinit_merger(struct mtbl_fileset *f)
 		mtbl_merger_destroy(&f->merger);
 		f->merger = mtbl_merger_init(f->mopt);
 	}
-	while (rsf_fileset_get(f->fs, i++, &fname, (void **) &reader))
+	while (my_fileset_get(f->fs, i++, &fname, (void **) &reader))
 		mtbl_merger_add_source(f->merger, mtbl_reader_source(reader));
 }
 
@@ -192,7 +192,7 @@ mtbl_fileset_reload(struct mtbl_fileset *f)
 		f->n_loaded = 0;
 		f->n_unloaded = 0;
 		assert(f->fs != NULL);
-		rsf_fileset_reload(f->fs);
+		my_fileset_reload(f->fs);
 		if (f->n_loaded > 0 || f->n_unloaded > 0)
 			fs_reinit_merger(f);
 		f->last = now;
