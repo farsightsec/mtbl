@@ -64,7 +64,7 @@ usage(void)
 }
 
 static void
-timespec_get(struct timespec *now) {
+my_timespec_get(struct timespec *now) {
 	struct timeval tv;
 	(void) gettimeofday(&tv, NULL);
 	now->tv_sec = tv.tv_sec;
@@ -72,7 +72,7 @@ timespec_get(struct timespec *now) {
 }
 
 static void
-timespec_sub(const struct timespec *a, struct timespec *b) {
+my_timespec_sub(const struct timespec *a, struct timespec *b) {
 	b->tv_sec -= a->tv_sec;
 	b->tv_nsec -= a->tv_nsec;
 	if (b->tv_nsec < 0) {
@@ -82,7 +82,7 @@ timespec_sub(const struct timespec *a, struct timespec *b) {
 }
 
 static double
-timespec_to_double(const struct timespec *ts) {
+my_timespec_to_double(const struct timespec *ts) {
 	return (ts->tv_sec + ts->tv_nsec / 1E9);
 }
 
@@ -92,9 +92,9 @@ print_stats(void)
 	struct timespec dur;
 	double t_dur;
 
-	timespec_get(&dur);
-	timespec_sub(&start_time, &dur);
-	t_dur = timespec_to_double(&dur);
+	my_timespec_get(&dur);
+	my_timespec_sub(&start_time, &dur);
+	t_dur = my_timespec_to_double(&dur);
 
 	fprintf(stderr,
 		"%s: wrote %'" PRIu64 " entries (%'" PRIu64 " merged) "
@@ -268,7 +268,7 @@ main(int argc, char **argv)
 	}
 
 	/* do merge */
-	timespec_get(&start_time);
+	my_timespec_get(&start_time);
 	merge();
 
 	/* cleanup readers */
