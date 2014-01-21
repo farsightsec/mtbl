@@ -99,7 +99,7 @@ src_test_vector_LDADD = mtbl/libmtbl.la
 if BUILD_MAN
 SUFFIXES = .1.txt .3.txt .7.txt .1 .3 .7
 
-ASCIIDOC_PROCESS = $(AM_V_GEN) $(ASCIIDOC) -f manpage --asciidoc-opt="-f man/asciidoc.conf" $<
+ASCIIDOC_PROCESS = $(AM_V_GEN) $(ASCIIDOC) -f manpage --no-xmllint --asciidoc-opt="-f man/asciidoc.conf" $<
 
 .1.txt.1:
 	$(ASCIIDOC_PROCESS)
