@@ -4,6 +4,14 @@ mtbl (0.3-1) unstable; urgency=low
 
  -- Robert S. Edmonds <edmonds@debian.org>  Wed, 26 Dec 2012 17:22:52 -0500
 
+mtbl (0.2-1.1) unstable; urgency=low
+
+  * Non-maintainer upload.
+  * debian/patches/eglibc2.17.patch: Rename timespec_get to prevent name
+    clashes with timespec_get provided by eglibc 2.17 (Closes: #701405)
+
+ -- Sebastian Ramacher <sramacher@debian.org>  Sun, 26 May 2013 22:52:55 +0200
+
 mtbl (0.2-1) unstable; urgency=low
 
   * New upstream release.
