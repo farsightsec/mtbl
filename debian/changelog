@@ -1,4 +1,10 @@
-mtbl (0.3-1) unstable; urgency=low
+mtbl (0.4-1) unstable; urgency=medium
+
+  * New upstream release.
+
+ -- Robert S. Edmonds <edmonds@debian.org>  Tue, 21 Jan 2014 16:30:22 -0500
+
+mtbl (0.3-1) UNRELEASED; urgency=low
 
   * New upstream release.
 
