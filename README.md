@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/farsightsec/mtbl.png?branch=master)](https://travis-ci.org/farsightsec/mtbl)
+
 `mtbl`: immutable sorted string table library
 =============================================
 
