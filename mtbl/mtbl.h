@@ -48,6 +48,8 @@ struct mtbl_writer_options;
 
 struct mtbl_merger;
 struct mtbl_merger_options;
+struct mtbl_fileset;
+struct mtbl_fileset_options;
 struct mtbl_sorter;
 struct mtbl_sorter_options;
 
@@ -232,10 +234,43 @@ mtbl_merger_options_set_merge_func(
 	mtbl_merge_func,
 	void *clos);
 
+/* fileset */
+
+struct mtbl_fileset *
+mtbl_fileset_init(const char *fname, const struct mtbl_fileset_options *);
+
+void
+mtbl_fileset_destroy(struct mtbl_fileset **);
+
+void
+mtbl_fileset_reload(struct mtbl_fileset *);
+
+const struct mtbl_source *
+mtbl_fileset_source(struct mtbl_fileset *);
+
+/* fileset options */
+
+struct mtbl_fileset_options *
+mtbl_fileset_options_init(void);
+
+void
+mtbl_fileset_options_destroy(struct mtbl_fileset_options **);
+
+void
+mtbl_fileset_options_set_merge_func(
+	struct mtbl_fileset_options *,
+	mtbl_merge_func,
+	void *clos);
+
+void
+mtbl_fileset_options_set_reload_interval(
+	struct mtbl_fileset_options *,
+	uint32_t reload_interval);
+
 /* sorter */
 
 struct mtbl_sorter *
-mtbl_sorter_init(struct mtbl_sorter_options *);
+mtbl_sorter_init(const struct mtbl_sorter_options *);
 
 void
 mtbl_sorter_destroy(struct mtbl_sorter **);

@@ -1,0 +1,3 @@
+[submodule "librsf"]
+	path = librsf
+	url = ../librsf.git

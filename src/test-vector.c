@@ -9,9 +9,12 @@
 #include <mtbl.h>
 
 #include "mtbl-private.h"
-#include "vector_types.h"
+#include "librsf/ubuf.h"
+#include "librsf/vector.h"
 
 #define NAME	"test-vector"
+
+VECTOR_GENERATE(uint32_vec, uint32_t);
 
 const uint32_t u32_array[] = { 23, 17, 1, 2, 3, 4, 5, 4, 3, 2, 1, 17, 23 };
 #define NUM_U32_ARRAY 13

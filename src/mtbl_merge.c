@@ -25,7 +25,9 @@
 
 #include <mtbl.h>
 #include "mtbl-private.h"
-#include "vector_types.h"
+
+#include "librsf/getenv_int.h"
+#include "librsf/ubuf.h"
 
 #define STATS_INTERVAL		1000000
 
@@ -200,6 +202,15 @@ init_dso(void)
 	user_func_free = dlsym(handle, (const char *) ubuf_data(func_name));
 }
 
+static size_t
+get_block_size(void)
+{
+	uint64_t sz;
+	if (getenv_int("MTBL_MERGE_BLOCK_SIZE", &sz))
+		return ((size_t) sz);
+	return (DEFAULT_BLOCK_SIZE);
+}
+
 static void
 init_mtbl(void)
 {
@@ -211,6 +222,7 @@ init_mtbl(void)
 
 	mtbl_merger_options_set_merge_func(mopt, merge_func, user_clos);
 	mtbl_writer_options_set_compression(wopt, MTBL_COMPRESSION_ZLIB);
+	mtbl_writer_options_set_block_size(wopt, get_block_size());
 
 	merger = mtbl_merger_init(mopt);
 	assert(merger != NULL);

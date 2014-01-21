@@ -19,7 +19,8 @@
 #include <stdlib.h>
 
 #include <mtbl.h>
-#include "print_string.h"
+
+#include "librsf/print_string.h"
 
 static void
 dump(const char *fname)

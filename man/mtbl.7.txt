@@ -51,6 +51,11 @@ to merge values in the case of entries with duplicate keys. The sorted output
 sequence may be retrieved via the ^mtbl_iter^ interface or be dumped to an
 ^mtbl_writer^ object.  
 
+link:mtbl_fileset[3]::
+Fileset objects automatically maintain an ^mtbl_source^ built on top of the
+^mtbl_merger^ and ^mtbl_reader^ interfaces. The set of underlying ^mtbl_reader^
+objects is kept synchronized with a "setfile" on disk listing _MTBL_ files.
+
 Additionally, several utility interfaces are provided:
 
 link:mtbl_crc32c[3]::

@@ -15,7 +15,8 @@
  */
 
 #include "mtbl-private.h"
-#include "vector_types.h"
+
+#include "librsf/ubuf.h"
 
 typedef enum {
 	READER_ITER_TYPE_ITER,

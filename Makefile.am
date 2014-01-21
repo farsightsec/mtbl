@@ -30,23 +30,26 @@ include_HEADERS = mtbl/mtbl.h
 lib_LTLIBRARIES = mtbl/libmtbl.la
 
 mtbl_libmtbl_la_SOURCES = \
+	librsf/crc32c.c librsf/crc32c.h \
+	librsf/heap.c librsf/heap.h \
+	librsf/my_alloc.h \
+	librsf/rsf_fileset.c librsf/rsf_fileset.h \
+	librsf/ubuf.h \
+	librsf/vector.h \
 	mtbl/block.c \
 	mtbl/block_builder.c \
 	mtbl/bytes.h \
-	mtbl/crc32c.c \
+	mtbl/crc32c_wrap.c \
+	mtbl/fileset.c \
 	mtbl/fixed.c \
-	mtbl/heap.c \
 	mtbl/iter.c \
 	mtbl/merger.c \
 	mtbl/mtbl.h \
 	mtbl/mtbl-private.h \
-	mtbl/print_string.h \
 	mtbl/reader.c \
 	mtbl/sorter.c \
 	mtbl/source.c \
 	mtbl/trailer.c \
-	mtbl/vector.h \
-	mtbl/vector_types.h \
 	mtbl/varint.c \
 	mtbl/writer.c
 
@@ -68,7 +71,7 @@ check_PROGRAMS =
 bin_PROGRAMS =
 
 bin_PROGRAMS += src/mtbl_dump
-src_mtbl_dump_SOURCES = src/mtbl_dump.c
+src_mtbl_dump_SOURCES = src/mtbl_dump.c librsf/print_string.h
 src_mtbl_dump_LDADD = mtbl/libmtbl.la
 
 bin_PROGRAMS += src/mtbl_info
@@ -76,7 +79,7 @@ src_mtbl_info_SOURCES = src/mtbl_info.c
 src_mtbl_info_LDADD = mtbl/libmtbl.la
 
 bin_PROGRAMS += src/mtbl_merge
-src_mtbl_merge_SOURCES = src/mtbl_merge.c
+src_mtbl_merge_SOURCES = src/mtbl_merge.c librsf/getenv_int.h
 src_mtbl_merge_LDADD = mtbl/libmtbl.la
 
 TESTS += src/test-block_builder
@@ -132,6 +135,7 @@ dist_man_MANS = \
 	man/mtbl_writer.3 \
 	man/mtbl_merger.3 \
 	man/mtbl_sorter.3 \
+	man/mtbl_fileset.3 \
 	man/mtbl_crc32c.3 \
 	man/mtbl_fixed.3 \
 	man/mtbl_varint.3 \
@@ -147,6 +151,7 @@ EXTRA_DIST += \
 	man/mtbl_writer.3.txt \
 	man/mtbl_merger.3.txt \
 	man/mtbl_sorter.3.txt \
+	man/mtbl_fileset.3.txt \
 	man/mtbl_crc32c.3.txt \
 	man/mtbl_fixed.3.txt \
 	man/mtbl_varint.3.txt \

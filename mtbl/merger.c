@@ -15,7 +15,10 @@
  */
 
 #include "mtbl-private.h"
-#include "vector_types.h"
+
+#include "librsf/heap.h"
+#include "librsf/ubuf.h"
+#include "librsf/vector.h"
 
 struct entry {
 	struct mtbl_iter		*it;
@@ -273,8 +276,14 @@ merger_iter_add_entry(struct merger_iter *it, struct mtbl_iter *ent_it)
 	ent->val = ubuf_init(256);
 	ent->it = ent_it;
 	entry_fill(ent);
-	heap_push(it->h, ent);
-	entry_vec_add(it->entries, ent);
+	if (ent->it == NULL) {
+		ubuf_destroy(&ent->key);
+		ubuf_destroy(&ent->val);
+		free(ent);
+	} else {
+		heap_push(it->h, ent);
+		entry_vec_add(it->entries, ent);
+	}
 }
 
 static struct mtbl_iter *

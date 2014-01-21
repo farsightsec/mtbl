@@ -47,6 +47,8 @@
 #include <snappy-c.h>
 #include <zlib.h>
 
+#include "librsf/my_alloc.h"
+
 #define MTBL_MAGIC			0x77846676
 #define MTBL_TRAILER_SIZE		512
 
@@ -60,13 +62,14 @@
 #define MIN_SORTER_MEMORY		10485760
 #define INITIAL_SORTER_VEC_SIZE		131072
 
+#define DEFAULT_FILESET_RELOAD_INTERVAL	60
+
 /* types */
 
 struct block;
 struct block_builder;
 struct block_iter;
 struct trailer;
-struct heap;
 
 /* block */
 
@@ -134,42 +137,5 @@ bytes_compare(const uint8_t *a, size_t len_a,
 	}
 	return (ret);
 }
-
-static inline void *
-my_calloc(size_t nmemb, size_t size)
-{
-	void *ptr = calloc(nmemb, size);
-	assert(ptr != NULL);
-	return (ptr);
-}
-
-static inline void *
-my_malloc(size_t size)
-{
-	void *ptr = malloc(size);
-	assert(ptr != NULL);
-	return (ptr);
-}
-
-static inline void *
-my_realloc(void *ptr, size_t size)
-{
-	ptr = realloc(ptr, size);
-	assert(ptr != NULL);
-	return (ptr);
-}
-
-/* heap */
-
-typedef int (*compare_func)(const void *a, const void *b);
-
-struct heap *heap_init(compare_func);
-void heap_destroy(struct heap **);
-void heap_push(struct heap *, void *);
-void *heap_pop(struct heap *);
-void *heap_replace(struct heap *, void *);
-void *heap_peek(struct heap *);
-void *heap_get(struct heap *, size_t);
-size_t heap_size(struct heap *);
 
 #endif /* MTBL_PRIVATE_H */

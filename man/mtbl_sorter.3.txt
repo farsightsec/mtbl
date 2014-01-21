@@ -12,7 +12,7 @@ Sorter objects:
 
 [verse]
 ^struct mtbl_sorter *
-mtbl_sorter_init(struct mtbl_sorter_options *'sopt');^
+mtbl_sorter_init(const struct mtbl_sorter_options *'sopt');^
 
 [verse]
 ^void
@@ -76,7 +76,8 @@ sorted output, entries from these sorted chunks are then read back and merged.
 Because the MTBL format does not allow duplicate keys, the caller must provide a
 function which will accept a key and two conflicting values for that key and
 return a replacement value. This function may be called multiple times for the
-same key if the same key is inserted more than twice.
+same key if the same key is inserted more than twice. See ^mtbl_merger^(3) for
+further details about the merge function.
 
 ^mtbl_sorter^ objects are created with the ^mtbl_sorter_init^() function, which
 requires a non-NULL _sopt_ argument which has been configured with a merge

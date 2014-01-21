@@ -7,30 +7,18 @@
  *
  * THE SOFTWARE IS PROVIDED "AS IS" AND ISC DISCLAIMS ALL WARRANTIES
  * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
- * MERCHANTABILITY AND FITNESS.	IN NO EVENT SHALL ISC BE LIABLE FOR
+ * MERCHANTABILITY AND FITNESS.  IN NO EVENT SHALL ISC BE LIABLE FOR
  * ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
  * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
  * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
  * OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-#include <ctype.h>
+#include "mtbl-private.h"
+#include "librsf/crc32c.h"
 
-static inline void
-print_string(const uint8_t *data, size_t len, FILE *out) {
-	unsigned c;
-
-	fputc('"', out);
-	while (len-- != 0) {
-		c = *(data++);
-		if (isprint(c)) {
-			if (c == '"')
-				fprintf(out, "\\\"");
-			else
-				fputc(c, out);
-		} else {
-			fprintf(out, "\\x%02x", c);
-		}
-	}
-	fputc('"', out);
+uint32_t
+mtbl_crc32c(const uint8_t *buf, size_t size)
+{
+	return (rsf_crc32c(buf, size));
 }

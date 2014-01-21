@@ -15,7 +15,9 @@
  */
 
 #include "mtbl-private.h"
-#include "vector_types.h"
+
+#include "librsf/ubuf.h"
+#include "librsf/vector.h"
 
 VECTOR_GENERATE(reader_vec, struct mtbl_reader *);
 
@@ -104,7 +106,7 @@ mtbl_sorter_options_set_max_memory(struct mtbl_sorter_options *opt,
 }
 
 struct mtbl_sorter *
-mtbl_sorter_init(struct mtbl_sorter_options *opt)
+mtbl_sorter_init(const struct mtbl_sorter_options *opt)
 {
 	struct mtbl_sorter *s;
 
