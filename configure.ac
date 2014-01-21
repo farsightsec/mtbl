@@ -1,5 +1,5 @@
 AC_PREREQ(2.60)
-AC_INIT([mtbl], [0.3])
+AC_INIT([mtbl], [0.4])
 AC_CONFIG_SRCDIR([mtbl/mtbl.h])
 AC_CONFIG_AUX_DIR([build-aux])
 AM_INIT_AUTOMAKE([foreign 1.11 -Wall -Wno-portability silent-rules subdir-objects color-tests])
@@ -19,9 +19,19 @@ my_CFLAGS="-Wall \
 AC_SUBST([my_CFLAGS])
 
 AC_CONFIG_HEADERS(config.h)
-AC_CONFIG_FILES([
-        Makefile
-])
+AC_CONFIG_FILES([Makefile mtbl/libmtbl.pc])
+
+PKG_PROG_PKG_CONFIG
+if test -n "$PKG_CONFIG"; then
+    # Horrible hack for systems where the pkg-config install directory is simply wrong!
+    if $PKG_CONFIG --variable=pc_path pkg-config 2>/dev/null | grep -q /libdata/; then
+        PKG_INSTALLDIR(['${prefix}/libdata/pkgconfig'])
+    else
+        PKG_INSTALLDIR
+    fi
+else
+    AC_MSG_ERROR([pkg-config is required!])
+fi
 
 AC_CHECK_FUNC([mkstemp], [], [
     AC_MSG_ERROR([required system function not found])
@@ -46,6 +56,14 @@ AC_CHECK_LIB([z], [deflate], [], [
 AC_SEARCH_LIBS([dlopen], [dl])
 AC_SEARCH_LIBS([clock_gettime], [rt])
 
+AC_PATH_PROG([ASCIIDOC], [a2x])
+AM_CONDITIONAL([BUILD_MAN], [test -n "$ASCIIDOC"])
+if test -n "$ASCIIDOC"; then
+    DOC_MAN_MSG="yes (asciidoc available)"
+else
+    DOC_MAN_MSG="no (asciidoc not available)"
+fi
+
 AC_OUTPUT
 AC_MSG_RESULT([
     $PACKAGE $VERSION
@@ -59,4 +77,7 @@ AC_MSG_RESULT([
         sysconfdir:             ${sysconfdir}
         libdir:                 ${libdir}
         includedir:             ${includedir}
+        pkgconfigdir:           ${pkgconfigdir}
+
+        building manpage docs:  ${DOC_MAN_MSG}
 ])

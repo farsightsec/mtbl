@@ -1,17 +1,17 @@
 /*
- * Copyright (c) 2012 by Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (c) 2012, 2014 by Farsight Security, Inc.
  *
- * Permission to use, copy, modify, and/or distribute this software for any
- * purpose with or without fee is hereby granted, provided that the above
- * copyright notice and this permission notice appear in all copies.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * THE SOFTWARE IS PROVIDED "AS IS" AND ISC DISCLAIMS ALL WARRANTIES
- * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
- * MERCHANTABILITY AND FITNESS.  IN NO EVENT SHALL ISC BE LIABLE FOR
- * ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
- * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
- * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
- * OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 #include <sys/time.h>
@@ -26,8 +26,8 @@
 #include <mtbl.h>
 #include "mtbl-private.h"
 
-#include "librsf/getenv_int.h"
-#include "librsf/ubuf.h"
+#include "libmy/getenv_int.h"
+#include "libmy/ubuf.h"
 
 #define STATS_INTERVAL		1000000
 
@@ -64,7 +64,7 @@ usage(void)
 }
 
 static void
-timespec_get(struct timespec *now) {
+my_timespec_get(struct timespec *now) {
 	struct timeval tv;
 	(void) gettimeofday(&tv, NULL);
 	now->tv_sec = tv.tv_sec;
@@ -72,7 +72,7 @@ timespec_get(struct timespec *now) {
 }
 
 static void
-timespec_sub(const struct timespec *a, struct timespec *b) {
+my_timespec_sub(const struct timespec *a, struct timespec *b) {
 	b->tv_sec -= a->tv_sec;
 	b->tv_nsec -= a->tv_nsec;
 	if (b->tv_nsec < 0) {
@@ -82,7 +82,7 @@ timespec_sub(const struct timespec *a, struct timespec *b) {
 }
 
 static double
-timespec_to_double(const struct timespec *ts) {
+my_timespec_to_double(const struct timespec *ts) {
 	return (ts->tv_sec + ts->tv_nsec / 1E9);
 }
 
@@ -92,9 +92,9 @@ print_stats(void)
 	struct timespec dur;
 	double t_dur;
 
-	timespec_get(&dur);
-	timespec_sub(&start_time, &dur);
-	t_dur = timespec_to_double(&dur);
+	my_timespec_get(&dur);
+	my_timespec_sub(&start_time, &dur);
+	t_dur = my_timespec_to_double(&dur);
 
 	fprintf(stderr,
 		"%s: wrote %'" PRIu64 " entries (%'" PRIu64 " merged) "
@@ -268,7 +268,7 @@ main(int argc, char **argv)
 	}
 
 	/* do merge */
-	timespec_get(&start_time);
+	my_timespec_get(&start_time);
 	merge();
 
 	/* cleanup readers */

@@ -1,7 +1,7 @@
 #include <assert.h>
 #include <stdint.h>
 
-#include "librsf/ubuf.h"
+#include "libmy/ubuf.h"
 
 static inline void
 bytes_shortest_separator(ubuf *start, const uint8_t *limit, size_t len_limit)
