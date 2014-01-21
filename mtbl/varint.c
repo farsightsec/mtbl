@@ -151,7 +151,8 @@ mtbl_varint_decode32(const uint8_t *data, uint32_t *value)
 }
 
 size_t
-mtbl_varint_decode64(const uint8_t *data, uint64_t *value) {
+mtbl_varint_decode64(const uint8_t *data, uint64_t *value)
+{
 	unsigned shift, i;
 	unsigned len = mtbl_varint_length_packed(data, 10);
 	uint64_t val;
