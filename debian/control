@@ -8,7 +8,7 @@ Build-Depends:
  dh-autoreconf (>= 5~),
  libsnappy-dev,
  zlib1g-dev
-Standards-Version: 3.9.3
+Standards-Version: 3.9.5
 
 Package: libmtbl0
 Architecture: any
