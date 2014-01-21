@@ -96,9 +96,10 @@ check_PROGRAMS += src/test-vector
 src_test_vector_SOURCES = src/test-vector.c
 src_test_vector_LDADD = mtbl/libmtbl.la
 
+if BUILD_MAN
 SUFFIXES = .1.txt .3.txt .7.txt .1 .3 .7
 
-ASCIIDOC_PROCESS = a2x -f manpage --asciidoc-opt="-f man/asciidoc.conf" $<
+ASCIIDOC_PROCESS = $(AM_V_GEN) $(ASCIIDOC) -f manpage --asciidoc-opt="-f man/asciidoc.conf" $<
 
 .1.txt.1:
 	$(ASCIIDOC_PROCESS)
@@ -124,6 +125,7 @@ dist_man_MANS = \
 	man/mtbl_fixed.3 \
 	man/mtbl_varint.3 \
 	man/mtbl.7
+endif
 
 EXTRA_DIST += \
 	man/mtbl_dump.1.txt \
