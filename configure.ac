@@ -19,9 +19,19 @@ my_CFLAGS="-Wall \
 AC_SUBST([my_CFLAGS])
 
 AC_CONFIG_HEADERS(config.h)
-AC_CONFIG_FILES([
-        Makefile
-])
+AC_CONFIG_FILES([Makefile mtbl/libmtbl.pc])
+
+PKG_PROG_PKG_CONFIG
+if test -n "$PKG_CONFIG"; then
+    # Horrible hack for systems where the pkg-config install directory is simply wrong!
+    if $PKG_CONFIG --variable=pc_path pkg-config 2>/dev/null | grep -q /libdata/; then
+        PKG_INSTALLDIR(['${prefix}/libdata/pkgconfig'])
+    else
+        PKG_INSTALLDIR
+    fi
+else
+    AC_MSG_ERROR([pkg-config is required!])
+fi
 
 AC_CHECK_FUNC([mkstemp], [], [
     AC_MSG_ERROR([required system function not found])
@@ -59,4 +69,5 @@ AC_MSG_RESULT([
         sysconfdir:             ${sysconfdir}
         libdir:                 ${libdir}
         includedir:             ${includedir}
+        pkgconfigdir:           ${pkgconfigdir}
 ])
