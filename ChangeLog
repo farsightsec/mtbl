@@ -12,7 +12,10 @@ mtbl (0.5)
     header block. This prevents invalid reads in mtbl_reader_init_fd(). See
     Debian bug #716628 for details. (http://bugs.debian.org/716628).
 
- -- Robert Edmonds <edmonds@fsi.io>  Fri, 31 Jan 2014 16:14:45 -0500
+  * Make sure to install the manpages if they are available even if the
+    manpages are not being rebuilt.
+
+ -- Robert Edmonds <edmonds@fsi.io>  Fri, 31 Jan 2014 18:01:13 -0500
 
 mtbl (0.4)
 
