@@ -23,8 +23,8 @@ libmtbl.so.0 libmtbl0 #MINVER#
  mtbl_merger_options_set_merge_func@Base 0.1
  mtbl_merger_source@Base 0.3
  mtbl_reader_destroy@Base 0.1
- mtbl_reader_init@Base 0.1
- mtbl_reader_init_fd@Base 0.1
+ mtbl_reader_init@Base 0.5
+ mtbl_reader_init_fd@Base 0.5
  mtbl_reader_options_destroy@Base 0.1
  mtbl_reader_options_init@Base 0.1
  mtbl_reader_options_set_verify_checksums@Base 0.1
