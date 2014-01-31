@@ -18,7 +18,3 @@
 Makefile
 Makefile.in
 TAGS
-mtbl/libmtbl.pc
-src/mtbl_dump
-src/mtbl_info
-src/mtbl_merge
