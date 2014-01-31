@@ -1,5 +1,9 @@
 AUTOMAKE_OPTIONS = parallel-tests
 
+check_PROGRAMS =
+bin_PROGRAMS =
+TESTS =
+
 EXTRA_DIST = COPYRIGHT LICENSE README.md
 CLEANFILES =
 ACLOCAL_AMFLAGS = -I m4 ${ACLOCAL_FLAGS}
@@ -10,9 +14,13 @@ AM_CPPFLAGS = \
 AM_CFLAGS = ${my_CFLAGS}
 AM_LDFLAGS = -Wl,--as-needed
 
-LIBMTBL_CURRENT=0
-LIBMTBL_REVISION=0
-LIBMTBL_AGE=0
+#
+##
+### library
+##
+#
+
+LIBMTBL_VERSION_INFO=0:0:0
 
 include_HEADERS = mtbl/mtbl.h
 lib_LTLIBRARIES = mtbl/libmtbl.la
@@ -43,16 +51,18 @@ mtbl_libmtbl_la_SOURCES = \
 
 mtbl_libmtbl_la_LIBADD = -lsnappy -lz
 mtbl_libmtbl_la_LDFLAGS = $(AM_LDFLAGS) \
-	-version-info $(LIBMTBL_CURRENT):$(LIBMTBL_REVISION):$(LIBMTBL_AGE) \
+	-version-info $(LIBMTBL_VERSION_INFO)
 	-export-symbols-regex "^(mtbl_[a-z].*)"
 
 pkgconfig_DATA = mtbl/libmtbl.pc
 EXTRA_DIST += mtbl/libmtbl.pc.in
 CLEANFILES += mtbl/libmtbl.pc
 
-TESTS =
-check_PROGRAMS =
-bin_PROGRAMS =
+#
+##
+### programs
+##
+#
 
 bin_PROGRAMS += src/mtbl_dump
 src_mtbl_dump_SOURCES = src/mtbl_dump.c libmy/print_string.h
@@ -65,6 +75,12 @@ src_mtbl_info_LDADD = mtbl/libmtbl.la
 bin_PROGRAMS += src/mtbl_merge
 src_mtbl_merge_SOURCES = src/mtbl_merge.c libmy/getenv_int.h
 src_mtbl_merge_LDADD = mtbl/libmtbl.la
+
+#
+##
+### tests
+##
+#
 
 TESTS += src/test-block_builder
 check_PROGRAMS += src/test-block_builder
@@ -95,6 +111,12 @@ TESTS += src/test-vector
 check_PROGRAMS += src/test-vector
 src_test_vector_SOURCES = src/test-vector.c
 src_test_vector_LDADD = mtbl/libmtbl.la
+
+#
+##
+### documentation
+##
+#
 
 if BUILD_MAN
 SUFFIXES = .1.txt .3.txt .7.txt .1 .3 .7
