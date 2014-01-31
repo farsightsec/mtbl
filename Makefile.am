@@ -83,6 +83,7 @@ src_mtbl_merge_LDADD = mtbl/libmtbl.la
 #
 
 AM_TESTS_ENVIRONMENT = top_builddir='$(top_builddir)'; top_srcdir='$(top_srcdir)'; export top_builddir top_srcdir;
+TESTS_ENVIRONMENT = $(AM_TESTS_ENVIRONMENT)
 
 TESTS += t/test-block_builder
 check_PROGRAMS += t/test-block_builder
