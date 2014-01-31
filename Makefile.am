@@ -139,6 +139,7 @@ ASCIIDOC_PROCESS = $(AM_V_GEN) $(ASCIIDOC) -f manpage --no-xmllint --asciidoc-op
 
 .7.txt.7:
 	$(ASCIIDOC_PROCESS)
+endif
 
 dist_man_MANS = \
 	man/mtbl_dump.1 \
@@ -155,7 +156,6 @@ dist_man_MANS = \
 	man/mtbl_fixed.3 \
 	man/mtbl_varint.3 \
 	man/mtbl.7
-endif
 
 EXTRA_DIST += \
 	man/mtbl_dump.1.txt \
