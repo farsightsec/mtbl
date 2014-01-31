@@ -82,35 +82,35 @@ src_mtbl_merge_LDADD = mtbl/libmtbl.la
 ##
 #
 
-TESTS += src/test-block_builder
-check_PROGRAMS += src/test-block_builder
-src_test_block_builder_SOURCES = src/test-block_builder.c
-src_test_block_builder_LDADD = mtbl/libmtbl.la
+TESTS += t/test-block_builder
+check_PROGRAMS += t/test-block_builder
+t_test_block_builder_SOURCES = t/test-block_builder.c
+t_test_block_builder_LDADD = mtbl/libmtbl.la
 
-TESTS += src/test-crc32c
-check_PROGRAMS += src/test-crc32c
-src_test_crc32c_SOURCES = src/test-crc32c.c
-src_test_crc32c_LDADD = mtbl/libmtbl.la
+TESTS += t/test-crc32c
+check_PROGRAMS += t/test-crc32c
+t_test_crc32c_SOURCES = t/test-crc32c.c
+t_test_crc32c_LDADD = mtbl/libmtbl.la
 
-TESTS += src/test-fixed
-check_PROGRAMS += src/test-fixed
-src_test_fixed_SOURCES = src/test-fixed.c
-src_test_fixed_LDADD = mtbl/libmtbl.la
+TESTS += t/test-fixed
+check_PROGRAMS += t/test-fixed
+t_test_fixed_SOURCES = t/test-fixed.c
+t_test_fixed_LDADD = mtbl/libmtbl.la
 
-TESTS += src/test-trailer
-check_PROGRAMS += src/test-trailer
-src_test_trailer_SOURCES = src/test-trailer.c
-src_test_trailer_LDADD = mtbl/libmtbl.la
+TESTS += t/test-trailer
+check_PROGRAMS += t/test-trailer
+t_test_trailer_SOURCES = t/test-trailer.c
+t_test_trailer_LDADD = mtbl/libmtbl.la
 
-TESTS += src/test-varint
-check_PROGRAMS += src/test-varint
-src_test_varint_SOURCES = src/test-varint.c
-src_test_varint_LDADD = mtbl/libmtbl.la
+TESTS += t/test-varint
+check_PROGRAMS += t/test-varint
+t_test_varint_SOURCES = t/test-varint.c
+t_test_varint_LDADD = mtbl/libmtbl.la
 
-TESTS += src/test-vector
-check_PROGRAMS += src/test-vector
-src_test_vector_SOURCES = src/test-vector.c
-src_test_vector_LDADD = mtbl/libmtbl.la
+TESTS += t/test-vector
+check_PROGRAMS += t/test-vector
+t_test_vector_SOURCES = t/test-vector.c
+t_test_vector_LDADD = mtbl/libmtbl.la
 
 #
 ##
