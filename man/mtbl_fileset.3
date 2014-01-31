@@ -1,0 +1,117 @@
+'\" t
+.\"     Title: mtbl_fileset
+.\"    Author: [FIXME: author] [see http://docbook.sf.net/el/author]
+.\" Generator: DocBook XSL Stylesheets v1.78.1 <http://docbook.sf.net/>
+.\"      Date: 01/31/2014
+.\"    Manual: \ \&
+.\"    Source: \ \&
+.\"  Language: English
+.\"
+.TH "MTBL_FILESET" "3" "01/31/2014" "\ \&" "\ \&"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NAME"
+mtbl_fileset \- automatic multiple MTBL data file merger
+.SH "SYNOPSIS"
+.sp
+\fB#include <mtbl\&.h>\fR
+.sp
+Fileset objects:
+.sp
+.nf
+\fBstruct mtbl_fileset *
+mtbl_fileset_init(const char *\fR\fB\fIfname\fR\fR\fB, const struct mtbl_fileset_options *\fR\fB\fIfopt\fR\fR\fB);\fR
+.fi
+.sp
+.nf
+\fBvoid
+mtbl_fileset_destroy(struct mtbl_fileset **\fR\fB\fIf\fR\fR\fB);\fR
+.fi
+.sp
+.nf
+\fBvoid
+mtbl_fileset_reload(struct mtbl_fileset *\fR\fB\fIf\fR\fR\fB);\fR
+.fi
+.sp
+.nf
+\fBconst struct mtbl_source *
+mtbl_fileset_source(struct mtbl_fileset *\fR\fB\fIf\fR\fR\fB);\fR
+.fi
+.sp
+Fileset options:
+.sp
+.nf
+\fBstruct mtbl_fileset_options *
+mtbl_fileset_options_init(void);\fR
+.fi
+.sp
+.nf
+\fBvoid
+mtbl_fileset_options_destroy(struct mtbl_fileset_options **\fR\fB\fIfopt\fR\fR\fB);\fR
+.fi
+.sp
+.nf
+\fBvoid
+mtbl_fileset_options_set_merge_func(
+        struct mtbl_fileset_options *\fR\fB\fIfopt\fR\fR\fB,
+        mtbl_merge_func \fR\fB\fIfp\fR\fR\fB,
+        void *\fR\fB\fIclos\fR\fR\fB);\fR
+.fi
+.sp
+.nf
+\fBvoid
+mtbl_fileset_options_set_reload_frequency(
+        struct mtbl_fileset_options *\fR\fB\fIfopt\fR\fR\fB,
+        uint32_t \fR\fB\fIreload_frequency\fR\fR\fB);\fR
+.fi
+.SH "DESCRIPTION"
+.sp
+The \fBmtbl_fileset\fR is a convenience interface for automatically maintaining a merged view of a set of MTBL data files\&. The merged entries may be consumed via the \fBmtbl_source\fR(3) and \fBmtbl_iter\fR(3) interfaces\&.
+.sp
+\fBmtbl_fileset\fR objects are initialized from a "setfile", which specifies a list of filenames of MTBL data files, one per line\&. Internally, an \fBmtbl_reader\fR object is initialized from each filename and added to an \fBmtbl_merger\fR object\&. The setfile is watched for changes and the addition or removal of filenames from the setfile will result in the corresponding addition or removal of \fBmtbl_reader\fR objects\&.
+.sp
+Because the MTBL format does not allow duplicate keys, the caller must provide a function which will accept a key and two conflicting values for that key and return a replacement value\&. This function may be called multiple times for the same key if the same key is inserted more than twice\&. See \fBmtbl_merger\fR(3) for further details about the merge function\&.
+.sp
+\fBmtbl_fileset\fR objects are created with the \fBmtbl_fileset_init\fR() function, which requires the path to a "setfile", \fIfname\fR, and a non\-NULL \fIfopt\fR argument which has been configured with a merge function \fIfp\fR\&. \fBmtbl_fileset_source\fR() should then be called in order to consume output via the \fBmtbl_source\fR(3) interface\&.
+.sp
+Accesses via the \fBmtbl_source\fR(3) interface will implicitly check for updates to the setfile\&. However, it may be necessary to explicitly call the \fBmtbl_fileset_reload\fR() function in order to check for updates, especially if files are being removed from the setfile\&.
+.SS "Fileset options"
+.sp
+.it 1 an-trap
+.nr an-no-space-flag 1
+.nr an-break-flag 1
+.br
+.ps +1
+\fBmerge_func\fR
+.RS 4
+.sp
+See \fBmtbl_merger\fR(3)\&. An \fBmtbl_merger\fR object is used internally for the external sort\&.
+.RE
+.sp
+.it 1 an-trap
+.nr an-no-space-flag 1
+.nr an-break-flag 1
+.br
+.ps +1
+\fBreload_interval\fR
+.RS 4
+.sp
+Specifies the interval between checks for updates to the setfile, in seconds\&. Defaults to 60 seconds\&.
+.RE
