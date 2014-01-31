@@ -82,6 +82,8 @@ src_mtbl_merge_LDADD = mtbl/libmtbl.la
 ##
 #
 
+AM_TESTS_ENVIRONMENT = top_builddir='$(top_builddir)'; top_srcdir='$(top_srcdir)'; export top_builddir top_srcdir;
+
 TESTS += t/test-block_builder
 check_PROGRAMS += t/test-block_builder
 t_test_block_builder_SOURCES = t/test-block_builder.c
@@ -111,6 +113,11 @@ TESTS += t/test-vector
 check_PROGRAMS += t/test-vector
 t_test_vector_SOURCES = t/test-vector.c
 t_test_vector_LDADD = mtbl/libmtbl.la
+
+TESTS += t/test-deb716628.sh
+EXTRA_DIST += t/test-deb716628.sh
+EXTRA_DIST += t/test-deb716628.data
+t/test-deb716628.sh: src/mtbl_dump
 
 #
 ##
