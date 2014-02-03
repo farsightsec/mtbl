@@ -108,6 +108,9 @@ mtbl_reader_init_fd(int orig_fd, const struct mtbl_reader_options *opt)
 	int ret = fstat(fd, &ss);
 	assert(ret == 0);
 
+	if (ss.st_size < MTBL_TRAILER_SIZE)
+		return (NULL);
+
 	r = my_calloc(1, sizeof(*r));
 	if (opt != NULL)
 		memcpy(&r->opt, opt, sizeof(*opt));

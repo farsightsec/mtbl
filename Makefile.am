@@ -1,6 +1,10 @@
 AUTOMAKE_OPTIONS = parallel-tests
 
-EXTRA_DIST =
+check_PROGRAMS =
+bin_PROGRAMS =
+TESTS =
+
+EXTRA_DIST = COPYRIGHT LICENSE README.md
 CLEANFILES =
 ACLOCAL_AMFLAGS = -I m4 ${ACLOCAL_FLAGS}
 
@@ -10,9 +14,13 @@ AM_CPPFLAGS = \
 AM_CFLAGS = ${my_CFLAGS}
 AM_LDFLAGS = -Wl,--as-needed
 
-LIBMTBL_CURRENT=0
-LIBMTBL_REVISION=0
-LIBMTBL_AGE=0
+#
+##
+### library
+##
+#
+
+LIBMTBL_VERSION_INFO=0:0:0
 
 include_HEADERS = mtbl/mtbl.h
 lib_LTLIBRARIES = mtbl/libmtbl.la
@@ -43,16 +51,18 @@ mtbl_libmtbl_la_SOURCES = \
 
 mtbl_libmtbl_la_LIBADD = -lsnappy -lz
 mtbl_libmtbl_la_LDFLAGS = $(AM_LDFLAGS) \
-	-version-info $(LIBMTBL_CURRENT):$(LIBMTBL_REVISION):$(LIBMTBL_AGE) \
+	-version-info $(LIBMTBL_VERSION_INFO) \
 	-export-symbols-regex "^(mtbl_[a-z].*)"
 
 pkgconfig_DATA = mtbl/libmtbl.pc
 EXTRA_DIST += mtbl/libmtbl.pc.in
 CLEANFILES += mtbl/libmtbl.pc
 
-TESTS =
-check_PROGRAMS =
-bin_PROGRAMS =
+#
+##
+### programs
+##
+#
 
 bin_PROGRAMS += src/mtbl_dump
 src_mtbl_dump_SOURCES = src/mtbl_dump.c libmy/print_string.h
@@ -66,35 +76,55 @@ bin_PROGRAMS += src/mtbl_merge
 src_mtbl_merge_SOURCES = src/mtbl_merge.c libmy/getenv_int.h
 src_mtbl_merge_LDADD = mtbl/libmtbl.la
 
-TESTS += src/test-block_builder
-check_PROGRAMS += src/test-block_builder
-src_test_block_builder_SOURCES = src/test-block_builder.c
-src_test_block_builder_LDADD = mtbl/libmtbl.la
+#
+##
+### tests
+##
+#
 
-TESTS += src/test-crc32c
-check_PROGRAMS += src/test-crc32c
-src_test_crc32c_SOURCES = src/test-crc32c.c
-src_test_crc32c_LDADD = mtbl/libmtbl.la
+AM_TESTS_ENVIRONMENT = top_builddir='$(top_builddir)'; top_srcdir='$(top_srcdir)'; export top_builddir top_srcdir;
+TESTS_ENVIRONMENT = $(AM_TESTS_ENVIRONMENT)
 
-TESTS += src/test-fixed
-check_PROGRAMS += src/test-fixed
-src_test_fixed_SOURCES = src/test-fixed.c
-src_test_fixed_LDADD = mtbl/libmtbl.la
+TESTS += t/test-block_builder
+check_PROGRAMS += t/test-block_builder
+t_test_block_builder_SOURCES = t/test-block_builder.c
+t_test_block_builder_LDADD = mtbl/libmtbl.la
 
-TESTS += src/test-trailer
-check_PROGRAMS += src/test-trailer
-src_test_trailer_SOURCES = src/test-trailer.c
-src_test_trailer_LDADD = mtbl/libmtbl.la
+TESTS += t/test-crc32c
+check_PROGRAMS += t/test-crc32c
+t_test_crc32c_SOURCES = t/test-crc32c.c
+t_test_crc32c_LDADD = mtbl/libmtbl.la
 
-TESTS += src/test-varint
-check_PROGRAMS += src/test-varint
-src_test_varint_SOURCES = src/test-varint.c
-src_test_varint_LDADD = mtbl/libmtbl.la
+TESTS += t/test-fixed
+check_PROGRAMS += t/test-fixed
+t_test_fixed_SOURCES = t/test-fixed.c
+t_test_fixed_LDADD = mtbl/libmtbl.la
 
-TESTS += src/test-vector
-check_PROGRAMS += src/test-vector
-src_test_vector_SOURCES = src/test-vector.c
-src_test_vector_LDADD = mtbl/libmtbl.la
+TESTS += t/test-trailer
+check_PROGRAMS += t/test-trailer
+t_test_trailer_SOURCES = t/test-trailer.c
+t_test_trailer_LDADD = mtbl/libmtbl.la
+
+TESTS += t/test-varint
+check_PROGRAMS += t/test-varint
+t_test_varint_SOURCES = t/test-varint.c
+t_test_varint_LDADD = mtbl/libmtbl.la
+
+TESTS += t/test-vector
+check_PROGRAMS += t/test-vector
+t_test_vector_SOURCES = t/test-vector.c
+t_test_vector_LDADD = mtbl/libmtbl.la
+
+TESTS += t/test-deb716628.sh
+EXTRA_DIST += t/test-deb716628.sh
+EXTRA_DIST += t/test-deb716628.data
+t/test-deb716628.sh: src/mtbl_dump
+
+#
+##
+### documentation
+##
+#
 
 if BUILD_MAN
 SUFFIXES = .1.txt .3.txt .7.txt .1 .3 .7
@@ -109,6 +139,7 @@ ASCIIDOC_PROCESS = $(AM_V_GEN) $(ASCIIDOC) -f manpage --no-xmllint --asciidoc-op
 
 .7.txt.7:
 	$(ASCIIDOC_PROCESS)
+endif
 
 dist_man_MANS = \
 	man/mtbl_dump.1 \
@@ -125,7 +156,6 @@ dist_man_MANS = \
 	man/mtbl_fixed.3 \
 	man/mtbl_varint.3 \
 	man/mtbl.7
-endif
 
 EXTRA_DIST += \
 	man/mtbl_dump.1.txt \

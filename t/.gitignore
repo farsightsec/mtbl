@@ -1,0 +1,6 @@
+test-block_builder
+test-crc32c
+test-fixed
+test-trailer
+test-varint
+test-vector

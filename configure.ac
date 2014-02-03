@@ -1,5 +1,5 @@
 AC_PREREQ(2.60)
-AC_INIT([mtbl], [0.4])
+AC_INIT([mtbl], [0.5])
 AC_CONFIG_SRCDIR([mtbl/mtbl.h])
 AC_CONFIG_AUX_DIR([build-aux])
 AM_INIT_AUTOMAKE([foreign 1.11 -Wall -Wno-portability silent-rules subdir-objects color-tests])
@@ -32,6 +32,8 @@ if test -n "$PKG_CONFIG"; then
 else
     AC_MSG_ERROR([pkg-config is required!])
 fi
+
+AC_C_BIGENDIAN
 
 AC_CHECK_FUNC([mkstemp], [], [
     AC_MSG_ERROR([required system function not found])
@@ -78,6 +80,8 @@ AC_MSG_RESULT([
         libdir:                 ${libdir}
         includedir:             ${includedir}
         pkgconfigdir:           ${pkgconfigdir}
+
+        bigendian:              ${ac_cv_c_bigendian}
 
         building manpage docs:  ${DOC_MAN_MSG}
 ])

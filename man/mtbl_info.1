@@ -1,0 +1,59 @@
+'\" t
+.\"     Title: mtbl_info
+.\"    Author: [FIXME: author] [see http://docbook.sf.net/el/author]
+.\" Generator: DocBook XSL Stylesheets v1.78.1 <http://docbook.sf.net/>
+.\"      Date: 01/31/2014
+.\"    Manual: \ \&
+.\"    Source: \ \&
+.\"  Language: English
+.\"
+.TH "MTBL_INFO" "1" "01/31/2014" "\ \&" "\ \&"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NAME"
+mtbl_info \- display information about an MTBL file
+.SH "SYNOPSIS"
+.sp
+\fBmtbl_info\fR \fIFILE\fR [\fIFILE\fR]\&...
+.SH "DESCRIPTION"
+.sp
+\fBmtbl_info\fR(1) displays the following information about the MTBL files specified on the command line\&.
+.sp
+\fIfile name\fR \(em the name of the MTBL file\&.
+.sp
+\fIfile size\fR \(em the total size of the MTBL file, in bytes\&.
+.sp
+\fIindex bytes\fR \(em the total number of bytes and proportion of the total file size consumed by the index\&.
+.sp
+\fIdata block bytes\fR \(em the total number of bytes and proportion of the total file size consumed by data blocks\&.
+.sp
+\fIdata block size\fR \(em the maximum size of an uncompressed data block\&.
+.sp
+\fIdata block count\fR \(em the total number of data blocks\&.
+.sp
+\fIentry count\fR \(em the total number of key\-value entries\&.
+.sp
+\fIkey bytes\fR \(em the total number of bytes that all keys in the file would occupy if stored end\-to\-end in a byte array with no delimiters\&.
+.sp
+\fIvalue bytes\fR \(em the total number of bytes that all values in the file would occupy if stored end\-to\-end in a byte array with no delimiters\&.
+.sp
+\fIcompression algorithm\fR \(em the algorithm used to compress data blocks\&. Possible values are "none", "snappy" and "zlib"\&.
+.sp
+\fIcompactness\fR \(em a rough metric comparing the total number of bytes in the key\-value entries with the total size of the MTBL file\&. It is calculated as (file size) / (key bytes + value bytes), and thus takes into account the gains of data block compression and prefix key compression against the overhead of the index, trailer, and data block offset arrays\&.

@@ -1,0 +1,97 @@
+'\" t
+.\"     Title: mtbl_reader
+.\"    Author: [FIXME: author] [see http://docbook.sf.net/el/author]
+.\" Generator: DocBook XSL Stylesheets v1.78.1 <http://docbook.sf.net/>
+.\"      Date: 01/31/2014
+.\"    Manual: \ \&
+.\"    Source: \ \&
+.\"  Language: English
+.\"
+.TH "MTBL_READER" "3" "01/31/2014" "\ \&" "\ \&"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NAME"
+mtbl_reader \- read an MTBL file
+.SH "SYNOPSIS"
+.sp
+\fB#include <mtbl\&.h>\fR
+.sp
+Reader objects:
+.sp
+.nf
+\fBstruct mtbl_reader *
+mtbl_reader_init(const char *\fR\fB\fIfname\fR\fR\fB, const struct mtbl_reader_options *\fR\fB\fIropt\fR\fR\fB);\fR
+.fi
+.sp
+.nf
+\fBstruct mtbl_reader *
+mtbl_reader_init_fd(int \fR\fB\fIfd\fR\fR\fB, const struct mtbl_reader_options *\fR\fB\fIropt\fR\fR\fB);\fR
+.fi
+.sp
+.nf
+\fBvoid
+mtbl_reader_destroy(struct mtbl_reader **\fR\fB\fIr\fR\fR\fB);\fR
+.fi
+.sp
+.nf
+\fBconst struct mtbl_source *
+mtbl_reader_source(struct mtbl_reader *\fR\fB\fIr\fR\fR\fB);\fR
+.fi
+.sp
+Reader options:
+.sp
+.nf
+\fBstruct mtbl_reader_options *
+mtbl_reader_options_init(void);\fR
+.fi
+.sp
+.nf
+\fBvoid
+mtbl_reader_options_destroy(struct mtbl_reader_options **\fR\fB\fIropt\fR\fR\fB);\fR
+.fi
+.sp
+.nf
+\fBvoid
+mtbl_reader_options_set_verify_checksums(
+        struct mtbl_reader_options *\fR\fB\fIropt\fR\fR\fB,
+        bool \fR\fB\fIverify_checksums\fR\fR\fB);\fR
+.fi
+.SH "DESCRIPTION"
+.sp
+MTBL files are accessed by creating an \fBmtbl_reader\fR object, calling \fBmtbl_reader_source\fR() to obtain an \fBmtbl_source\fR handle, and using the \fBmtbl_source\fR(3) interface to read entries\&.
+.sp
+\fBmtbl_reader\fR objects may be created by calling \fBmtbl_reader_init\fR() with an \fIfname\fR argument specifying the filename to be opened, or \fBmtbl_reader_init_fd\fR() may be called with an \fIfd\fR argument specifying an open, readable file descriptor\&. Since MTBL files are immutable, the same MTBL file may be opened and read from concurrently by independent threads or processes\&.
+.sp
+If the \fIropt\fR parameter to \fBmtbl_reader_init\fR() or \fBmtbl_reader_init_fd\fR() is non\-NULL, the parameters specified in the \fBmtbl_reader_options\fR object will be configured into the \fBmtbl_reader\fR object\&.
+.SS "Reader options"
+.sp
+.it 1 an-trap
+.nr an-no-space-flag 1
+.nr an-break-flag 1
+.br
+.ps +1
+\fBverify_checksums\fR
+.RS 4
+.sp
+Specifies whether or not the CRC32C checksum on each data block should be verified or not\&. If \fIverify_checksums\fR is enabled, a checksum mismatch will cause a runtime error\&. Note that the checksum on the index block is always verified, since the overhead of doing this once when the reader object is instantiated is minimal\&. The default is to not verify data block checksums\&.
+.RE
+.SH "RETURN VALUE"
+.sp
+\fBmtbl_reader_init\fR() and \fBmtbl_reader_init_fd\fR() return NULL on failure, and non\-NULL on success\&.

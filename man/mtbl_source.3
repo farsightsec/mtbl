@@ -1,0 +1,90 @@
+'\" t
+.\"     Title: mtbl_source
+.\"    Author: [FIXME: author] [see http://docbook.sf.net/el/author]
+.\" Generator: DocBook XSL Stylesheets v1.78.1 <http://docbook.sf.net/>
+.\"      Date: 01/31/2014
+.\"    Manual: \ \&
+.\"    Source: \ \&
+.\"  Language: English
+.\"
+.TH "MTBL_SOURCE" "3" "01/31/2014" "\ \&" "\ \&"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NAME"
+mtbl_source \- obtain key\-value entries from a data source
+.SH "SYNOPSIS"
+.sp
+\fB#include <mtbl\&.h>\fR
+.sp
+.nf
+\fBstruct mtbl_iter *
+mtbl_source_iter(const struct mtbl_source *\fR\fB\fIs\fR\fR\fB);\fR
+.fi
+.sp
+.nf
+\fBstruct mtbl_iter *
+mtbl_source_get(const struct mtbl_source *\fR\fB\fIs\fR\fR\fB, const uint8_t *\fR\fB\fIkey\fR\fR\fB, size_t \fR\fB\fIlen_key\fR\fR\fB);\fR
+.fi
+.sp
+.nf
+\fBstruct mtbl_iter *
+mtbl_source_get_prefix(
+        const struct mtbl_source *\fR\fB\fIs\fR\fR\fB,
+        const uint8_t *\fR\fB\fIprefix\fR\fR\fB, size_t \fR\fB\fIlen_prefix\fR\fR\fB);\fR
+.fi
+.sp
+.nf
+\fBstruct mtbl_iter *
+mtbl_source_get_range(
+        const struct mtbl_source *\fR\fB\fIs\fR\fR\fB,
+        const uint8_t *\fR\fB\fIkey0\fR\fR\fB, size_t \fR\fB\fIlen_key0\fR\fR\fB,
+        const uint8_t *\fR\fB\fIkey1\fR\fR\fB, size_t \fR\fB\fIlen_key1\fR\fR\fB);\fR
+.fi
+.sp
+.nf
+\fBmtbl_res
+mtbl_source_write(const struct mtbl_source *\fR\fB\fIs\fR\fR\fB, struct mtbl_writer *\fR\fB\fIw\fR\fR\fB);\fR
+.fi
+.sp
+.nf
+\fBvoid
+mtbl_source_destroy(struct mtbl_source **\fR\fB\fIs\fR\fR\fB);\fR
+.fi
+.SH "DESCRIPTION"
+.sp
+The \fBmtbl_source\fR iterface provides an abstraction for reading key\-value entries from mtbl data sources\&.
+.sp
+\fBmtbl_source_iter\fR() provides an iterator over all of the entries in the data source\&.
+.sp
+\fBmtbl_source_get\fR() provides an exact match iterator which returns all entries whose key matches the key provided in the arguments \fIkey\fR and \fIlen_key\fR\&.
+.sp
+\fBmtbl_source_get_prefix\fR() provides a prefix iterator which returns all entries whose keys start with \fIprefix\fR and are at least \fIlen_prefix\fR bytes long\&.
+.sp
+\fBmtbl_source_get_range\fR() provides a range iterator which returns all entries whose keys are between \fIkey0\fR and \fIkey1\fR inclusive\&.
+.sp
+\fBmtbl_source_write\fR() is a convenience function for reading all of the entries from a source and writing them to an \fBmtbl_writer\fR object\&. It is equivalent to calling \fBmtbl_writer_add\fR() on all of the entries returned from \fBmtbl_source_iter\fR()\&.
+.SH "RETURN VALUE"
+.sp
+\fBmtbl_source_iter\fR(), \fBmtbl_source_get\fR(), \fBmtbl_source_get_prefix\fR(), and \fBmtbl_source_get_range\fR() return \fBmtbl_iter\fR objects\&.
+.sp
+\fBmtbl_source_write\fR() returns \fBmtbl_res_success\fR if all of the entries in the data source were successfully written to the \fBmtbl_writer\fR argument, and \fBmtbl_res_failure\fR otherwise\&.
+.SH "SEE ALSO"
+.sp
+\fBmtbl_iter\fR(3)

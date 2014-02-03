@@ -1,0 +1,141 @@
+'\" t
+.\"     Title: mtbl_writer
+.\"    Author: [FIXME: author] [see http://docbook.sf.net/el/author]
+.\" Generator: DocBook XSL Stylesheets v1.78.1 <http://docbook.sf.net/>
+.\"      Date: 01/31/2014
+.\"    Manual: \ \&
+.\"    Source: \ \&
+.\"  Language: English
+.\"
+.TH "MTBL_WRITER" "3" "01/31/2014" "\ \&" "\ \&"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NAME"
+mtbl_writer \- create an MTBL file
+.SH "SYNOPSIS"
+.sp
+\fB#include <mtbl\&.h>\fR
+.sp
+Writer objects:
+.sp
+.nf
+\fBstruct mtbl_writer *
+mtbl_writer_init(const char *\fR\fB\fIfname\fR\fR\fB, const struct mtbl_writer_options *\fR\fB\fIwopt\fR\fR\fB);\fR
+.fi
+.sp
+.nf
+\fBstruct mtbl_writer *
+mtbl_writer_init_fd(int \fR\fB\fIfd\fR\fR\fB, const struct mtbl_writer_options *\fR\fB\fIwopt\fR\fR\fB);\fR
+.fi
+.sp
+.nf
+\fBvoid
+mtbl_writer_destroy(struct mtbl_writer **\fR\fB\fIw\fR\fR\fB);\fR
+.fi
+.sp
+.nf
+\fBmtbl_res
+mtbl_writer_add(struct mtbl_writer *\fR\fB\fIw\fR\fR\fB,
+        const uint8_t *\fR\fB\fIkey\fR\fR\fB, size_t \fR\fB\fIlen_key\fR\fR\fB,
+        const uint8_t *\fR\fB\fIval\fR\fR\fB, size_t \fR\fB\fIlen_val\fR\fR\fB);\fR
+.fi
+.sp
+Writer options:
+.sp
+.nf
+\fBstruct mtbl_writer_options *
+mtbl_writer_options_init(void);\fR
+.fi
+.sp
+.nf
+\fBvoid
+mtbl_writer_options_destroy(struct mtbl_writer_options **\fR\fB\fIwopt\fR\fR\fB);\fR
+.fi
+.sp
+.nf
+\fBvoid
+mtbl_writer_options_set_compression(
+        struct mtbl_writer_options *\fR\fB\fIwopt\fR\fR\fB,
+        mtbl_compression_type \fR\fB\fIcompression_type\fR\fR\fB);\fR
+.fi
+.sp
+.nf
+\fBvoid
+mtbl_writer_options_set_block_size(
+        struct mtbl_writer_options *\fR\fB\fIwopt\fR\fR\fB,
+        size_t \fR\fB\fIblock_size\fR\fR\fB);\fR
+.fi
+.sp
+.nf
+\fBvoid
+mtbl_writer_options_set_block_restart_interval(
+        struct mtbl_writer_options *\fR\fB\fIwopt\fR\fR\fB,
+        size_t \fR\fB\fIblock_restart_interval\fR\fR\fB);\fR
+.fi
+.SH "DESCRIPTION"
+.sp
+MTBL files are written to disk by creating an \fBmtbl_writer\fR object, calling \fBmtbl_writer_add\fR() for each key\-value entry, and then calling \fBmtbl_writer_destroy\fR()\&.
+.sp
+\fBmtbl_writer_add\fR() copies key\-value pairs from the caller into the \fBmtbl_writer\fR object\&. Keys are specified as a pointer to a buffer, \fIkey\fR, and the length of that buffer, \fIlen_key\fR\&. Values are specified as a pointer to a buffer, \fIval\fR, and the length of that buffer, \fIlen_val\fR\&.
+.sp
+Keys must be in sorted, lexicographical byte order\&. The same key may not be added to an \fBmtbl_writer\fR more than once\&. If the input entries are not sorted or may contain duplicate keys, then the \fBmtbl_sorter\fR(3) interface should be used instead\&.
+.sp
+\fBmtbl_writer\fR objects may be created by calling \fBmtbl_writer_init\fR() with an \fIfname\fR argument specifying a filename to be created\&. The filename must not already exist on the filesystem\&. Or, \fBmtbl_writer_init_fd\fR() may be called with an \fIfd\fR argument specifying an open, writable file descriptor\&. No data may have been written to the file descriptor\&.
+.sp
+If the \fIwopt\fR parameter to \fBmtbl_writer_init\fR() or \fBmtbl_writer_init_fd\fR() is non\-NULL, the parameters specified in the \fBmtbl_writer_options\fR object will be configured into the \fBmtbl_writer\fR object\&.
+.SS "Writer options"
+.sp
+.it 1 an-trap
+.nr an-no-space-flag 1
+.nr an-break-flag 1
+.br
+.ps +1
+\fBcompression\fR
+.RS 4
+.sp
+Specifies the compression algorithm to use on data blocks\&. Possible values are \fBMTBL_COMPRESSION_NONE\fR, \fBMTBL_COMPRESSION_SNAPPY\fR, or \fBMTBL_COMPRESSION_ZLIB\fR (the default)\&.
+.RE
+.sp
+.it 1 an-trap
+.nr an-no-space-flag 1
+.nr an-break-flag 1
+.br
+.ps +1
+\fBblock_size\fR
+.RS 4
+.sp
+The maximum size of uncompressed data blocks, specified in bytes\&. The default is 8 kilobytes\&.
+.RE
+.sp
+.it 1 an-trap
+.nr an-no-space-flag 1
+.nr an-break-flag 1
+.br
+.ps +1
+\fBblock_restart_interval\fR
+.RS 4
+.sp
+How frequently to restart intra\-block key prefix compression\&. The default is every 16 keys\&.
+.RE
+.SH "RETURN VALUE"
+.sp
+\fBmtbl_writer_init\fR() and \fBmtbl_writer_init_fd\fR() return NULL on failure, and non\-NULL on success\&.
+.sp
+\fBmtbl_writer_add\fR() returns \fBmtbl_res_success\fR if the key\-value entry was successfully copied into the \fBmtbl_writer\fR object, and \fBmtbl_res_failure\fR if not, for instance if there has been a key\-ordering violation\&.
