@@ -1,3 +1,9 @@
+mtbl (0.5-1~bpo70+1) wheezy-backports; urgency=medium
+
+  * Rebuild for wheezy-backports.
+
+ -- Robert S. Edmonds <edmonds@debian.org>  Mon, 03 Feb 2014 14:10:10 -0500
+
 mtbl (0.5-1) unstable; urgency=medium
 
   * New upstream release.
