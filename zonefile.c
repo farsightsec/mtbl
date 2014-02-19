@@ -12,6 +12,7 @@
 
 struct zonefile {
 	FILE		*fp;
+	bool		eof;
 	bool		is_pipe;
 	bool		valid;
 	ldns_rdf	*domain;
@@ -141,6 +142,11 @@ zonefile_read(struct zonefile *z, ldns_rr **out)
 	ldns_rr *rr;
 	ldns_status status = LDNS_STATUS_OK;
 
+	if (z->eof) {
+		*out = NULL;
+		return (LDNS_STATUS_OK);
+	}
+
 	if (!z->valid)
 		return (LDNS_STATUS_ERR);
 
@@ -152,11 +158,7 @@ zonefile_read(struct zonefile *z, ldns_rr **out)
 	for (;;) {
 		if (feof(z->fp)) {
 			*out = NULL;
-			if (z->is_pipe)
-				pclose(z->fp);
-			else
-				fclose(z->fp);
-			z->fp = NULL;
+			z->eof = true;
 			return (LDNS_STATUS_OK);
 		}
 		status = ldns_rr_new_frm_fp_l(&rr, z->fp, &z->ttl, &z->origin, &z->prev, NULL);
@@ -164,9 +166,8 @@ zonefile_read(struct zonefile *z, ldns_rr **out)
 		case LDNS_STATUS_OK:
 			if (ldns_rr_get_type(rr) == LDNS_RR_TYPE_SOA) {
 				ldns_rr_free(rr);
-				z->valid = false;
-				status = LDNS_STATUS_ERR;
-				goto out;
+				*out = NULL;
+				return (LDNS_STATUS_OK);
 			}
 			z->count++;
 			goto out;
