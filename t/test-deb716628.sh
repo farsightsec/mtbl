@@ -10,6 +10,8 @@ if [ -z "${top_builddir}" ]; then
     exit 1
 fi
 
+ulimit -c 0
+
 echo "The following line should be an error message."
 
 "${top_builddir}/src/mtbl_dump" "${top_srcdir}/t/deb716628.data" 2>&1
