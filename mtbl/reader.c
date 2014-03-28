@@ -198,8 +198,18 @@ get_block_zlib_decompress(uint8_t *raw_contents, size_t raw_contents_size,
 	zs.avail_out = *block_contents_size;
 	zs.next_out = *block_contents = my_malloc(*block_contents_size);
 
-	zret = inflate(&zs, Z_NO_FLUSH);
-	assert(zret == Z_STREAM_END);
+	do {
+		zret = inflate(&zs, Z_FINISH);
+		assert(zret == Z_STREAM_END || zret == Z_BUF_ERROR);
+		if (zret != Z_STREAM_END) {
+			*block_contents = my_realloc(*block_contents,
+						     *block_contents_size * 2);
+			zs.next_out = *block_contents + *block_contents_size;
+			zs.avail_out = *block_contents_size;
+			*block_contents_size *= 2;
+		}
+	} while (zret != Z_STREAM_END);
+
 	*block_contents_size = zs.total_out;
 	inflateEnd(&zs);
 }
