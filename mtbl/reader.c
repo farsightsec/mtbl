@@ -206,10 +206,13 @@ get_block(struct mtbl_reader *r, uint64_t offset)
 		break;
 	case MTBL_COMPRESSION_SNAPPY:
 		needs_free = true;
-		block_contents_size = 2 * r->t.data_block_size;
-		block_contents = my_calloc(1, block_contents_size);
+		res = snappy_uncompressed_length((const char *)raw_contents,
+						 raw_contents_size,
+						 &block_contents_size);
+		assert(res == SNAPPY_OK);
+		block_contents = my_malloc(block_contents_size);
 		res = snappy_uncompress((const char *)raw_contents, raw_contents_size,
-					(char *) block_contents, &block_contents_size);
+					(char *)block_contents, &block_contents_size);
 		assert(res == SNAPPY_OK);
 		break;
 	case MTBL_COMPRESSION_ZLIB:
