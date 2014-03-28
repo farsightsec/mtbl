@@ -252,7 +252,7 @@ get_block(struct mtbl_reader *r, uint64_t offset)
 		break;
 	case MTBL_COMPRESSION_ZLIB:
 		needs_free = true;
-		block_contents_size = 2 * r->t.data_block_size;
+		block_contents_size = 4 * r->t.data_block_size;
 		get_block_zlib_decompress(raw_contents, raw_contents_size,
 					  &block_contents, &block_contents_size);
 		break;
