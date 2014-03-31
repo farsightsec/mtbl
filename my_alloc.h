@@ -37,4 +37,6 @@ my_strdup(const char *s)
 	return (ptr);
 }
 
+#define my_free(ptr) do { free(ptr); (ptr) = NULL; } while (0)
+
 #endif /* MY_ALLOC_H */
