@@ -196,6 +196,7 @@ _mtbl_sorter_write_chunk(struct mtbl_sorter *s)
 					     entry_val(next_ent), next_ent->len_val,
 					     &merge_val, &len_merge_val);
 				if (merge_val == NULL) {
+					free(c);
 					mtbl_writer_destroy(&w);
 					return (mtbl_res_failure);
 				}
