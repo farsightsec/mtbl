@@ -317,8 +317,10 @@ mtbl_sorter_iter(struct mtbl_sorter *s)
 
 	if (entry_vec_size(s->vec) > 0) {
 		res = _mtbl_sorter_write_chunk(s);
-		if (res != mtbl_res_success)
+		if (res != mtbl_res_success) {
+			sorter_iter_free(it);
 			return (NULL);
+		}
 	}
 
 	for (unsigned i = 0; i < chunk_vec_size(s->chunks); i++) {
