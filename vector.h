@@ -58,9 +58,8 @@ static inline void							\
 name##_destroy(name **vec)						\
 {									\
 	if (*vec) {							\
-		free((*vec)->_v);					\
-		free((*vec));						\
-		*vec = NULL;						\
+		my_free((*vec)->_v);					\
+		my_free((*vec));					\
 	}								\
 }									\
 static inline void							\
