@@ -53,7 +53,7 @@ test1(void)
 		ret |= 1;
 	}
 
-	if (memcmp(&t1, &t2, sizeof(struct trailer) != 0)) {
+	if (memcmp(&t1, &t2, sizeof(struct trailer)) != 0) {
 		fprintf(stderr, NAME ": t1 != t2\n");
 		ret |= 1;
 	}
