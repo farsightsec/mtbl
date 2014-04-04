@@ -1,5 +1,5 @@
 AC_PREREQ(2.60)
-AC_INIT([mtbl], [0.5])
+AC_INIT([mtbl], [0.6.0])
 AC_CONFIG_SRCDIR([mtbl/mtbl.h])
 AC_CONFIG_AUX_DIR([build-aux])
 AM_INIT_AUTOMAKE([foreign 1.11 -Wall -Wno-portability silent-rules subdir-objects color-tests])
@@ -65,6 +65,8 @@ if test -n "$ASCIIDOC"; then
 else
     DOC_MAN_MSG="no (asciidoc not available)"
 fi
+
+gl_LD_VERSION_SCRIPT
 
 AC_OUTPUT
 AC_MSG_RESULT([

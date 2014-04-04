@@ -51,8 +51,15 @@ mtbl_libmtbl_la_SOURCES = \
 
 mtbl_libmtbl_la_LIBADD = -lsnappy -lz
 mtbl_libmtbl_la_LDFLAGS = $(AM_LDFLAGS) \
-	-version-info $(LIBMTBL_VERSION_INFO) \
+	-version-info $(LIBMTBL_VERSION_INFO)
+if HAVE_LD_VERSION_SCRIPT
+mtbl_libmtbl_la_LDFLAGS += \
+	-Wl,--version-script=$(top_srcdir)/mtbl/libmtbl.sym
+else
+mtbl_libmtbl_la_LDFLAGS += \
 	-export-symbols-regex "^(mtbl_[a-z].*)"
+endif
+EXTRA_DIST += mtbl/libmtbl.sym
 
 pkgconfig_DATA = mtbl/libmtbl.pc
 EXTRA_DIST += mtbl/libmtbl.pc.in
