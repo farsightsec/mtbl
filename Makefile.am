@@ -12,7 +12,7 @@ AM_CPPFLAGS = \
 	-include $(top_builddir)/config.h \
 	-I${top_srcdir}/mtbl
 AM_CFLAGS = ${my_CFLAGS}
-AM_LDFLAGS = -Wl,--as-needed
+AM_LDFLAGS =
 
 #
 ##
