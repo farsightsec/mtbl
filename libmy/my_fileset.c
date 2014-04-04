@@ -170,8 +170,11 @@ my_fileset_reload(struct my_fileset *fs)
 	new_entries = entry_vec_init(1);
 
 	fp = fopen(fs->setfile, "r");
-	if (fp == NULL)
+	if (fp == NULL) {
+		entry_vec_destroy(&fs->entries);
+		ubuf_destroy(&u);
 		return;
+	}
 
 	while (getline(&line, &len, fp) != -1) {
 		ubuf_clip(u, 0);
