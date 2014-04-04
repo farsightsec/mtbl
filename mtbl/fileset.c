@@ -174,6 +174,7 @@ fs_reinit_merger(struct mtbl_fileset *f)
 		mtbl_merger_destroy(&f->merger);
 		f->merger = mtbl_merger_init(f->mopt);
 	}
+	assert(f->merger != NULL);
 	while (my_fileset_get(f->fs, i++, &fname, (void **) &reader))
 		mtbl_merger_add_source(f->merger, mtbl_reader_source(reader));
 }
