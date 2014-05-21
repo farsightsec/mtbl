@@ -196,6 +196,7 @@ _mtbl_sorter_write_chunk(struct mtbl_sorter *s)
 					     entry_val(next_ent), next_ent->len_val,
 					     &merge_val, &len_merge_val);
 				if (merge_val == NULL) {
+					free(c);
 					mtbl_writer_destroy(&w);
 					return (mtbl_res_failure);
 				}
@@ -316,8 +317,10 @@ mtbl_sorter_iter(struct mtbl_sorter *s)
 
 	if (entry_vec_size(s->vec) > 0) {
 		res = _mtbl_sorter_write_chunk(s);
-		if (res != mtbl_res_success)
+		if (res != mtbl_res_success) {
+			sorter_iter_free(it);
 			return (NULL);
+		}
 	}
 
 	for (unsigned i = 0; i < chunk_vec_size(s->chunks); i++) {

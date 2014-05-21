@@ -1,3 +1,20 @@
+mtbl (0.6.0)
+
+  * Fix assertion failures with highly compressed data caused by the use of a
+    fixed size decompression buffer (Issue #1).
+
+  * Fix small memory leak during initialization in the mtbl_merge utility.
+
+  * Fix leak-on-error-bugs in the reader, sorter, and fileset interfaces,
+    detected by static analysis.
+
+  * Drop "-Wl,--as-needed" from LDFLAGS.
+
+  * Begin versioning the library's symbols. (Based on ld-version-script.m4
+    from gnulib.)
+
+ -- Robert Edmonds <edmonds@fsi.io>  Wed, 21 May 2014 16:24:17 -0400
+
 mtbl (0.5)
 
   * The COPYRIGHT, LICENSE, and README.md files are now distributed in the

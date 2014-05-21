@@ -81,7 +81,7 @@ hex_decode(const char *hex, uint8_t **raw, size_t *len)
 	}
 	return (true);
 err:
-	free(*raw);
+	my_free(*raw);
 	return (false);
 }
 

@@ -12,7 +12,7 @@ AM_CPPFLAGS = \
 	-include $(top_builddir)/config.h \
 	-I${top_srcdir}/mtbl
 AM_CFLAGS = ${my_CFLAGS}
-AM_LDFLAGS = -Wl,--as-needed
+AM_LDFLAGS =
 
 #
 ##
@@ -51,8 +51,15 @@ mtbl_libmtbl_la_SOURCES = \
 
 mtbl_libmtbl_la_LIBADD = -lsnappy -lz
 mtbl_libmtbl_la_LDFLAGS = $(AM_LDFLAGS) \
-	-version-info $(LIBMTBL_VERSION_INFO) \
+	-version-info $(LIBMTBL_VERSION_INFO)
+if HAVE_LD_VERSION_SCRIPT
+mtbl_libmtbl_la_LDFLAGS += \
+	-Wl,--version-script=$(top_srcdir)/mtbl/libmtbl.sym
+else
+mtbl_libmtbl_la_LDFLAGS += \
 	-export-symbols-regex "^(mtbl_[a-z].*)"
+endif
+EXTRA_DIST += mtbl/libmtbl.sym
 
 pkgconfig_DATA = mtbl/libmtbl.pc
 EXTRA_DIST += mtbl/libmtbl.pc.in
@@ -119,6 +126,12 @@ TESTS += t/test-deb716628.sh
 EXTRA_DIST += t/test-deb716628.sh
 EXTRA_DIST += t/test-deb716628.data
 t/test-deb716628.sh: src/mtbl_dump
+
+TESTS += t/test-gh1.sh
+EXTRA_DIST += t/test-gh1.sh
+EXTRA_DIST += t/test-gh1-snappy.data
+EXTRA_DIST += t/test-gh1-zlib.data
+t/test-gh1.sh: src/mtbl_dump
 
 #
 ##

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, 2013 by Farsight Security, Inc.
+ * Copyright (c) 2012-2014 by Farsight Security, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,7 @@ typedef struct name##__vector {						\
 	type *		_p;						\
 	size_t		_n, _n_alloced, _hint;				\
 } name;									\
+__attribute__((unused))							\
 static inline name *							\
 name##_init(unsigned hint)						\
 {									\
@@ -35,6 +36,7 @@ name##_init(unsigned hint)						\
 	vec->_p = &(vec->_v[0]);					\
 	return (vec);							\
 }									\
+__attribute__((unused))							\
 static inline void							\
 name##_reinit(unsigned hint, name *vec)					\
 {									\
@@ -44,6 +46,7 @@ name##_reinit(unsigned hint, name *vec)					\
 	vec->_v = my_malloc(vec->_n_alloced * sizeof(type));		\
 	vec->_p = &(vec->_v[0]);					\
 }									\
+__attribute__((unused))							\
 static inline void							\
 name##_detach(name *vec, type **out, size_t *outsz)			\
 {									\
@@ -54,15 +57,16 @@ name##_detach(name *vec, type **out, size_t *outsz)			\
 	(vec)->_v = my_malloc((vec)->_n_alloced * sizeof(type));	\
 	(vec)->_p = &(vec->_v[0]);					\
 }									\
+__attribute__((unused))							\
 static inline void							\
 name##_destroy(name **vec)						\
 {									\
 	if (*vec) {							\
-		free((*vec)->_v);					\
-		free((*vec));						\
-		*vec = NULL;						\
+		my_free((*vec)->_v);					\
+		my_free((*vec));					\
 	}								\
 }									\
+__attribute__((unused))							\
 static inline void							\
 name##_reserve(name *vec, size_t n_elems)				\
 {									\
@@ -73,6 +77,7 @@ name##_reserve(name *vec, size_t n_elems)				\
 		(vec)->_p = &((vec)->_v[(vec)->_n]);			\
 	}								\
 }									\
+__attribute__((unused))							\
 static inline void							\
 name##_add(name *vec, type elem)					\
 {									\
@@ -86,6 +91,7 @@ name##_add(name *vec, type elem)					\
 	(vec)->_n += 1;							\
 	(vec)->_p = &((vec)->_v[(vec)->_n]);				\
 }									\
+__attribute__((unused))							\
 static inline void							\
 name##_append(name *vec, type const *elems, size_t n_elems)		\
 {									\
@@ -94,11 +100,13 @@ name##_append(name *vec, type const *elems, size_t n_elems)		\
 	(vec)->_n += (n_elems);						\
 	(vec)->_p = &((vec)->_v[(vec)->_n]);				\
 }									\
+__attribute__((unused))							\
 static inline void							\
 name##_extend(name *vec0, name *vec1)					\
 {									\
 	name##_append(vec0, (vec1)->_v, (vec1)->_n);			\
 }									\
+__attribute__((unused))							\
 static inline void							\
 name##_reset(name *vec)							\
 {									\
@@ -110,6 +118,7 @@ name##_reset(name *vec)							\
 	}								\
 	(vec)->_p = &(vec->_v[0]);					\
 }									\
+__attribute__((unused))							\
 static inline void							\
 name##_clip(name *vec, size_t n_elems)					\
 {									\
@@ -118,32 +127,38 @@ name##_clip(name *vec, size_t n_elems)					\
 		(vec)->_p = &((vec)->_v[(vec)->_n]);			\
 	}								\
 }									\
+__attribute__((unused))							\
 static inline size_t							\
 name##_bytes(name *vec)							\
 {									\
 	return ((vec)->_n * sizeof(type));				\
 }									\
+__attribute__((unused))							\
 static inline size_t							\
 name##_size(name *vec)							\
 {									\
 	return ((vec)->_n);						\
 }									\
+__attribute__((unused))							\
 static inline type							\
 name##_value(name *vec, size_t i)					\
 {									\
 	assert(i < (vec)->_n);						\
 	return ((vec)->_v[i]);						\
 }									\
+__attribute__((unused))							\
 static inline type *							\
 name##_ptr(name *vec)							\
 {									\
 	return ((vec)->_p);						\
 }									\
+__attribute__((unused))							\
 static inline type *							\
 name##_data(name *vec)							\
 {									\
 	return ((vec)->_v);						\
 }									\
+__attribute__((unused))							\
 static inline void							\
 name##_advance(name *vec, size_t x)					\
 {									\

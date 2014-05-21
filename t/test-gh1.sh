@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/sh -e
 
 if [ -z "${top_srcdir}" ]; then
     echo "top_srcdir variable not set"
@@ -12,11 +12,7 @@ fi
 
 ulimit -c 0
 
-echo "The following line should be an error message."
+"${top_builddir}/src/mtbl_dump" "${top_srcdir}/t/test-gh1-snappy.data" 1>/dev/null
+"${top_builddir}/src/mtbl_dump" "${top_srcdir}/t/test-gh1-zlib.data" 1>/dev/null
 
-"${top_builddir}/src/mtbl_dump" "${top_srcdir}/t/deb716628.data" 2>&1
-if [ "$?" -eq "1" ]; then
-    exit 0
-fi
-
-exit 1
+exit 0

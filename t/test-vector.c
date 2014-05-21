@@ -29,6 +29,7 @@ test6(void)
 	ubuf_clip(v, 17);
 	if (ubuf_size(v) != 17)
 		ret |= 1;
+	ubuf_destroy(&v);
 	return (ret);
 }
 

@@ -108,8 +108,10 @@ mtbl_reader_init_fd(int orig_fd, const struct mtbl_reader_options *opt)
 	int ret = fstat(fd, &ss);
 	assert(ret == 0);
 
-	if (ss.st_size < MTBL_TRAILER_SIZE)
+	if (ss.st_size < MTBL_TRAILER_SIZE) {
+		close(fd);
 		return (NULL);
+	}
 
 	r = my_calloc(1, sizeof(*r));
 	if (opt != NULL)
@@ -177,6 +179,43 @@ mtbl_reader_source(struct mtbl_reader *r)
 	return (r->source);
 }
 
+static void
+get_block_zlib_decompress(uint8_t *raw_contents, size_t raw_contents_size,
+			  uint8_t **block_contents, size_t *block_contents_size)
+{
+	int zret;
+	z_stream zs;
+
+	memset(&zs, 0, sizeof(zs));
+	zs.zalloc = Z_NULL;
+	zs.zfree = Z_NULL;
+	zs.opaque = Z_NULL;
+	zs.avail_in = 0;
+	zs.next_in = Z_NULL;
+
+	zret = inflateInit(&zs);
+	assert(zret == Z_OK);
+	zs.avail_in = raw_contents_size;
+	zs.next_in = raw_contents;
+	zs.avail_out = *block_contents_size;
+	zs.next_out = *block_contents = my_malloc(*block_contents_size);
+
+	do {
+		zret = inflate(&zs, Z_FINISH);
+		assert(zret == Z_STREAM_END || zret == Z_BUF_ERROR);
+		if (zret != Z_STREAM_END) {
+			*block_contents = my_realloc(*block_contents,
+						     *block_contents_size * 2);
+			zs.next_out = *block_contents + *block_contents_size;
+			zs.avail_out = *block_contents_size;
+			*block_contents_size *= 2;
+		}
+	} while (zret != Z_STREAM_END);
+
+	*block_contents_size = zs.total_out;
+	inflateEnd(&zs);
+}
+
 static struct block *
 get_block(struct mtbl_reader *r, uint64_t offset)
 {
@@ -184,8 +223,6 @@ get_block(struct mtbl_reader *r, uint64_t offset)
 	uint8_t *block_contents = NULL, *raw_contents = NULL;
 	size_t block_contents_size = 0, raw_contents_size = 0;
 	snappy_status res;
-	int zret;
-	z_stream zs;
 
 	assert(offset < r->len_data);
 
@@ -206,31 +243,20 @@ get_block(struct mtbl_reader *r, uint64_t offset)
 		break;
 	case MTBL_COMPRESSION_SNAPPY:
 		needs_free = true;
-		block_contents_size = 2 * r->t.data_block_size;
-		block_contents = my_calloc(1, block_contents_size);
+		res = snappy_uncompressed_length((const char *)raw_contents,
+						 raw_contents_size,
+						 &block_contents_size);
+		assert(res == SNAPPY_OK);
+		block_contents = my_malloc(block_contents_size);
 		res = snappy_uncompress((const char *)raw_contents, raw_contents_size,
-					(char *) block_contents, &block_contents_size);
+					(char *)block_contents, &block_contents_size);
 		assert(res == SNAPPY_OK);
 		break;
 	case MTBL_COMPRESSION_ZLIB:
 		needs_free = true;
-		block_contents_size = 2 * r->t.data_block_size;
-		zs.zalloc = Z_NULL;
-		zs.zfree = Z_NULL;
-		zs.opaque = Z_NULL;
-		zs.avail_in = 0;
-		zs.next_in = Z_NULL;
-		memset(&zs, 0, sizeof(zs));
-		zret = inflateInit(&zs);
-		assert(zret == Z_OK);
-		zs.avail_in = raw_contents_size;
-		zs.next_in = raw_contents;
-		zs.avail_out = block_contents_size;
-		zs.next_out = block_contents = my_calloc(1, block_contents_size);
-		zret = inflate(&zs, Z_NO_FLUSH);
-		assert(zret == Z_STREAM_END);
-		block_contents_size = zs.total_out;
-		inflateEnd(&zs);
+		block_contents_size = 4 * r->t.data_block_size;
+		get_block_zlib_decompress(raw_contents, raw_contents_size,
+					  &block_contents, &block_contents_size);
 		break;
 	}
 

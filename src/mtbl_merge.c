@@ -200,6 +200,9 @@ init_dso(void)
 		    (const uint8_t *) "_free_func",
 		    sizeof("_free_func"));
 	user_func_free = dlsym(handle, (const char *) ubuf_data(func_name));
+
+	/* cleanup */
+	ubuf_destroy(&func_name);
 }
 
 static size_t

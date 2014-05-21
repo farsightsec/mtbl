@@ -166,12 +166,12 @@ my_fileset_reload(struct my_fileset *fs)
 	if (!setfile_updated(fs))
 		return;
 
-	u = ubuf_init(64);
-	new_entries = entry_vec_init(1);
-
 	fp = fopen(fs->setfile, "r");
 	if (fp == NULL)
 		return;
+
+	u = ubuf_init(64);
+	new_entries = entry_vec_init(1);
 
 	while (getline(&line, &len, fp) != -1) {
 		ubuf_clip(u, 0);
