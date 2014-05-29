@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008, 2009, 2012, 2013 by Farsight Security, Inc.
+ * Copyright (c) 2008, 2009, 2012, 2013, 2014 by Farsight Security, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,9 +20,9 @@
 #include "my_alloc.h"
 #include "my_time.h"
 
-#include "rate.h"
+#include "my_rate.h"
 
-struct rate {
+struct my_rate {
 	struct timespec next_tick, period, start;
 	uint64_t	count;
 	unsigned	adj_rate, rate, freq;
@@ -60,7 +60,7 @@ calc_next_tick(const struct timespec *t, const struct timespec *m)
 }
 
 static inline void
-adjust_rate(struct rate *r, struct timespec *now)
+adjust_rate(struct my_rate *r, struct timespec *now)
 {
 	struct timespec elapsed;
 	double ratio;
@@ -92,10 +92,10 @@ adjust_rate(struct rate *r, struct timespec *now)
 	my_timespec_from_double(period, &r->period);
 }
 
-struct rate *
-rate_init(unsigned rate, unsigned freq)
+struct my_rate *
+my_rate_init(unsigned rate, unsigned freq)
 {
-	struct rate *r;
+	struct my_rate *r;
 
 	r = calloc(1, sizeof(*r));
 	if (r == NULL)
@@ -112,7 +112,7 @@ rate_init(unsigned rate, unsigned freq)
 }
 
 void
-rate_destroy(struct rate **r)
+my_rate_destroy(struct my_rate **r)
 {
 	if (*r != NULL) {
 		free(*r);
@@ -121,7 +121,7 @@ rate_destroy(struct rate **r)
 }
 
 void
-rate_sleep(struct rate *r)
+my_rate_sleep(struct my_rate *r)
 {
 	struct timespec now, til;
 
