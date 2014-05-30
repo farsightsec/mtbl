@@ -96,7 +96,7 @@ CODE_COVERAGE_RULES='
 # use the git-version-gen script, available online.
 
 # Optional variables
-CODE_COVERAGE_DIRECTORY ?= $(top_builddir)
+CODE_COVERAGE_DIRECTORY ?= $(abs_top_builddir)
 CODE_COVERAGE_OUTPUT_FILE ?= $(PACKAGE_NAME)-$(PACKAGE_VERSION)-coverage.info
 CODE_COVERAGE_OUTPUT_DIRECTORY ?= $(PACKAGE_NAME)-$(PACKAGE_VERSION)-coverage
 CODE_COVERAGE_LCOV_OPTIONS ?=
@@ -134,7 +134,7 @@ code-coverage-capture-hook:
 ifeq ($(CODE_COVERAGE_ENABLED),yes)
 clean: code-coverage-clean
 code-coverage-clean:
-	-$(LCOV) --directory $(top_builddir) -z
+	-$(LCOV) --directory $(CODE_COVERAGE_DIRECTORY) -z
 	-rm -rf $(CODE_COVERAGE_OUTPUT_FILE) $(CODE_COVERAGE_OUTPUT_FILE).tmp $(CODE_COVERAGE_OUTPUT_DIRECTORY)
 	-find . -name "*.gcda" -o -name "*.gcov" -delete
 endif
