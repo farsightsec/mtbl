@@ -126,10 +126,14 @@ my_rate_sleep(struct my_rate *r)
 	struct timespec now, til;
 
 	/* what clock to use depends on whether clock_nanosleep() is available */
-#if HAVE_CLOCK_NANOSLEEP
+#if HAVE_CLOCK_GETTIME
+# if HAVE_CLOCK_NANOSLEEP
 	static const clockid_t rate_clock = CLOCK_MONOTONIC;
-#else
+# else
 	static const clockid_t rate_clock = CLOCK_REALTIME;
+# endif
+#else
+	static const int rate_clock = -1;
 #endif
 
 	if (r == NULL)
@@ -139,7 +143,7 @@ my_rate_sleep(struct my_rate *r)
 	r->count += 1;
 
 	/* fetch the current time */
-	clock_gettime(rate_clock, &now);
+	my_gettime(rate_clock, &now);
 
 	/* special case: if this is the first call to rate_sleep(),
 	 * calculate when the next tick will be. this is a little bit more
@@ -174,7 +178,7 @@ my_rate_sleep(struct my_rate *r)
 #endif
 
 		/* re-fetch the current time */
-		clock_gettime(rate_clock, &now);
+		my_gettime(rate_clock, &now);
 	}
 
 	/* calculate the next tick */
