@@ -1,6 +1,6 @@
 # SYNOPSIS
 #
-#   AX_CODE_COVERAGE()
+#   MY_CODE_COVERAGE()
 #
 # DESCRIPTION
 #
@@ -18,7 +18,7 @@
 #
 #   Usage example:
 #   configure.ac:
-#      AX_CODE_COVERAGE
+#      MY_CODE_COVERAGE
 #
 #   Makefile.am:
 #      @CODE_COVERAGE_RULES@
@@ -43,9 +43,7 @@
 #   Derived from Makefile.decl in GLib, originally licenced under LGPLv2.1+.
 #   This file is licenced under LGPLv2.1+.
 
-#serial 1
-
-AC_DEFUN([AX_CODE_COVERAGE],[
+AC_DEFUN([MY_CODE_COVERAGE],[
 	dnl Check for --enable-code-coverage
 	AC_MSG_CHECKING([whether to build with code coverage support])
 	AC_ARG_ENABLE([code-coverage], AS_HELP_STRING([--enable-code-coverage], [Whether to enable code coverage support]),, enable_code_coverage=no)
