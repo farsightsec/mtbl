@@ -6,6 +6,7 @@
 #include <errno.h>
 #include <time.h>
 
+#if HAVE_CLOCK_GETTIME
 static inline void
 my_gettime(clockid_t clk_id, struct timespec *ts)
 {
@@ -13,6 +14,20 @@ my_gettime(clockid_t clk_id, struct timespec *ts)
 	res = clock_gettime(clk_id, ts);
 	assert(res == 0);
 }
+#else
+static inline void
+my_gettime(int clk_id __attribute__((unused)), struct timespec *ts)
+{
+	struct timeval tv;
+	int res;
+
+	res = gettimeofday(&tv, NULL);
+	assert(res == 0);
+
+	ts->tv_sec = tv.tv_sec;
+	ts->tv_nsec = tv.tv_usec * 1000;
+}
+#endif
 
 static inline void
 my_timespec_add(const struct timespec *a, struct timespec *b) {
