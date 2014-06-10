@@ -66,11 +66,16 @@ AC_DEFUN([MY_CODE_COVERAGE],[
 		])
 
 		dnl Build the code coverage flags
-		CODE_COVERAGE_CFLAGS="-O0 -g -fprofile-arcs -ftest-coverage"
-		CODE_COVERAGE_LDFLAGS="-lgcov"
+		CODE_COVERAGE_CFLAGS="-O0 -g --coverage"
+		CODE_COVERAGE_LDFLAGS="--coverage"
 
 		AC_SUBST([CODE_COVERAGE_CFLAGS])
 		AC_SUBST([CODE_COVERAGE_LDFLAGS])
+
+		dnl Strip optimisation flags
+		changequote({,})
+		CFLAGS=`echo "$CFLAGS" | $SED -e 's/-O[0-9]*//g'`
+		changequote([,])
 	])
 
 CODE_COVERAGE_RULES='
