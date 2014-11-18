@@ -99,7 +99,7 @@ mtbl_fileset_options_set_merge_func(struct mtbl_fileset_options *opt,
 
 void
 mtbl_fileset_options_set_reload_interval(struct mtbl_fileset_options *opt,
-					  uint32_t reload_interval)
+					 uint32_t reload_interval)
 {
 	opt->reload_interval = reload_interval;
 }
