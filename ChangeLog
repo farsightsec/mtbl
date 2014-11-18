@@ -1,3 +1,13 @@
+mtbl (0.7.0) UNRELEASED
+
+  * mtbl_reader(3): New reader option 'madvise_random' which may drastically
+    improve performance on seek-heavy workloads. It can be enabled by the
+    library caller with the mtbl_reader_options_set_madvise_random() function.
+    It can also be globally force-enabled or force-disabled at runtime by
+    setting the environment variable MTBL_READER_MADVISE_RANDOM to "1" or "0".
+
+ -- Robert Edmonds <edmonds@fsi.io>  Tue, 18 Nov 2014 18:46:16 -0500
+
 mtbl (0.6.0)
 
   * Fix assertion failures with highly compressed data caused by the use of a
