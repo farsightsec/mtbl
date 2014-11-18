@@ -39,6 +39,8 @@ AC_CHECK_FUNC([mkstemp], [], [
     AC_MSG_ERROR([required system function not found])
 ])
 
+AC_CHECK_FUNCS([posix_madvise madvise])
+
 AC_CHECK_HEADERS([sys/endian.h endian.h])
 
 AC_CHECK_HEADER([snappy-c.h], [], [

@@ -38,6 +38,7 @@ struct reader_iter {
 
 struct mtbl_reader_options {
 	bool				verify_checksums;
+	bool				madvise_random;
 };
 
 struct mtbl_reader {
@@ -49,6 +50,9 @@ struct mtbl_reader {
 	struct block			*index;
 	struct mtbl_source		*source;
 };
+
+static void
+reader_init_madvise(struct mtbl_reader *);
 
 static mtbl_res
 reader_iter_next(void *, const uint8_t **, size_t *, const uint8_t **, size_t *);
@@ -84,10 +88,42 @@ mtbl_reader_options_destroy(struct mtbl_reader_options **opt)
 }
 
 void
+mtbl_reader_options_set_madvise_random(struct mtbl_reader_options *opt,
+				       bool madvise_random)
+{
+	opt->madvise_random = madvise_random;
+}
+
+void
 mtbl_reader_options_set_verify_checksums(struct mtbl_reader_options *opt,
 					 bool verify_checksums)
 {
 	opt->verify_checksums = verify_checksums;
+}
+
+static void
+reader_init_madvise(struct mtbl_reader *r)
+{
+	bool b;
+	const char *s;
+
+	b = r->opt.madvise_random;
+	s = getenv("MTBL_READER_MADVISE_RANDOM");
+
+	if (s) {
+		if (strcmp(s, "0") == 0)
+			b = false;
+		else if (strcmp(s, "1") == 0)
+			b = true;
+	}
+
+	if (b) {
+#if defined(HAVE_POSIX_MADVISE)
+		(void) posix_madvise(r->data, r->t.index_block_offset, POSIX_MADV_RANDOM);
+#elif defined(HAVE_MADVISE)
+		(void) madvise(r->data, r->t.index_block_offset, MADV_RANDOM);
+#endif
+	}
 }
 
 struct mtbl_reader *
@@ -130,6 +166,8 @@ mtbl_reader_init_fd(int orig_fd, const struct mtbl_reader_options *opt)
 		mtbl_reader_destroy(&r);
 		return (NULL);
 	}
+
+	reader_init_madvise(r);
 
 	index_len = mtbl_fixed_decode32(r->data + r->t.index_block_offset + 0);
 	index_crc = mtbl_fixed_decode32(r->data + r->t.index_block_offset + sizeof(uint32_t));

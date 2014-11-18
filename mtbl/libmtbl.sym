@@ -65,3 +65,8 @@ global:
 local:
         *;
 };
+
+LIBMTBL_0.7.0 {
+global:
+        mtbl_reader_options_set_madvise_random;
+} LIBMTBL_0.6.0;
