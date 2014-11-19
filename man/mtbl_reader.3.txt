@@ -42,6 +42,12 @@ mtbl_reader_options_set_verify_checksums(
         struct mtbl_reader_options *'ropt',
         bool 'verify_checksums');^
 
+[verse]
+^void
+mtbl_reader_options_set_madvise_random(
+        struct mtbl_reader_options *'ropt',
+        bool 'madvise_random');^
+
 == DESCRIPTION ==
 
 MTBL files are accessed by creating an ^mtbl_reader^ object, calling
@@ -67,6 +73,19 @@ verified or not. If _verify_checksums_ is enabled, a checksum mismatch will
 cause a runtime error. Note that the checksum on the index block is always
 verified, since the overhead of doing this once when the reader object is
 instantiated is minimal. The default is to not verify data block checksums.
+
+==== madvise_random ====
+
+Specifies whether the kernel should be advised if the data access patterns are
+expected to be random or not. This may hurt some workloads but help others.
+The default is to not set this advisory information.
+
+This option can be explicitly overridden by setting the environment variable
+^MTBL_READER_MADVISE_RANDOM^ to the string ^"0"^ (force disable) or ^"1"^
+(force enable).
+
+This option only has any effect on systems that have the ^posix_madvise^ or
+^madvise^ system calls.
 
 == RETURN VALUE ==
 

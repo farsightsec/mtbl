@@ -1,5 +1,5 @@
 AC_PREREQ(2.60)
-AC_INIT([mtbl], [0.6.0])
+AC_INIT([mtbl], [0.7.0])
 AC_CONFIG_SRCDIR([mtbl/mtbl.h])
 AC_CONFIG_AUX_DIR([build-aux])
 AM_INIT_AUTOMAKE([foreign 1.11 -Wall -Wno-portability silent-rules subdir-objects color-tests])
@@ -38,6 +38,8 @@ AC_C_BIGENDIAN
 AC_CHECK_FUNC([mkstemp], [], [
     AC_MSG_ERROR([required system function not found])
 ])
+
+AC_CHECK_FUNCS([posix_madvise madvise])
 
 AC_CHECK_HEADERS([sys/endian.h endian.h])
 
