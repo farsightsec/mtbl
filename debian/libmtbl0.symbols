@@ -1,5 +1,6 @@
 libmtbl.so.0 libmtbl0 #MINVER#
  LIBMTBL_0.6.0@LIBMTBL_0.6.0 0.6.0
+ LIBMTBL_0.7.0@LIBMTBL_0.7.0 0.7.0
  mtbl_crc32c@LIBMTBL_0.6.0 0.6.0
  mtbl_fileset_destroy@LIBMTBL_0.6.0 0.6.0
  mtbl_fileset_init@LIBMTBL_0.6.0 0.6.0
@@ -28,6 +29,7 @@ libmtbl.so.0 libmtbl0 #MINVER#
  mtbl_reader_init_fd@LIBMTBL_0.6.0 0.6.0
  mtbl_reader_options_destroy@LIBMTBL_0.6.0 0.6.0
  mtbl_reader_options_init@LIBMTBL_0.6.0 0.6.0
+ mtbl_reader_options_set_madvise_random@LIBMTBL_0.7.0 0.7.0
  mtbl_reader_options_set_verify_checksums@LIBMTBL_0.6.0 0.6.0
  mtbl_reader_source@LIBMTBL_0.6.0 0.6.0
  mtbl_sorter_add@LIBMTBL_0.6.0 0.6.0
