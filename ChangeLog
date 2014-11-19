@@ -1,4 +1,4 @@
-mtbl (0.7.0) UNRELEASED
+mtbl (0.7.0)
 
   * mtbl_reader(3): New reader option 'madvise_random' which may drastically
     improve performance on seek-heavy workloads. It can be enabled by the
@@ -6,7 +6,7 @@ mtbl (0.7.0) UNRELEASED
     It can also be globally force-enabled or force-disabled at runtime by
     setting the environment variable MTBL_READER_MADVISE_RANDOM to "1" or "0".
 
- -- Robert Edmonds <edmonds@fsi.io>  Tue, 18 Nov 2014 18:46:16 -0500
+ -- Robert Edmonds <edmonds@fsi.io>  Wed, 19 Nov 2014 12:43:12 -0500
 
 mtbl (0.6.0)
 
