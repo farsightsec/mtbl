@@ -52,6 +52,9 @@ struct mtbl_reader {
 };
 
 static void
+reader_init_env(struct mtbl_reader *);
+
+static void
 reader_init_madvise(struct mtbl_reader *);
 
 static mtbl_res
@@ -102,22 +105,22 @@ mtbl_reader_options_set_verify_checksums(struct mtbl_reader_options *opt,
 }
 
 static void
-reader_init_madvise(struct mtbl_reader *r)
+reader_init_env(struct mtbl_reader *r)
 {
-	bool b;
 	const char *s;
-
-	b = r->opt.madvise_random;
 	s = getenv("MTBL_READER_MADVISE_RANDOM");
-
 	if (s) {
 		if (strcmp(s, "0") == 0)
-			b = false;
+			r->opt.madvise_random = 0;
 		else if (strcmp(s, "1") == 0)
-			b = true;
+			r->opt.madvise_random = 1;
 	}
+}
 
-	if (b) {
+static void
+reader_init_madvise(struct mtbl_reader *r)
+{
+	if (r->opt.madvise_random) {
 #if defined(HAVE_POSIX_MADVISE)
 		(void) posix_madvise(r->data, r->t.index_block_offset, POSIX_MADV_RANDOM);
 #elif defined(HAVE_MADVISE)
@@ -167,6 +170,7 @@ mtbl_reader_init_fd(int orig_fd, const struct mtbl_reader_options *opt)
 		return (NULL);
 	}
 
+	reader_init_env(r);
 	reader_init_madvise(r);
 
 	index_len = mtbl_fixed_decode32(r->data + r->t.index_block_offset + 0);
