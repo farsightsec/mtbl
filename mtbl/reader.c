@@ -271,6 +271,14 @@ get_block(struct mtbl_reader *r, uint64_t offset)
 	raw_contents_size = mtbl_fixed_decode32(&r->data[offset + 0]);
 	raw_contents = &r->data[offset + 2 * sizeof(uint32_t)];
 
+	if (r->opt.madvise_random) {
+#if defined(HAVE_POSIX_MADVISE)
+		(void) posix_madvise(raw_contents, raw_contents_size, POSIX_MADV_WILLNEED);
+#elif defined(HAVE_MADVISE)
+		(void) madvise(raw_contents, raw_contents_size, MADV_WILLNEED);
+#endif
+	}
+
 	if (r->opt.verify_checksums) {
 		uint32_t block_crc, calc_crc;
 		block_crc = mtbl_fixed_decode32(&r->data[offset + sizeof(uint32_t)]);
