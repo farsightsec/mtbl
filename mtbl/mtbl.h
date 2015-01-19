@@ -207,6 +207,9 @@ void
 mtbl_reader_options_set_madvise_random(struct mtbl_reader_options *, bool);
 
 void
+mtbl_reader_options_set_mlock_index(struct mtbl_reader_options *, bool);
+
+void
 mtbl_reader_options_set_block_readahead(struct mtbl_reader_options *, size_t);
 
 void

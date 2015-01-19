@@ -39,6 +39,7 @@ struct reader_iter {
 struct mtbl_reader_options {
 	bool				verify_checksums;
 	bool				madvise_random;
+	bool				mlock_index;
 	size_t				block_readahead;
 };
 
@@ -57,6 +58,9 @@ reader_init_env(struct mtbl_reader *);
 
 static void
 reader_init_madvise(struct mtbl_reader *);
+
+static mtbl_res
+reader_init_mlock_index(struct mtbl_reader *);
 
 static mtbl_res
 reader_iter_next(void *, const uint8_t **, size_t *, const uint8_t **, size_t *);
@@ -124,6 +128,14 @@ reader_init_env(struct mtbl_reader *r)
 			r->opt.madvise_random = 1;
 	}
 
+	s = getenv("MTBL_READER_MLOCK_INDEX");
+	if (s) {
+		if (strcmp(s, "0") == 0)
+			r->opt.mlock_index = 0;
+		else if (strcmp(s, "1") == 0)
+			r->opt.mlock_index = 1;
+	}
+
 	s = getenv("MTBL_READER_BLOCK_READAHEAD");
 	if (s) {
 		r->opt.block_readahead = atoi(s);
@@ -140,6 +152,24 @@ reader_init_madvise(struct mtbl_reader *r)
 		(void) madvise(r->data, r->t.index_block_offset, MADV_RANDOM);
 #endif
 	}
+}
+
+static mtbl_res
+reader_init_mlock_index(struct mtbl_reader *r)
+{
+	if (r->opt.mlock_index) {
+#if defined(HAVE_MLOCK)
+		if (!mlock(r->data+r->t.index_block_offset, mtbl_fixed_decode32(r->data + r->t.index_block_offset) + 2 * sizeof(uint32_t))) {
+			return (mtbl_res_success);
+		} else {
+			return (mtbl_res_failure);
+		}
+#else
+		return (mtbl_res_failure);
+#endif
+	}
+
+	return (mtbl_res_success);
 }
 
 struct mtbl_reader *
@@ -185,6 +215,11 @@ mtbl_reader_init_fd(int orig_fd, const struct mtbl_reader_options *opt)
 
 	reader_init_env(r);
 	reader_init_madvise(r);
+
+	if (!reader_init_mlock_index(r)) {
+		mtbl_reader_destroy(&r);
+		return (NULL);
+	}
 
 	index_len = mtbl_fixed_decode32(r->data + r->t.index_block_offset + 0);
 	index_crc = mtbl_fixed_decode32(r->data + r->t.index_block_offset + sizeof(uint32_t));
