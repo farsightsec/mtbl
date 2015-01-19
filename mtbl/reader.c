@@ -285,11 +285,32 @@ get_block(struct mtbl_reader *r, uint64_t offset)
 	raw_contents = &r->data[offset + 2 * sizeof(uint32_t)];
 
 	if (r->opt.madvise_random) {
+		if (r->opt.block_readahead) {
+			uint64_t end_offset = offset + 2 * sizeof(uint32_t) + raw_contents_size;
+			for (size_t blocks_remaining = r->opt.block_readahead;
+			blocks_remaining; blocks_remaining--) {
+				end_offset += mtbl_fixed_decode32(&r->data[end_offset+0]) + 2 * sizeof(uint32_t);
+				if (end_offset > r->len_data) {
+					end_offset = r->len_data;
+					break;
+				}
+			}
+
+			uint8_t * readahead_base = &r->data[offset];
+			size_t readahead_size = end_offset - offset;
+
 #if defined(HAVE_POSIX_MADVISE)
-		(void) posix_madvise(raw_contents, raw_contents_size, POSIX_MADV_WILLNEED);
+			(void) posix_madvise(readahead_base, readahead_size, POSIX_MADV_WILLNEED);
 #elif defined(HAVE_MADVISE)
-		(void) madvise(raw_contents, raw_contents_size, MADV_WILLNEED);
+			(void) madvise(readahead_base, readahead_size, MADV_WILLNEED);
 #endif
+		} else {
+#if defined(HAVE_POSIX_MADVISE)
+			(void) posix_madvise(raw_contents, raw_contents_size, POSIX_MADV_WILLNEED);
+#elif defined(HAVE_MADVISE)
+			(void) madvise(raw_contents, raw_contents_size, MADV_WILLNEED);
+#endif
+		}
 	}
 
 	if (r->opt.verify_checksums) {
