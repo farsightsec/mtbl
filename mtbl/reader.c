@@ -39,6 +39,7 @@ struct reader_iter {
 struct mtbl_reader_options {
 	bool				verify_checksums;
 	bool				madvise_random;
+	size_t				block_readahead;
 };
 
 struct mtbl_reader {
@@ -98,6 +99,13 @@ mtbl_reader_options_set_madvise_random(struct mtbl_reader_options *opt,
 }
 
 void
+mtbl_reader_options_set_block_readahead(struct mtbl_reader_options *opt,
+				       size_t block_readahead)
+{
+	opt->block_readahead = block_readahead;
+}
+
+void
 mtbl_reader_options_set_verify_checksums(struct mtbl_reader_options *opt,
 					 bool verify_checksums)
 {
@@ -114,6 +122,11 @@ reader_init_env(struct mtbl_reader *r)
 			r->opt.madvise_random = 0;
 		else if (strcmp(s, "1") == 0)
 			r->opt.madvise_random = 1;
+	}
+
+	s = getenv("MTBL_READER_BLOCK_READAHEAD");
+	if (s) {
+		r->opt.block_readahead = atoi(s);
 	}
 }
 
