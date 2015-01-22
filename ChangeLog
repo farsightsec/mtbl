@@ -1,3 +1,13 @@
+mtbl (0.8.0)
+
+  * mtbl_reader(3): New reader getters, which expose the values stored
+    in the "metadata" (formerly "trailer") at the end of MTBL files. For
+    example: the number of bytes of source data in the keys & values is
+    available via mtbl_metadata_bytes_keys() & mtbl_metadata_bytes_values().
+
+-- Alexey Spiridonov <lesha@fb.com>  Thu Jan 22 14:48:30 PST 2015
+    
+
 mtbl (0.7.0)
 
   * mtbl_reader(3): New reader option 'madvise_random' which may drastically

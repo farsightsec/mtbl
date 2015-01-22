@@ -27,7 +27,7 @@ struct mtbl_writer_options {
 
 struct mtbl_writer {
 	int				fd;
-	struct trailer			t;
+	struct mtbl_metadata		m;
 	struct block_builder		*data;
 	struct block_builder		*index;
 
@@ -113,8 +113,8 @@ mtbl_writer_init_fd(int orig_fd, const struct mtbl_writer_options *opt)
 	}
 	w->fd = fd;
 	w->last_key = ubuf_init(256);
-	w->t.compression_algorithm = w->opt.compression_type;
-	w->t.data_block_size = w->opt.block_size;
+	w->m.compression_algorithm = w->opt.compression_type;
+	w->m.data_block_size = w->opt.block_size;
 	w->data = block_builder_init(w->opt.block_restart_interval);
 	w->index = block_builder_init(w->opt.block_restart_interval);
 	return (w);
@@ -156,7 +156,7 @@ mtbl_writer_add(struct mtbl_writer *w,
 		const uint8_t *val, size_t len_val)
 {
 	assert(!w->closed);
-	if (w->t.count_entries > 0) {
+	if (w->m.count_entries > 0) {
 		if (!(bytes_compare(key, len_key,
 				    ubuf_data(w->last_key), ubuf_size(w->last_key)) > 0))
 		{
@@ -189,9 +189,9 @@ mtbl_writer_add(struct mtbl_writer *w,
 	ubuf_reset(w->last_key);
 	ubuf_append(w->last_key, key, len_key);
 
-	w->t.count_entries += 1;
-	w->t.bytes_keys += len_key;
-	w->t.bytes_values += len_val;
+	w->m.count_entries += 1;
+	w->m.bytes_keys += len_key;
+	w->m.bytes_values += len_val;
 	block_builder_add(w->data, key, len_key, val, len_val);
 	return (mtbl_res_success);
 }
@@ -199,7 +199,7 @@ mtbl_writer_add(struct mtbl_writer *w,
 static void
 _mtbl_writer_finish(struct mtbl_writer *w)
 {
-	uint8_t tbuf[MTBL_TRAILER_SIZE];
+	uint8_t tbuf[MTBL_METADATA_SIZE];
 
 	_mtbl_writer_flush(w);
 	assert(!w->closed);
@@ -218,10 +218,10 @@ _mtbl_writer_finish(struct mtbl_writer *w)
 				  enc, len_enc);
 		w->pending_index_entry = false;
 	}
-	w->t.index_block_offset = w->pending_offset;
-	w->t.bytes_index_block = _mtbl_writer_writeblock(w, w->index, MTBL_COMPRESSION_NONE);
+	w->m.index_block_offset = w->pending_offset;
+	w->m.bytes_index_block = _mtbl_writer_writeblock(w, w->index, MTBL_COMPRESSION_NONE);
 
-	trailer_write(&w->t, tbuf);
+	metadata_write(&w->m, tbuf);
 	_write_all(w->fd, tbuf, sizeof(tbuf));
 }
 
@@ -232,8 +232,8 @@ _mtbl_writer_flush(struct mtbl_writer *w)
 	if (block_builder_empty(w->data))
 		return;
 	assert(!w->pending_index_entry);
-	w->t.bytes_data_blocks += _mtbl_writer_writeblock(w, w->data, w->opt.compression_type);
-	w->t.count_data_blocks += 1;
+	w->m.bytes_data_blocks += _mtbl_writer_writeblock(w, w->data, w->opt.compression_type);
+	w->m.count_data_blocks += 1;
 	w->pending_index_entry = true;
 }
 

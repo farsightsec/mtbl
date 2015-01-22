@@ -1,0 +1,90 @@
+= MTBL_METADATA(3) =
+
+== NAME ==
+
+mtbl_metadata - get MTBL file metadata
+
+== SYNOPSIS ==
+
+^#include <mtbl.h>^
+
+[verse]
+^uint64_t
+mtbl_metadata_index_block_offset(const struct mtbl_metadata *'m');^
+
+[verse]
+^uint64_t
+mtbl_metadata_data_block_size(const struct mtbl_metadata *'m');^
+
+[verse]
+^mtbl_compression_type
+mtbl_metadata_compression_algorithm(const struct mtbl_metadata *'m');^
+
+[verse]
+^uint64_t
+mtbl_metadata_count_entries(const struct mtbl_metadata *'m');^
+
+[verse]
+^uint64_t
+mtbl_metadata_count_data_blocks(const struct mtbl_metadata *'m');^
+
+[verse]
+^uint64_t
+mtbl_metadata_bytes_data_blocks(const struct mtbl_metadata *'m');^
+
+[verse]
+^uint64_t
+mtbl_metadata_bytes_index_block(const struct mtbl_metadata *'m');^
+
+[verse]
+^uint64_t
+mtbl_metadata_bytes_keys(const struct mtbl_metadata *'m');^
+
+[verse]
+^uint64_t
+mtbl_metadata_bytes_values(const struct mtbl_metadata *'m');^
+
+== DESCRIPTION ==
+
+An ^mtbl_metadata^ object may be obtained from an ^mtbl_reader^(3).
+Its accessors export a number of file statistics.
+
+== RETURN VALUE ==
+
+=== mtbl_metadata_index_block_offset() ===
+
+Byte offset in the MTBL file where the index begins.
+
+=== mtbl_metadata_data_block_size() ===
+
+Size of an uncompressed data block, see ^mtbl_writer^(3).
+
+=== mtbl_metadata_compression_algorithm() ===
+
+One of the ^compression^ values allowed by ^mtbl_writer^(3).
+
+=== mtbl_metadata_count_entries() ===
+
+How many key-value pairs are in the file.
+
+=== mtbl_metadata_count_data_blocks() ===
+
+The number of data blocks.
+
+=== mtbl_metadata_bytes_data_blocks() ===
+
+Number of bytes used to store key-value data (as opposed to the index).
+
+=== mtbl_metadata_bytes_index_block() ===
+
+Number of bytes used for the index.
+
+=== mtbl_metadata_bytes_keys() ===
+
+How many bytes are needed to store the concatenation of all the original,
+uncompressed keys.
+
+=== mtbl_metadata_bytes_values() ===
+
+How many bytes are needed to store the concatenation of all the 
+original, uncompressed values.

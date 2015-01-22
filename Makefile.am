@@ -45,7 +45,7 @@ mtbl_libmtbl_la_SOURCES = \
 	mtbl/reader.c \
 	mtbl/sorter.c \
 	mtbl/source.c \
-	mtbl/trailer.c \
+	mtbl/metadata.c \
 	mtbl/varint.c \
 	mtbl/writer.c
 
@@ -107,10 +107,10 @@ check_PROGRAMS += t/test-fixed
 t_test_fixed_SOURCES = t/test-fixed.c
 t_test_fixed_LDADD = mtbl/libmtbl.la
 
-TESTS += t/test-trailer
-check_PROGRAMS += t/test-trailer
-t_test_trailer_SOURCES = t/test-trailer.c
-t_test_trailer_LDADD = mtbl/libmtbl.la
+TESTS += t/test-metadata
+check_PROGRAMS += t/test-metadata
+t_test_metadata_SOURCES = t/test-metadata.c
+t_test_metadata_LDADD = mtbl/libmtbl.la
 
 TESTS += t/test-varint
 check_PROGRAMS += t/test-varint
@@ -159,6 +159,7 @@ dist_man_MANS = \
 	man/mtbl_info.1 \
 	man/mtbl_merge.1 \
 	man/mtbl_iter.3 \
+	man/mtbl_metadata.3 \
 	man/mtbl_source.3 \
 	man/mtbl_reader.3 \
 	man/mtbl_writer.3 \
@@ -175,6 +176,7 @@ EXTRA_DIST += \
 	man/mtbl_info.1.txt \
 	man/mtbl_merge.1.txt \
 	man/mtbl_iter.3.txt \
+	man/mtbl_metadata.3.txt \
 	man/mtbl_source.3.txt \
 	man/mtbl_reader.3.txt \
 	man/mtbl_writer.3.txt \

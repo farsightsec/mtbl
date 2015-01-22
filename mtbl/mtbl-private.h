@@ -50,7 +50,7 @@
 #include "libmy/my_alloc.h"
 
 #define MTBL_MAGIC			0x77846676
-#define MTBL_TRAILER_SIZE		512
+#define MTBL_METADATA_SIZE		512
 
 #define DEFAULT_COMPRESSION_TYPE	MTBL_COMPRESSION_ZLIB
 #define DEFAULT_BLOCK_RESTART_INTERVAL	16
@@ -69,7 +69,7 @@
 struct block;
 struct block_builder;
 struct block_iter;
-struct trailer;
+struct mtbl_metadata;
 
 /* block */
 
@@ -101,9 +101,9 @@ void block_builder_add(struct block_builder *,
 	const uint8_t *val, size_t len_val);
 bool block_builder_empty(struct block_builder *);
 
-/* trailer */
+/* metadata */
 
-struct trailer {
+struct mtbl_metadata {
 	uint64_t	index_block_offset;
 	uint64_t	data_block_size;
 	uint64_t	compression_algorithm;
@@ -115,8 +115,8 @@ struct trailer {
 	uint64_t	bytes_values;
 };
 
-void trailer_write(struct trailer *t, uint8_t *buf);
-bool trailer_read(const uint8_t *buf, struct trailer *t);
+void metadata_write(const struct mtbl_metadata *t, uint8_t *buf);
+bool metadata_read(const uint8_t *buf, struct mtbl_metadata *t);
 
 /* misc */
 
