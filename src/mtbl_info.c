@@ -18,6 +18,7 @@
 #include <sys/stat.h>
 #include <errno.h>
 #include <fcntl.h>
+#include <inttypes.h>
 #include <locale.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -25,71 +26,59 @@
 #include <unistd.h>
 
 #include <mtbl.h>
-#include "trailer.c"
 
 static void
-dump(const char *fname)
+print_info(const char *fname)
 {
-	int fd, ret;
-	size_t trailer_offset;
+	int ret;
 	struct stat ss;
-	struct trailer t;
-	uint8_t buf[MTBL_TRAILER_SIZE];
+	struct mtbl_reader *r;
 
-	fd = open(fname, O_RDONLY);
-	if (fd < 0) {
-		fprintf(stderr, "Error: unable to open file %s: %s\n", fname, strerror(errno));
+	r = mtbl_reader_init(fname, NULL);
+	if (r == NULL) {
+		fprintf(stderr, "Error: mtbl_reader_init() on %s failed\n", fname);
 		exit(EXIT_FAILURE);
 	}
 
-	ret = fstat(fd, &ss);
+	ret = stat(fname, &ss);
 	if (ret < 0) {
-		perror("Error: fstat");
+		perror("Error: stat");
 		exit(EXIT_FAILURE);
 	}
-	trailer_offset = ss.st_size - MTBL_TRAILER_SIZE;
+	
+	uint64_t data_block_size = mtbl_reader_get_data_block_size(r);
+	mtbl_compression_type compression_algorithm =
+		mtbl_reader_get_compression_algorithm(r);
+	uint64_t count_entries = mtbl_reader_get_count_entries(r);
+	uint64_t count_data_blocks = mtbl_reader_get_count_data_blocks(r);
+	uint64_t bytes_data_blocks = mtbl_reader_get_bytes_data_blocks(r);
+	uint64_t bytes_index_block = mtbl_reader_get_bytes_index_block(r);
+	uint64_t bytes_keys = mtbl_reader_get_bytes_keys(r);
+	uint64_t bytes_values = mtbl_reader_get_bytes_values(r);
 
-	off_t o = lseek(fd, trailer_offset, SEEK_SET);
-	if (o == (off_t) -1) {
-		fprintf(stderr, "Error: lseek() failed: %s\n", strerror(errno));
-		exit(EXIT_FAILURE);
-	}
-
-	ret = read(fd, buf, sizeof(buf));
-	if (ret != sizeof(buf)) {
-		fprintf(stderr, "Error: short read\n");
-		exit(EXIT_FAILURE);
-	}
-	close(fd);
-
-	if (!trailer_read(buf, &t)) {
-		fprintf(stderr, "Error: unable to read trailer\n");
-		exit(EXIT_FAILURE);
-	}
-
-	double p_data = 100.0 * t.bytes_data_blocks / ss.st_size;
-	double p_index = 100.0 * t.bytes_index_block / ss.st_size;
-	double compactness = 100.0 * ss.st_size / (t.bytes_keys + t.bytes_values);
+	double p_data = 100.0 * bytes_data_blocks / ss.st_size;
+	double p_index = 100.0 * bytes_index_block / ss.st_size;
+	double compactness = 100.0 * ss.st_size / (bytes_keys + bytes_values);
 
 	printf("file name:             %s\n", fname);
 	printf("file size:             %'zd\n", (size_t) ss.st_size);
-	printf("index bytes:           %'" PRIu64 " (%'.2f%%)\n", t.bytes_index_block, p_index);
-	printf("data block bytes       %'" PRIu64 " (%'.2f%%)\n", t.bytes_data_blocks, p_data);
-	printf("data block size:       %'" PRIu64 "\n", t.data_block_size);
-	printf("data block count       %'" PRIu64 "\n", t.count_data_blocks);
-	printf("entry count:           %'" PRIu64 "\n", t.count_entries);
-	printf("key bytes:             %'" PRIu64 "\n", t.bytes_keys);
-	printf("value bytes:           %'" PRIu64 "\n", t.bytes_values);
+	printf("index bytes:           %'" PRIu64 " (%'.2f%%)\n", bytes_index_block, p_index);
+	printf("data block bytes       %'" PRIu64 " (%'.2f%%)\n", bytes_data_blocks, p_data);
+	printf("data block size:       %'" PRIu64 "\n", data_block_size);
+	printf("data block count       %'" PRIu64 "\n", count_data_blocks);
+	printf("entry count:           %'" PRIu64 "\n", count_entries);
+	printf("key bytes:             %'" PRIu64 "\n", bytes_keys);
+	printf("value bytes:           %'" PRIu64 "\n", bytes_values);
 	printf("compression algorithm: ");
 
-	if (t.compression_algorithm == MTBL_COMPRESSION_NONE) {
+	if (compression_algorithm == MTBL_COMPRESSION_NONE) {
 		puts("none");
-	} else if (t.compression_algorithm == MTBL_COMPRESSION_SNAPPY) {
+	} else if (compression_algorithm == MTBL_COMPRESSION_SNAPPY) {
 		puts("snappy");
-	} else if (t.compression_algorithm == MTBL_COMPRESSION_ZLIB) {
+	} else if (compression_algorithm == MTBL_COMPRESSION_ZLIB) {
 		puts("zlib");
 	} else {
-		printf("%" PRIu64 "\n", t.compression_algorithm);
+		printf("%u\n", compression_algorithm);
 	}
 
 	printf("compactness:           %'.2f%%\n", compactness);
@@ -107,7 +96,7 @@ main(int argc, char **argv)
 		exit(EXIT_FAILURE);
 	}
 	for (int i = 1; i < argc; i++)
-		dump(argv[i]);
+		print_info(argv[i]);
 
 	return (EXIT_SUCCESS);
 }

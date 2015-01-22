@@ -195,6 +195,35 @@ mtbl_reader_destroy(struct mtbl_reader **);
 const struct mtbl_source *
 mtbl_reader_source(struct mtbl_reader *);
 
+/* reader metadata */
+
+uint64_t
+mtbl_reader_get_index_block_offset(struct mtbl_reader *);
+
+uint64_t
+mtbl_reader_get_data_block_size(struct mtbl_reader *);
+
+mtbl_compression_type
+mtbl_reader_get_compression_algorithm(struct mtbl_reader *);
+
+uint64_t
+mtbl_reader_get_count_entries(struct mtbl_reader *);
+
+uint64_t
+mtbl_reader_get_count_data_blocks(struct mtbl_reader *);
+
+uint64_t
+mtbl_reader_get_bytes_data_blocks(struct mtbl_reader *);
+
+uint64_t
+mtbl_reader_get_bytes_index_block(struct mtbl_reader *);
+
+uint64_t
+mtbl_reader_get_bytes_keys(struct mtbl_reader *);
+
+uint64_t
+mtbl_reader_get_bytes_values(struct mtbl_reader *);
+
 /* reader options */
 
 struct mtbl_reader_options *

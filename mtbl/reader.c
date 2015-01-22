@@ -478,3 +478,57 @@ reader_iter_next(void *v,
 		return (mtbl_res_success);
 	return (mtbl_res_failure);
 }
+
+uint64_t
+mtbl_reader_get_index_block_offset(struct mtbl_reader *r)
+{
+	return r->t.index_block_offset;
+}
+
+uint64_t
+mtbl_reader_get_data_block_size(struct mtbl_reader *r)
+{
+	return r->t.data_block_size;
+}
+
+mtbl_compression_type
+mtbl_reader_get_compression_algorithm(struct mtbl_reader *r)
+{
+	return r->t.compression_algorithm;
+}
+
+uint64_t
+mtbl_reader_get_count_entries(struct mtbl_reader *r)
+{
+	return r->t.count_entries;
+}
+
+uint64_t
+mtbl_reader_get_count_data_blocks(struct mtbl_reader *r)
+{
+	return r->t.count_data_blocks;
+}
+
+uint64_t
+mtbl_reader_get_bytes_data_blocks(struct mtbl_reader *r)
+{
+	return r->t.bytes_data_blocks;
+}
+
+uint64_t
+mtbl_reader_get_bytes_index_block(struct mtbl_reader *r)
+{
+	return r->t.bytes_index_block;
+}
+
+uint64_t
+mtbl_reader_get_bytes_keys(struct mtbl_reader *r)
+{
+	return r->t.bytes_keys;
+}
+
+uint64_t
+mtbl_reader_get_bytes_values(struct mtbl_reader *r)
+{
+	return r->t.bytes_values;
+}
