@@ -48,6 +48,44 @@ mtbl_reader_options_set_madvise_random(
         struct mtbl_reader_options *'ropt',
         bool 'madvise_random');^
 
+Reader file metadata:
+
+[verse]
+^uint64_t
+mtbl_reader_get_index_block_offset(struct mtbl_reader *'r');^
+
+[verse]
+^uint64_t
+mtbl_reader_get_data_block_size(struct mtbl_reader *'r');^
+
+[verse]
+^mtbl_compression_type
+mtbl_reader_get_compression_algorithm(struct mtbl_reader *'r');^
+
+[verse]
+^uint64_t
+mtbl_reader_get_count_entries(struct mtbl_reader *'r');^
+
+[verse]
+^uint64_t
+mtbl_reader_get_count_data_blocks(struct mtbl_reader *'r');^
+
+[verse]
+^uint64_t
+mtbl_reader_get_bytes_data_blocks(struct mtbl_reader *'r');^
+
+[verse]
+^uint64_t
+mtbl_reader_get_bytes_index_block(struct mtbl_reader *'r');^
+
+[verse]
+^uint64_t
+mtbl_reader_get_bytes_keys(struct mtbl_reader *'r');^
+
+[verse]
+^uint64_t
+mtbl_reader_get_bytes_values(struct mtbl_reader *'r');^
+
 == DESCRIPTION ==
 
 MTBL files are accessed by creating an ^mtbl_reader^ object, calling
@@ -86,6 +124,48 @@ This option can be explicitly overridden by setting the environment variable
 
 This option only has any effect on systems that have the ^posix_madvise^ or
 ^madvise^ system calls.
+
+=== File metadata ===
+
+The functions prefixed with ^mtbl_reader_get^ expose metadata about the
+entire MTBL file:
+
+==== mtbl_reader_get_index_block_offset() ====
+
+Byte offset in the MTBL file where the index begins.
+
+==== mtbl_reader_get_data_block_size() ====
+
+Size of an uncompressed data block, see ^mtrbl_writer^(3).
+==== mtbl_reader_get_compression_algorithm() ====
+
+One of the ^compression^ values allowed by ^mtrbl_writer^(3).
+
+==== mtbl_reader_get_count_entries() ====
+
+How many key-value pairs are in the file.
+
+==== mtbl_reader_get_count_data_blocks() ====
+
+The number of data blocks.
+
+==== mtbl_reader_get_bytes_data_blocks() ====
+
+Number of bytes in used for key-value data (as opposed to the index).
+
+==== mtbl_reader_get_bytes_index_block() ====
+
+Number of bytes used for the index.
+
+==== mtbl_reader_get_bytes_keys() ====
+
+How many bytes are needed to store the concatenation of all the original,
+uncompressed keys.
+
+==== mtbl_reader_get_bytes_values() ====
+
+How many bytes are needed to store the concatenation of all the 
+original, uncompressed values.
 
 == RETURN VALUE ==
 

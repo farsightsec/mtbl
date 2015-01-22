@@ -70,3 +70,16 @@ LIBMTBL_0.7.0 {
 global:
         mtbl_reader_options_set_madvise_random;
 } LIBMTBL_0.6.0;
+
+LIBMTBL_0.8.0 {
+global:
+	mtbl_reader_get_index_block_offset;
+	mtbl_reader_get_data_block_size;
+	mtbl_reader_get_compression_algorithm;
+	mtbl_reader_get_count_entries;
+	mtbl_reader_get_count_data_blocks;
+	mtbl_reader_get_bytes_data_blocks;
+	mtbl_reader_get_bytes_index_block;
+	mtbl_reader_get_bytes_keys;
+	mtbl_reader_get_bytes_values;
+} LIBMTBL_0.7.0;
