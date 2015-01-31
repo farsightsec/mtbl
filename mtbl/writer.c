@@ -112,6 +112,10 @@ mtbl_writer_init_fd(int orig_fd, const struct mtbl_writer_options *opt)
 		memcpy(&w->opt, opt, sizeof(*opt));
 	}
 	w->fd = fd;
+	// Start writing from the current offset. This allows mtbl's callers
+	// to reserve some initial bytes in the file.
+	w->last_offset = lseek(fd, 0, SEEK_CUR);
+	w->pending_offset = w->last_offset;
 	w->last_key = ubuf_init(256);
 	w->m.compression_algorithm = w->opt.compression_type;
 	w->m.data_block_size = w->opt.block_size;
