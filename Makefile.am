@@ -133,6 +133,11 @@ EXTRA_DIST += t/test-gh1-snappy.data
 EXTRA_DIST += t/test-gh1-zlib.data
 t/test-gh1.sh: src/mtbl_dump
 
+TESTS += t/test-foreign-prefix.sh
+EXTRA_DIST += t/test-foreign-prefix.sh
+EXTRA_DIST += t/test-foreign-prefix.data
+t/test-foreign-prefix.sh: src/mtbl_dump
+
 #
 ##
 ### documentation
