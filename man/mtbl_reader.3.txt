@@ -26,6 +26,10 @@ mtbl_reader_destroy(struct mtbl_reader **'r');^
 ^const struct mtbl_source *
 mtbl_reader_source(struct mtbl_reader *'r');^
 
+[verse]
+^const struct mtbl_metadata *
+mtbl_reader_metadata(struct mtbl_reader *'r');^
+
 Reader options:
 
 [verse]
@@ -63,6 +67,10 @@ may be opened and read from concurrently by independent threads or processes.
 If the _ropt_ parameter to ^mtbl_reader_init^() or ^mtbl_reader_init_fd^() is
 non-NULL, the parameters specified in the ^mtbl_reader_options^ object will be
 configured into the ^mtbl_reader^ object.
+
+File-level metadata may be accessed using the ^mtbl_metadata^(3) interface,
+using the object returned by ^mtbl_reader_metadata^().  Note that the
+metadata object is valid only as long as the reader object exists.
 
 === Reader options ===
 

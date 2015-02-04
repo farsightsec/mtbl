@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012 by Farsight Security, Inc.
+ * Copyright (c) 2012-2015 by Farsight Security, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,7 @@
 #include "mtbl-private.h"
 
 void
-trailer_write(struct trailer *t, uint8_t *buf)
+metadata_write(const struct mtbl_metadata *t, uint8_t *buf)
 {
 	size_t padding;
 	uint8_t *p = buf;
@@ -32,19 +32,19 @@ trailer_write(struct trailer *t, uint8_t *buf)
 	p += mtbl_fixed_encode64(p, t->bytes_keys);
 	p += mtbl_fixed_encode64(p, t->bytes_values);
 
-	padding = MTBL_TRAILER_SIZE - (p - buf) - sizeof(uint32_t);
+	padding = MTBL_METADATA_SIZE - (p - buf) - sizeof(uint32_t);
 	while (padding-- != 0)
 		*(p++) = '\0';
-	mtbl_fixed_encode32(buf + MTBL_TRAILER_SIZE - sizeof(uint32_t), MTBL_MAGIC);
+	mtbl_fixed_encode32(buf + MTBL_METADATA_SIZE - sizeof(uint32_t), MTBL_MAGIC);
 }
 
 bool
-trailer_read(const uint8_t *buf, struct trailer *t)
+metadata_read(const uint8_t *buf, struct mtbl_metadata *t)
 {
 	uint32_t magic;
 	const uint8_t *p = buf;
 
-	magic = mtbl_fixed_decode32(buf + MTBL_TRAILER_SIZE - sizeof(uint32_t));
+	magic = mtbl_fixed_decode32(buf + MTBL_METADATA_SIZE - sizeof(uint32_t));
 	if (magic != MTBL_MAGIC)
 		return (false);
 
@@ -60,4 +60,58 @@ trailer_read(const uint8_t *buf, struct trailer *t)
 
 	return (true);
 
+}
+
+uint64_t
+mtbl_metadata_index_block_offset(const struct mtbl_metadata *m)
+{
+	return m->index_block_offset;
+}
+
+uint64_t
+mtbl_metadata_data_block_size(const struct mtbl_metadata *m)
+{
+	return m->data_block_size;
+}
+
+mtbl_compression_type
+mtbl_metadata_compression_algorithm(const struct mtbl_metadata *m)
+{
+	return m->compression_algorithm;
+}
+
+uint64_t
+mtbl_metadata_count_entries(const struct mtbl_metadata *m)
+{
+	return m->count_entries;
+}
+
+uint64_t
+mtbl_metadata_count_data_blocks(const struct mtbl_metadata *m)
+{
+	return m->count_data_blocks;
+}
+
+uint64_t
+mtbl_metadata_bytes_data_blocks(const struct mtbl_metadata *m)
+{
+	return m->bytes_data_blocks;
+}
+
+uint64_t
+mtbl_metadata_bytes_index_block(const struct mtbl_metadata *m)
+{
+	return m->bytes_index_block;
+}
+
+uint64_t
+mtbl_metadata_bytes_keys(const struct mtbl_metadata *m)
+{
+	return m->bytes_keys;
+}
+
+uint64_t
+mtbl_metadata_bytes_values(const struct mtbl_metadata *m)
+{
+	return m->bytes_values;
 }

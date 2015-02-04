@@ -46,6 +46,7 @@ struct mtbl_reader_options;
 struct mtbl_writer;
 struct mtbl_writer_options;
 
+struct mtbl_metadata;
 struct mtbl_merger;
 struct mtbl_merger_options;
 struct mtbl_fileset;
@@ -195,6 +196,9 @@ mtbl_reader_destroy(struct mtbl_reader **);
 const struct mtbl_source *
 mtbl_reader_source(struct mtbl_reader *);
 
+const struct mtbl_metadata *
+mtbl_reader_metadata(struct mtbl_reader *);
+
 /* reader options */
 
 struct mtbl_reader_options *
@@ -208,6 +212,35 @@ mtbl_reader_options_set_madvise_random(struct mtbl_reader_options *, bool);
 
 void
 mtbl_reader_options_set_verify_checksums(struct mtbl_reader_options *, bool);
+
+/* metadata */
+
+uint64_t
+mtbl_metadata_index_block_offset(const struct mtbl_metadata *);
+
+uint64_t
+mtbl_metadata_data_block_size(const struct mtbl_metadata *);
+
+mtbl_compression_type
+mtbl_metadata_compression_algorithm(const struct mtbl_metadata *);
+
+uint64_t
+mtbl_metadata_count_entries(const struct mtbl_metadata *);
+
+uint64_t
+mtbl_metadata_count_data_blocks(const struct mtbl_metadata *);
+
+uint64_t
+mtbl_metadata_bytes_data_blocks(const struct mtbl_metadata *);
+
+uint64_t
+mtbl_metadata_bytes_index_block(const struct mtbl_metadata *);
+
+uint64_t
+mtbl_metadata_bytes_keys(const struct mtbl_metadata *);
+
+uint64_t
+mtbl_metadata_bytes_values(const struct mtbl_metadata *);
 
 /* merger */
 
