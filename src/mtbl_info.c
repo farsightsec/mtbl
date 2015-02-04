@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012 by Farsight Security, Inc.
+ * Copyright (c) 2012, 2015 by Farsight Security, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
+#include <string.h>
 #include <unistd.h>
 
 #include <mtbl.h>
@@ -30,24 +31,31 @@
 static void
 print_info(const char *fname)
 {
-	int ret;
+	int fd, ret;
 	struct stat ss;
 	struct mtbl_reader *r;
 	const struct mtbl_metadata *m;
 
-	r = mtbl_reader_init(fname, NULL);
-	if (r == NULL) {
-		fprintf(stderr, "Error: mtbl_reader_init() on %s failed\n", fname);
+	fd = open(fname, O_RDONLY);
+	if (fd < 0) {
+		fprintf(stderr, "Error: unable to open file %s: %s\n", fname, strerror(errno));
 		exit(EXIT_FAILURE);
 	}
+
+	ret = fstat(fd, &ss);
+	if (ret < 0) {
+		perror("Error: fstat");
+		exit(EXIT_FAILURE);
+	}
+
+	r = mtbl_reader_init_fd(fd, NULL);
+	if (r == NULL) {
+		fprintf(stderr, "Error: mtbl_reader_init_fd() on %s failed\n", fname);
+		exit(EXIT_FAILURE);
+	}
+
 	m = mtbl_reader_metadata(r);
 
-	ret = stat(fname, &ss);
-	if (ret < 0) {
-		perror("Error: stat");
-		exit(EXIT_FAILURE);
-	}
-	
 	uint64_t data_block_size = mtbl_metadata_data_block_size(m);
 	mtbl_compression_type compression_algorithm =
 		mtbl_metadata_compression_algorithm(m);
@@ -86,6 +94,8 @@ print_info(const char *fname)
 	printf("compactness:           %'.2f%%\n", compactness);
 
 	putchar('\n');
+
+	mtbl_reader_destroy(&r);
 }
 
 int

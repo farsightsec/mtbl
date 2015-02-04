@@ -17,20 +17,20 @@
 #include "mtbl-private.h"
 
 void
-metadata_write(const struct mtbl_metadata *t, uint8_t *buf)
+metadata_write(const struct mtbl_metadata *m, uint8_t *buf)
 {
 	size_t padding;
 	uint8_t *p = buf;
 
-	p += mtbl_fixed_encode64(p, t->index_block_offset);
-	p += mtbl_fixed_encode64(p, t->data_block_size);
-	p += mtbl_fixed_encode64(p, t->compression_algorithm);
-	p += mtbl_fixed_encode64(p, t->count_entries);
-	p += mtbl_fixed_encode64(p, t->count_data_blocks);
-	p += mtbl_fixed_encode64(p, t->bytes_data_blocks);
-	p += mtbl_fixed_encode64(p, t->bytes_index_block);
-	p += mtbl_fixed_encode64(p, t->bytes_keys);
-	p += mtbl_fixed_encode64(p, t->bytes_values);
+	p += mtbl_fixed_encode64(p, m->index_block_offset);
+	p += mtbl_fixed_encode64(p, m->data_block_size);
+	p += mtbl_fixed_encode64(p, m->compression_algorithm);
+	p += mtbl_fixed_encode64(p, m->count_entries);
+	p += mtbl_fixed_encode64(p, m->count_data_blocks);
+	p += mtbl_fixed_encode64(p, m->bytes_data_blocks);
+	p += mtbl_fixed_encode64(p, m->bytes_index_block);
+	p += mtbl_fixed_encode64(p, m->bytes_keys);
+	p += mtbl_fixed_encode64(p, m->bytes_values);
 
 	padding = MTBL_METADATA_SIZE - (p - buf) - sizeof(uint32_t);
 	while (padding-- != 0)
@@ -39,7 +39,7 @@ metadata_write(const struct mtbl_metadata *t, uint8_t *buf)
 }
 
 bool
-metadata_read(const uint8_t *buf, struct mtbl_metadata *t)
+metadata_read(const uint8_t *buf, struct mtbl_metadata *m)
 {
 	uint32_t magic;
 	const uint8_t *p = buf;
@@ -48,15 +48,15 @@ metadata_read(const uint8_t *buf, struct mtbl_metadata *t)
 	if (magic != MTBL_MAGIC)
 		return (false);
 
-	t->index_block_offset = mtbl_fixed_decode64(p); p += 8;
-	t->data_block_size = mtbl_fixed_decode64(p); p += 8;
-	t->compression_algorithm = mtbl_fixed_decode64(p); p += 8;
-	t->count_entries = mtbl_fixed_decode64(p); p += 8;
-	t->count_data_blocks = mtbl_fixed_decode64(p); p += 8;
-	t->bytes_data_blocks = mtbl_fixed_decode64(p); p += 8;
-	t->bytes_index_block = mtbl_fixed_decode64(p); p += 8;
-	t->bytes_keys = mtbl_fixed_decode64(p); p += 8;
-	t->bytes_values = mtbl_fixed_decode64(p); p += 8;
+	m->index_block_offset = mtbl_fixed_decode64(p); p += 8;
+	m->data_block_size = mtbl_fixed_decode64(p); p += 8;
+	m->compression_algorithm = mtbl_fixed_decode64(p); p += 8;
+	m->count_entries = mtbl_fixed_decode64(p); p += 8;
+	m->count_data_blocks = mtbl_fixed_decode64(p); p += 8;
+	m->bytes_data_blocks = mtbl_fixed_decode64(p); p += 8;
+	m->bytes_index_block = mtbl_fixed_decode64(p); p += 8;
+	m->bytes_keys = mtbl_fixed_decode64(p); p += 8;
+	m->bytes_values = mtbl_fixed_decode64(p); p += 8;
 
 	return (true);
 
@@ -74,7 +74,7 @@ mtbl_metadata_data_block_size(const struct mtbl_metadata *m)
 	return m->data_block_size;
 }
 
-mtbl_compression_type
+uint64_t
 mtbl_metadata_compression_algorithm(const struct mtbl_metadata *m)
 {
 	return m->compression_algorithm;

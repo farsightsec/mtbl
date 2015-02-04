@@ -221,7 +221,7 @@ mtbl_metadata_index_block_offset(const struct mtbl_metadata *);
 uint64_t
 mtbl_metadata_data_block_size(const struct mtbl_metadata *);
 
-mtbl_compression_type
+uint64_t
 mtbl_metadata_compression_algorithm(const struct mtbl_metadata *);
 
 uint64_t
