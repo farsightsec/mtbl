@@ -69,7 +69,6 @@
 struct block;
 struct block_builder;
 struct block_iter;
-struct mtbl_metadata;
 
 /* block */
 
@@ -115,8 +114,8 @@ struct mtbl_metadata {
 	uint64_t	bytes_values;
 };
 
-void metadata_write(const struct mtbl_metadata *t, uint8_t *buf);
-bool metadata_read(const uint8_t *buf, struct mtbl_metadata *t);
+void metadata_write(const struct mtbl_metadata *, uint8_t *buf);
+bool metadata_read(const uint8_t *buf, struct mtbl_metadata *);
 
 /* misc */
 

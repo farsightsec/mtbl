@@ -102,7 +102,8 @@ mtbl_reader_options_set_verify_checksums(struct mtbl_reader_options *opt,
 }
 
 const struct mtbl_metadata *
-mtbl_reader_metadata(struct mtbl_reader *r) {
+mtbl_reader_metadata(struct mtbl_reader *r)
+{
 	return &r->m;
 }
 
