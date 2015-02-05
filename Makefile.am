@@ -79,6 +79,10 @@ bin_PROGRAMS += src/mtbl_info
 src_mtbl_info_SOURCES = src/mtbl_info.c
 src_mtbl_info_LDADD = mtbl/libmtbl.la
 
+bin_PROGRAMS += src/mtbl_verify
+src_mtbl_verify_SOURCES = src/mtbl_verify.c
+src_mtbl_verify_LDADD = mtbl/libmtbl.la
+
 bin_PROGRAMS += src/mtbl_merge
 src_mtbl_merge_SOURCES = src/mtbl_merge.c libmy/getenv_int.h
 src_mtbl_merge_LDADD = mtbl/libmtbl.la
@@ -121,6 +125,11 @@ TESTS += t/test-vector
 check_PROGRAMS += t/test-vector
 t_test_vector_SOURCES = t/test-vector.c
 t_test_vector_LDADD = mtbl/libmtbl.la
+
+TESTS += t/test-verify.sh
+EXTRA_DIST += t/test-verify.sh
+EXTRA_DIST += t/test-verify-good1.data t/test-verify-bad1.data t/test-verify-bad2.data
+t/test-verify.sh: src/mtbl_verify
 
 TESTS += t/test-deb716628.sh
 EXTRA_DIST += t/test-deb716628.sh

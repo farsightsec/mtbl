@@ -1,0 +1,21 @@
+= mtbl_verify(1) =
+
+== NAME ==
+
+mtbl_verify - verify integrity of an MTBL file's data and index blocks
+
+== SYNOPSIS ==
+
+^mtbl_verify^ 'FILE' ['FILE']...
+
+== DESCRIPTION ==
+
+^mtbl_verify^(1) verifies the embedded data and index block checksums in the
+MTBL files specified on the command line.
+
+Each filename specified on the command line will be verified, and a message
+indicating whether each file passed or failed will be printed to stdout. If
+a file fails, additional information about the failure will be printed to
+stderr.
+
+If stdout is a terminal, periodic progress indications will be printed.
