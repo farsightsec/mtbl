@@ -102,6 +102,11 @@ check_PROGRAMS += t/test-crc32c
 t_test_crc32c_SOURCES = t/test-crc32c.c
 t_test_crc32c_LDADD = mtbl/libmtbl.la
 
+TESTS += t/test-get-range
+check_PROGRAMS += t/test-get-range
+t_test_get_range_SOURCES = t/test-get-range.c
+t_test_get_range_LDADD = mtbl/libmtbl.la
+
 TESTS += t/test-fixed
 check_PROGRAMS += t/test-fixed
 t_test_fixed_SOURCES = t/test-fixed.c

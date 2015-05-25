@@ -52,7 +52,9 @@ whose key matches the key provided in the arguments _key_ and _len_key_.
 whose keys start with _prefix_ and are at least _len_prefix_ bytes long.
 
 ^mtbl_source_get_range^() provides a range iterator which returns all entries
-whose keys are between _key0_ and _key1_ inclusive.
+whose keys are between _key0_ and _key1_ inclusive. Specify _len_key0_ of 0
+to iterate from the start. To iterate until the end, set _key1_ to NULL, and
+_len_key1_ to a POSITIVE number, thus distinguishing it from the empty key.
 
 ^mtbl_source_write^() is a convenience function for reading all of the entries
 from a source and writing them to an ^mtbl_writer^ object. It is equivalent to

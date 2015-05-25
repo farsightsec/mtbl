@@ -1,5 +1,6 @@
 test-block_builder
 test-crc32c
+test-get-range
 test-fixed
 test-metadata
 test-varint

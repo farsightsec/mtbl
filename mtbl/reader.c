@@ -412,8 +412,13 @@ reader_get_range(void *clos,
 	struct reader_iter *it = reader_iter_init(r, key0, len_key0);
 	if (it == NULL)
 		return (NULL);
-	it->k = ubuf_init(len_key1);
-	ubuf_append(it->k, key1, len_key1);
+        // Pass a null, non-empty key1 to request an unbounded range. 
+        // len_key1 must be > 0 to distinguish it from 'NULL, 0', which is a
+        // valid empty key.
+        if (key1 || len_key1 == 0) {
+                it->k = ubuf_init(len_key1);
+                ubuf_append(it->k, key1, len_key1);
+        }
 	it->it_type = READER_ITER_TYPE_GET_RANGE;
 	return (mtbl_iter_init(reader_iter_next, reader_iter_free, it));
 }
@@ -423,7 +428,9 @@ reader_iter_free(void *v)
 {
 	struct reader_iter *it = (struct reader_iter *) v;
 	if (it) {
-		ubuf_destroy(&it->k);
+	        if (it->k) {
+	                ubuf_destroy(&it->k);
+                }
 		block_destroy(&it->b);
 		block_iter_destroy(&it->bi);
 		block_iter_destroy(&it->index_iter);
@@ -473,7 +480,8 @@ reader_iter_next(void *v,
 		}
 		break;
 	case READER_ITER_TYPE_GET_RANGE:
-		if (bytes_compare(*key, *len_key, ubuf_data(it->k), ubuf_size(it->k)) > 0)
+		if (it->k &&
+		    bytes_compare(*key, *len_key, ubuf_data(it->k), ubuf_size(it->k)) > 0)
 			it->valid = false;
 		break;
 	default:
