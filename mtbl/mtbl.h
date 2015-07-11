@@ -307,6 +307,9 @@ mtbl_fileset_destroy(struct mtbl_fileset **);
 void
 mtbl_fileset_reload(struct mtbl_fileset *);
 
+void
+mtbl_fileset_reload_now(struct mtbl_fileset *);
+
 const struct mtbl_source *
 mtbl_fileset_source(struct mtbl_fileset *);
 
