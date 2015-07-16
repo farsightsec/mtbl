@@ -29,6 +29,7 @@ echo "The following lines should be error messages."
 for bad_fname in \
     "${top_srcdir}/t/test-verify-bad1.data" \
     "${top_srcdir}/t/test-verify-bad2.data" \
+    "${top_srcdir}/t/test-verify-bad-index-block-offset.data" \
 ; do
     "${top_builddir}/src/mtbl_verify" "${bad_fname}" 2>&1
     if [ "$?" -ne "1" ]; then
