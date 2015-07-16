@@ -65,6 +65,7 @@ print_info(const char *fname)
 	uint64_t bytes_index_block = mtbl_metadata_bytes_index_block(m);
 	uint64_t bytes_keys = mtbl_metadata_bytes_keys(m);
 	uint64_t bytes_values = mtbl_metadata_bytes_values(m);
+	uint64_t index_block_offset = mtbl_metadata_index_block_offset(m);
 
 	double p_data = 100.0 * bytes_data_blocks / ss.st_size;
 	double p_index = 100.0 * bytes_index_block / ss.st_size;
@@ -72,6 +73,7 @@ print_info(const char *fname)
 
 	printf("file name:             %s\n", fname);
 	printf("file size:             %'zd\n", (size_t) ss.st_size);
+	printf("index block offset:    %'" PRIu64 "\n", index_block_offset);
 	printf("index bytes:           %'" PRIu64 " (%'.2f%%)\n", bytes_index_block, p_index);
 	printf("data block bytes       %'" PRIu64 " (%'.2f%%)\n", bytes_data_blocks, p_data);
 	printf("data block size:       %'" PRIu64 "\n", data_block_size);

@@ -173,6 +173,19 @@ mtbl_reader_init_fd(int orig_fd, const struct mtbl_reader_options *opt)
 		return (NULL);
 	}
 
+	/**
+	 * Sanitize the index block offset.
+	 * We calculate the maximum possible index block offset for this file to
+	 * be the total size of the file (r->len_data) minus the length of the
+	 * metadata block (MTBL_METADATA_SIZE) minus the length of the minimum
+	 * sized block, which requires 4 fixed-length 32-bit integers (16 bytes).
+	 */
+	const uint64_t max_index_block_offset = r->len_data - MTBL_METADATA_SIZE - 16;
+	if (r->m.index_block_offset > max_index_block_offset) {
+		mtbl_reader_destroy(&r);
+		return (NULL);
+	}
+
 	reader_init_madvise(r);
 
 	index_len = mtbl_fixed_decode32(r->data + r->m.index_block_offset + 0);
