@@ -55,6 +55,8 @@ verify_data_blocks(
 	const uint64_t count_data_blocks)
 {
 	bool res = true;
+	size_t len_mmap_data;
+	uint8_t *mmap_data;
 	uint8_t *data;
 	uint64_t offset = 0;
 	uint64_t bytes_consumed = 0;
@@ -64,11 +66,13 @@ verify_data_blocks(
 		return true;
 
 	/* Map the data blocks. */
-	data = mmap(NULL, bytes_data_blocks, PROT_READ, MAP_PRIVATE, fd, file_offset);
-	if (data == MAP_FAILED) {
+	len_mmap_data = file_offset + bytes_data_blocks;
+	mmap_data = mmap(NULL, len_mmap_data, PROT_READ, MAP_PRIVATE, fd, 0);
+	if (mmap_data == MAP_FAILED) {
 		fprintf(stderr, "%s: mmap() failed\n", prefix);
 		return false;
 	}
+	data = mmap_data + file_offset;
 
 	/* Verify each data block. */
 	for (uint64_t block = 0; block < count_data_blocks; block++) {
@@ -90,7 +94,7 @@ verify_data_blocks(
 				prefix,
 				raw_contents_size,
 				block,
-				file_offset + offset);
+				offset);
 			return false;
 		}
 
@@ -106,7 +110,7 @@ verify_data_blocks(
 				block_crc,
 				calc_crc,
 				block,
-				file_offset + offset);
+				offset);
 			res = false;
 			break;
 		}
@@ -130,7 +134,7 @@ verify_data_blocks(
 	}
 
 	/* Unmap the data blocks. */
-	munmap(data, bytes_data_blocks);
+	munmap(mmap_data, len_mmap_data);
 
 	clear_line_stdout();
 	return res;
