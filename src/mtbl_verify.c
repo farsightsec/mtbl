@@ -59,6 +59,10 @@ verify_data_blocks(
 	uint64_t offset = 0;
 	uint64_t bytes_consumed = 0;
 
+	/* Handle MTBL files with no data entries. */
+	if (bytes_data_blocks == 0 && count_data_blocks == 0)
+		return true;
+
 	/* Map the data blocks. */
 	data = mmap(NULL, bytes_data_blocks, PROT_READ, MAP_PRIVATE, fd, file_offset);
 	if (data == MAP_FAILED) {
