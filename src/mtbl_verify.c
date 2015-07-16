@@ -16,7 +16,6 @@
 
 #include <sys/mman.h>
 #include <sys/types.h>
-#include <assert.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <inttypes.h>
@@ -167,7 +166,6 @@ verify_file(const char *fname)
 	uint64_t bytes_data_blocks = mtbl_metadata_bytes_data_blocks(m);
 	uint64_t index_offset = mtbl_metadata_index_block_offset(m);
 
-	assert(index_offset >= bytes_data_blocks);
 	uint64_t data_offset = index_offset - bytes_data_blocks;
 
 	if (verify_data_blocks(fd, fname, data_offset, bytes_data_blocks, count_data_blocks)) {
