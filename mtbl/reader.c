@@ -42,7 +42,6 @@ struct mtbl_reader_options {
 };
 
 struct mtbl_reader {
-	int				fd;
 	struct mtbl_metadata		m;
 	uint8_t				*data;
 	size_t				len_data;
@@ -133,36 +132,28 @@ reader_init_madvise(struct mtbl_reader *r)
 }
 
 struct mtbl_reader *
-mtbl_reader_init_fd(int orig_fd, const struct mtbl_reader_options *opt)
+mtbl_reader_init_fd(int fd, const struct mtbl_reader_options *opt)
 {
 	struct mtbl_reader *r;
 	struct stat ss;
 	size_t metadata_offset;
-	int fd;
 
 	size_t index_len;
 	uint32_t index_crc;
 	uint8_t *index_data;
 
-	assert(orig_fd >= 0);
-	fd = dup(orig_fd);
-	assert(fd >= 0);
 	int ret = fstat(fd, &ss);
 	assert(ret == 0);
 
-	if (ss.st_size < MTBL_METADATA_SIZE) {
-		close(fd);
+	if (ss.st_size < MTBL_METADATA_SIZE)
 		return (NULL);
-	}
 
 	r = my_calloc(1, sizeof(*r));
 	if (opt != NULL)
 		memcpy(&r->opt, opt, sizeof(*opt));
-	r->fd = fd;
 	r->len_data = ss.st_size;
-	r->data = mmap(NULL, r->len_data, PROT_READ, MAP_PRIVATE, r->fd, 0);
+	r->data = mmap(NULL, r->len_data, PROT_READ, MAP_PRIVATE, fd, 0);
 	if (r->data == MAP_FAILED) {
-		close(r->fd);
 		free(r);
 		return (NULL);
 	}
@@ -222,7 +213,6 @@ mtbl_reader_destroy(struct mtbl_reader **r)
 	if (*r != NULL) {
 		block_destroy(&(*r)->index);
 		munmap((*r)->data, (*r)->len_data);
-		close((*r)->fd);
 		mtbl_source_destroy(&(*r)->source);
 		free(*r);
 		*r = NULL;
