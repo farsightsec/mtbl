@@ -15,6 +15,7 @@ ulimit -c 0
 for good_fname in \
     "${top_srcdir}/t/test-gh1-snappy.data" \
     "${top_srcdir}/t/test-gh1-zlib.data" \
+    "${top_srcdir}/t/test-foreign-prefix.data" \
     "${top_srcdir}/t/test-verify-good1.data" \
 ; do
     "${top_builddir}/src/mtbl_verify" "${good_fname}" 2>&1
