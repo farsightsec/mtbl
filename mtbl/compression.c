@@ -16,8 +16,89 @@
 
 #include "mtbl-private.h"
 
+#include <lz4.h>
+#include <lz4hc.h>
 #include <snappy-c.h>
 #include <zlib.h>
+
+mtbl_res
+_mtbl_compress_lz4(
+	const uint8_t *input,
+	const size_t input_size,
+	uint8_t **output,
+	size_t *output_size)
+{
+	int lz4_size;
+	char *lz4_bytes;
+
+	if (input_size > INT_MAX)
+		return (mtbl_res_failure);
+
+	lz4_size = LZ4_compressBound(input_size);
+
+	*output_size = lz4_size + sizeof(uint32_t);
+	*output = my_malloc(*output_size);
+	lz4_bytes = (char *) (*output) + sizeof(uint32_t);
+
+	lz4_size = LZ4_compress_default((const char *) input,
+					lz4_bytes,
+					(int) input_size,
+					lz4_size);
+	if (lz4_size == 0) {
+		free(*output);
+		return (mtbl_res_failure);
+	}
+	*output_size = lz4_size + sizeof(uint32_t);
+
+	/**
+	 * Prefix the compressed LZ4 block with a 32-bit little endian integer
+	 * specifying the size of the uncompressed block. This makes
+	 * decompression much easier.
+	 */
+	mtbl_fixed_encode32(*output, (uint32_t) input_size);
+
+	return (mtbl_res_success);
+}
+
+mtbl_res
+_mtbl_compress_lz4hc(
+	const uint8_t *input,
+	const size_t input_size,
+	uint8_t **output,
+	size_t *output_size)
+{
+	int lz4_size;
+	char *lz4_bytes;
+
+	if (input_size > INT_MAX)
+		return (mtbl_res_failure);
+
+	lz4_size = LZ4_compressBound(input_size);
+
+	*output_size = lz4_size + sizeof(uint32_t);
+	*output = my_malloc(*output_size);
+	lz4_bytes = (char *) (*output) + sizeof(uint32_t);
+
+	lz4_size = LZ4_compress_HC((const char *) input,
+					lz4_bytes,
+					(int) input_size,
+					lz4_size,
+					9 /* compressionLevel */);
+	if (lz4_size == 0) {
+		free(*output);
+		return (mtbl_res_failure);
+	}
+	*output_size = lz4_size + sizeof(uint32_t);
+
+	/**
+	 * Prefix the compressed LZ4 block with a 32-bit little endian integer
+	 * specifying the size of the uncompressed block. This makes
+	 * decompression much easier.
+	 */
+	mtbl_fixed_encode32(*output, (uint32_t) input_size);
+
+	return (mtbl_res_success);
+}
 
 mtbl_res
 _mtbl_compress_snappy(
@@ -66,6 +147,37 @@ _mtbl_compress_zlib(
 	zret = deflateEnd(&zs);
 	if (zret != Z_OK)
 		return (mtbl_res_failure);
+
+	return (mtbl_res_success);
+}
+
+mtbl_res
+_mtbl_decompress_lz4(
+	const uint8_t *input,
+	const size_t input_size,
+	uint8_t **output,
+	size_t *output_size)
+{
+	int ret = 0;
+
+	if (input_size > INT_MAX || input_size < sizeof(uint32_t))
+		return (mtbl_res_failure);
+
+	/**
+	 * The first four bytes is a 32-bit little endian integer specifying
+	 * the size of the uncompressed block.
+	 */
+	*output_size = mtbl_fixed_decode32(input);
+	*output = my_malloc(*output_size);
+
+	ret = LZ4_decompress_safe((char *) input + sizeof(uint32_t),
+				  (char *) (*output),
+				  input_size - sizeof(uint32_t),
+				  *output_size);
+	if (ret < 0) {
+		free(*output);
+		return (mtbl_res_failure);
+	}
 
 	return (mtbl_res_success);
 }
