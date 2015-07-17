@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, 2014 by Farsight Security, Inc.
+ * Copyright (c) 2012, 2014-2015 by Farsight Security, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -73,9 +73,11 @@ void
 mtbl_writer_options_set_compression(struct mtbl_writer_options *opt,
 				    mtbl_compression_type compression_type)
 {
-	assert(compression_type == MTBL_COMPRESSION_NONE ||
-	       compression_type == MTBL_COMPRESSION_SNAPPY ||
-	       compression_type == MTBL_COMPRESSION_ZLIB);
+	assert(compression_type == MTBL_COMPRESSION_NONE	||
+	       compression_type == MTBL_COMPRESSION_SNAPPY	||
+	       compression_type == MTBL_COMPRESSION_ZLIB	||
+	       compression_type == MTBL_COMPRESSION_LZ4		||
+	       compression_type == MTBL_COMPRESSION_LZ4HC);
 	opt->compression_type = compression_type;
 }
 
