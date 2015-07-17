@@ -11,7 +11,9 @@ ACLOCAL_AMFLAGS = -I m4 ${ACLOCAL_FLAGS}
 AM_CPPFLAGS = \
 	-include $(top_builddir)/config.h \
 	-I${top_srcdir}/mtbl
-AM_CFLAGS = ${my_CFLAGS}
+AM_CFLAGS = \
+	${my_CFLAGS} \
+	$(liblz4_CFLAGS)
 AM_LDFLAGS =
 
 #
@@ -49,7 +51,7 @@ mtbl_libmtbl_la_SOURCES = \
 	mtbl/varint.c \
 	mtbl/writer.c
 
-mtbl_libmtbl_la_LIBADD = -lsnappy -lz
+mtbl_libmtbl_la_LIBADD = -lsnappy -lz $(liblz4_LIBS)
 mtbl_libmtbl_la_LDFLAGS = $(AM_LDFLAGS) \
 	-version-info $(LIBMTBL_VERSION_INFO)
 if HAVE_LD_VERSION_SCRIPT
