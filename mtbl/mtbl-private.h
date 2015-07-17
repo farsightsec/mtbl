@@ -99,9 +99,12 @@ bool block_builder_empty(struct block_builder *);
 
 /* compression */
 
+mtbl_res _mtbl_compress_lz4	(const uint8_t *, const size_t, uint8_t **, size_t *);
+mtbl_res _mtbl_compress_lz4hc	(const uint8_t *, const size_t, uint8_t **, size_t *);
 mtbl_res _mtbl_compress_snappy	(const uint8_t *, const size_t, uint8_t **, size_t *);
 mtbl_res _mtbl_compress_zlib	(const uint8_t *, const size_t, uint8_t **, size_t *);
 
+mtbl_res _mtbl_decompress_lz4	(const uint8_t *, const size_t, uint8_t **, size_t *);
 mtbl_res _mtbl_decompress_snappy(const uint8_t *, const size_t, uint8_t **, size_t *);
 mtbl_res _mtbl_decompress_zlib	(const uint8_t *, const size_t, uint8_t **, size_t *);
 
