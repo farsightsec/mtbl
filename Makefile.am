@@ -141,6 +141,8 @@ t/test-deb716628.sh: src/mtbl_dump
 
 TESTS += t/test-gh1.sh
 EXTRA_DIST += t/test-gh1.sh
+EXTRA_DIST += t/test-gh1-lz4.data
+EXTRA_DIST += t/test-gh1-lz4hc.data
 EXTRA_DIST += t/test-gh1-snappy.data
 EXTRA_DIST += t/test-gh1-zlib.data
 t/test-gh1.sh: src/mtbl_dump
