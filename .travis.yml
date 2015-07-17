@@ -4,7 +4,7 @@ before_install:
   - sudo apt-get update -qq
 
 install:
-  - sudo apt-get -q install libsnappy-dev zlib1g-dev
+  - sudo apt-get -q install liblz4-dev libsnappy-dev zlib1g-dev
 
 script:
   - ./autogen.sh
