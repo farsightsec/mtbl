@@ -251,6 +251,14 @@ get_block(struct mtbl_reader *r, uint64_t offset)
 		block_contents = raw_contents;
 		block_contents_size = raw_contents_size;
 		break;
+	case MTBL_COMPRESSION_LZ4:
+		/* Fall through, LZ4 and LZ4HC use the same decompressor. */
+	case MTBL_COMPRESSION_LZ4HC:
+		needs_free = true;
+		res = _mtbl_decompress_lz4(raw_contents, raw_contents_size,
+					   &block_contents, &block_contents_size);
+		assert(res == mtbl_res_success);
+		break;
 	case MTBL_COMPRESSION_SNAPPY:
 		needs_free = true;
 		res = _mtbl_decompress_snappy(raw_contents, raw_contents_size,
