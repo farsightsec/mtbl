@@ -89,6 +89,10 @@ print_info(const char *fname)
 		puts("snappy");
 	} else if (compression_algorithm == MTBL_COMPRESSION_ZLIB) {
 		puts("zlib");
+	} else if (compression_algorithm == MTBL_COMPRESSION_LZ4) {
+		puts("lz4");
+	} else if (compression_algorithm == MTBL_COMPRESSION_LZ4HC) {
+		puts("lz4hc");
 	} else {
 		printf("%u\n", compression_algorithm);
 	}

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012 by Farsight Security, Inc.
+ * Copyright (c) 2012, 2014-2015 by Farsight Security, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,7 +28,9 @@ extern "C" {
 typedef enum {
 	MTBL_COMPRESSION_NONE = 0,
 	MTBL_COMPRESSION_SNAPPY = 1,
-	MTBL_COMPRESSION_ZLIB = 2
+	MTBL_COMPRESSION_ZLIB = 2,
+	MTBL_COMPRESSION_LZ4 = 3,
+	MTBL_COMPRESSION_LZ4HC = 4,
 } mtbl_compression_type;
 
 typedef enum {
