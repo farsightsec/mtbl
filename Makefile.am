@@ -37,6 +37,7 @@ mtbl_libmtbl_la_SOURCES = \
 	mtbl/block.c \
 	mtbl/block_builder.c \
 	mtbl/bytes.h \
+	mtbl/compression.c \
 	mtbl/crc32c_wrap.c \
 	mtbl/fileset.c \
 	mtbl/fixed.c \

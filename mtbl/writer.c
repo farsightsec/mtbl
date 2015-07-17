@@ -248,11 +248,9 @@ _mtbl_writer_writeblock(struct mtbl_writer *w,
 			struct block_builder *b,
 			mtbl_compression_type compression_type)
 {
-	uint8_t *raw_contents = NULL, *block_contents = NULL, *comp_contents = NULL;
-	size_t raw_contents_size = 0, block_contents_size = 0, comp_contents_size = 0;
-	snappy_status res;
-	int zret;
-	z_stream zs;
+	mtbl_res res;
+	uint8_t *raw_contents = NULL, *block_contents = NULL;
+	size_t raw_contents_size = 0, block_contents_size = 0;
 
 	block_builder_finish(b, &raw_contents, &raw_contents_size);
 
@@ -262,35 +260,14 @@ _mtbl_writer_writeblock(struct mtbl_writer *w,
 		block_contents_size = raw_contents_size;
 		break;
 	case MTBL_COMPRESSION_SNAPPY:
-		comp_contents_size = snappy_max_compressed_length(raw_contents_size);
-		comp_contents = my_malloc(comp_contents_size);
-		res = snappy_compress((const char *) raw_contents, raw_contents_size,
-				      (char *) comp_contents, &comp_contents_size);
-		assert(res == SNAPPY_OK);
-		block_contents = comp_contents;
-		block_contents_size = comp_contents_size;
+		res = _mtbl_compress_snappy(raw_contents, raw_contents_size,
+					    &block_contents, &block_contents_size);
+		assert(res == mtbl_res_success);
 		break;
 	case MTBL_COMPRESSION_ZLIB:
-		comp_contents_size = 2 * raw_contents_size;
-		comp_contents = my_malloc(comp_contents_size);
-		memset(&zs, 0, sizeof(zs));
-		zs.zalloc = Z_NULL;
-		zs.zfree = Z_NULL;
-		zs.opaque = Z_NULL;
-		zret = deflateInit(&zs, Z_DEFAULT_COMPRESSION);
-		assert(zret == Z_OK);
-		zs.avail_in = raw_contents_size;
-		zs.next_in = raw_contents;
-		zs.avail_out = comp_contents_size;
-		zs.next_out = comp_contents;
-		zret = deflate(&zs, Z_FINISH);
-		assert(zret == Z_STREAM_END);
-		assert(zs.avail_in == 0);
-		comp_contents_size = zs.total_out;
-		zret = deflateEnd(&zs);
-		assert(zret == Z_OK);
-		block_contents = comp_contents;
-		block_contents_size = comp_contents_size;
+		res = _mtbl_compress_zlib(raw_contents, raw_contents_size,
+					  &block_contents, &block_contents_size);
+		assert(res == mtbl_res_success);
 		break;
 	}
 
@@ -309,7 +286,8 @@ _mtbl_writer_writeblock(struct mtbl_writer *w,
 
 	block_builder_reset(b);
 	free(raw_contents);
-	free(comp_contents);
+	if (compression_type != MTBL_COMPRESSION_NONE)
+		free(block_contents);
 
 	return (bytes_written);
 }
