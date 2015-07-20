@@ -44,9 +44,6 @@
 
 #include "mtbl.h"
 
-#include <snappy-c.h>
-#include <zlib.h>
-
 #include "libmy/my_alloc.h"
 
 #define MTBL_MAGIC			0x77846676
@@ -99,6 +96,17 @@ void block_builder_add(struct block_builder *,
 	const uint8_t *key, size_t len_key,
 	const uint8_t *val, size_t len_val);
 bool block_builder_empty(struct block_builder *);
+
+/* compression */
+
+mtbl_res _mtbl_compress_lz4	(const uint8_t *, const size_t, uint8_t **, size_t *);
+mtbl_res _mtbl_compress_lz4hc	(const uint8_t *, const size_t, uint8_t **, size_t *);
+mtbl_res _mtbl_compress_snappy	(const uint8_t *, const size_t, uint8_t **, size_t *);
+mtbl_res _mtbl_compress_zlib	(const uint8_t *, const size_t, uint8_t **, size_t *);
+
+mtbl_res _mtbl_decompress_lz4	(const uint8_t *, const size_t, uint8_t **, size_t *);
+mtbl_res _mtbl_decompress_snappy(const uint8_t *, const size_t, uint8_t **, size_t *);
+mtbl_res _mtbl_decompress_zlib	(const uint8_t *, const size_t, uint8_t **, size_t *);
 
 /* metadata */
 
