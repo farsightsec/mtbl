@@ -21,6 +21,48 @@
 #include <snappy-c.h>
 #include <zlib.h>
 
+const char *
+mtbl_compression_type_to_str(mtbl_compression_type compression_type)
+{
+	switch (compression_type) {
+	case MTBL_COMPRESSION_NONE:
+		return "none";
+	case MTBL_COMPRESSION_SNAPPY:
+		return "snappy";
+	case MTBL_COMPRESSION_ZLIB:
+		return "zlib";
+	case MTBL_COMPRESSION_LZ4:
+		return "lz4";
+	case MTBL_COMPRESSION_LZ4HC:
+		return "lz4hc";
+	default:
+		return NULL;
+	}
+}
+
+mtbl_res
+mtbl_compression_type_from_str(const char *s, mtbl_compression_type *t)
+{
+	if (strcasecmp(s, "none") == 0) {
+		*t = MTBL_COMPRESSION_NONE;
+		return mtbl_res_success;
+	} else if (strcasecmp(s, "snappy") == 0) {
+		*t = MTBL_COMPRESSION_SNAPPY;
+		return mtbl_res_success;
+	} else if (strcasecmp(s, "zlib") == 0) {
+		*t = MTBL_COMPRESSION_ZLIB;
+		return mtbl_res_success;
+	} else if (strcasecmp(s, "lz4") == 0) {
+		*t = MTBL_COMPRESSION_LZ4;
+		return mtbl_res_success;
+	} else if (strcasecmp(s, "lz4hc") == 0) {
+		*t = MTBL_COMPRESSION_LZ4HC;
+		return mtbl_res_success;
+	}
+
+	return mtbl_res_failure;
+}
+
 mtbl_res
 _mtbl_compress_lz4(
 	const uint8_t *input,

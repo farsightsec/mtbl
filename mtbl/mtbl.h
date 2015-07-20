@@ -26,6 +26,13 @@ extern "C" {
 #include <stdint.h>
 
 typedef enum {
+	mtbl_res_failure = 0,
+	mtbl_res_success = 1
+} mtbl_res;
+
+/* compression */
+
+typedef enum {
 	MTBL_COMPRESSION_NONE = 0,
 	MTBL_COMPRESSION_SNAPPY = 1,
 	MTBL_COMPRESSION_ZLIB = 2,
@@ -33,10 +40,11 @@ typedef enum {
 	MTBL_COMPRESSION_LZ4HC = 4,
 } mtbl_compression_type;
 
-typedef enum {
-	mtbl_res_failure = 0,
-	mtbl_res_success = 1
-} mtbl_res;
+const char *
+mtbl_compression_type_to_str(mtbl_compression_type);
+
+mtbl_res
+mtbl_compression_type_from_str(const char *, mtbl_compression_type *);
 
 /* exported types */
 
