@@ -152,6 +152,8 @@ test_compression(mtbl_compression_type c_type, const char *dirname)
 	/* Cleanup. */
 	mtbl_iter_destroy(&it);
 	mtbl_reader_destroy(&r);
+	free(key);
+	free(val);
 
 	return 0;
 }
