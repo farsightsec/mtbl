@@ -1,4 +1,5 @@
 test-block_builder
+test-compression
 test-crc32c
 test-fixed
 test-metadata

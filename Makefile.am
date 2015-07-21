@@ -152,6 +152,13 @@ EXTRA_DIST += t/test-foreign-prefix.sh
 EXTRA_DIST += t/test-foreign-prefix.data
 t/test-foreign-prefix.sh: src/mtbl_dump
 
+TESTS += t/test-compression.sh
+EXTRA_DIST += t/test-compression.sh
+check_PROGRAMS += t/test-compression
+t_test_compression_SOURCES = t/test-compression.c
+t_test_compression_LDADD = mtbl/libmtbl.la
+t/test-compression.sh: t/test-compression
+
 #
 ##
 ### documentation
