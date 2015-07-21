@@ -151,7 +151,8 @@ _mtbl_compress_snappy(
 {
 	snappy_status res;
 
-	*output = my_malloc(snappy_max_compressed_length(input_size));
+	*output_size = snappy_max_compressed_length(input_size);
+	*output = my_malloc(*output_size);
 	res = snappy_compress((const char *) input, input_size,
 			      (char *) (*output), output_size);
 	if (res != SNAPPY_OK)
