@@ -40,6 +40,22 @@ typedef enum {
 	MTBL_COMPRESSION_LZ4HC = 4,
 } mtbl_compression_type;
 
+mtbl_res
+mtbl_compress(
+	mtbl_compression_type,
+	const uint8_t *input,
+	const size_t input_size,
+	uint8_t **output,
+	size_t *output_size);
+
+mtbl_res
+mtbl_decompress(
+	mtbl_compression_type,
+	const uint8_t *input,
+	const size_t input_size,
+	uint8_t **output,
+	size_t *output_size);
+
 const char *
 mtbl_compression_type_to_str(mtbl_compression_type);
 

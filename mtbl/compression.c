@@ -64,6 +64,54 @@ mtbl_compression_type_from_str(const char *s, mtbl_compression_type *t)
 }
 
 mtbl_res
+mtbl_compress(
+	mtbl_compression_type compression_type,
+	const uint8_t *input,
+	const size_t input_size,
+	uint8_t **output,
+	size_t *output_size)
+{
+	switch (compression_type) {
+	case MTBL_COMPRESSION_NONE:
+		return mtbl_res_failure;
+	case MTBL_COMPRESSION_SNAPPY:
+		return _mtbl_compress_snappy(input, input_size, output, output_size);
+	case MTBL_COMPRESSION_ZLIB:
+		return _mtbl_compress_zlib(input, input_size, output, output_size);
+	case MTBL_COMPRESSION_LZ4:
+		return _mtbl_compress_lz4(input, input_size, output, output_size);
+	case MTBL_COMPRESSION_LZ4HC:
+		return _mtbl_compress_lz4hc(input, input_size, output, output_size);
+	default:
+		return mtbl_res_failure;
+	}
+}
+
+mtbl_res
+mtbl_decompress(
+	mtbl_compression_type compression_type,
+	const uint8_t *input,
+	const size_t input_size,
+	uint8_t **output,
+	size_t *output_size)
+{
+	switch (compression_type) {
+	case MTBL_COMPRESSION_NONE:
+		return mtbl_res_failure;
+	case MTBL_COMPRESSION_SNAPPY:
+		return _mtbl_decompress_snappy(input, input_size, output, output_size);
+	case MTBL_COMPRESSION_ZLIB:
+		return _mtbl_decompress_zlib(input, input_size, output, output_size);
+	case MTBL_COMPRESSION_LZ4:
+		/* Fall through, LZ4 and LZ4HC use the same decompressor. */
+	case MTBL_COMPRESSION_LZ4HC:
+		return _mtbl_decompress_lz4(input, input_size, output, output_size);
+	default:
+		return mtbl_res_failure;
+	}
+}
+
+mtbl_res
 _mtbl_compress_lz4(
 	const uint8_t *input,
 	const size_t input_size,

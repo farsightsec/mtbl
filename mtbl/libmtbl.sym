@@ -73,8 +73,10 @@ global:
 
 LIBMTBL_0.8.0 {
 global:
+        mtbl_compress;
         mtbl_compression_type_to_str;
         mtbl_compression_type_from_str;
+        mtbl_decompress;
         mtbl_reader_metadata;
         mtbl_metadata_index_block_offset;
         mtbl_metadata_data_block_size;
