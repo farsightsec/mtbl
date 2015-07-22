@@ -33,7 +33,7 @@ else
     AC_MSG_ERROR([pkg-config is required!])
 fi
 
-PKG_CHECK_MODULES([liblz4], [liblz4])
+PKG_CHECK_MODULES([liblz4], [liblz4 > 129])
 
 AC_C_BIGENDIAN
 
