@@ -203,8 +203,10 @@ _mtbl_compress_snappy(
 	*output = my_malloc(*output_size);
 	res = snappy_compress((const char *) input, input_size,
 			      (char *) (*output), output_size);
-	if (res != SNAPPY_OK)
+	if (res != SNAPPY_OK) {
+		free(*output);
 		return (mtbl_res_failure);
+	}
 
 	return (mtbl_res_success);
 }
@@ -236,8 +238,10 @@ _mtbl_compress_zlib(
 	assert(zs.avail_in == 0);
 	*output_size = zs.total_out;
 	zret = deflateEnd(&zs);
-	if (zret != Z_OK)
+	if (zret != Z_OK) {
+		free(*output);
 		return (mtbl_res_failure);
+	}
 
 	return (mtbl_res_success);
 }
