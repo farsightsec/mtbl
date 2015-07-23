@@ -11,7 +11,9 @@ ACLOCAL_AMFLAGS = -I m4 ${ACLOCAL_FLAGS}
 AM_CPPFLAGS = \
 	-include $(top_builddir)/config.h \
 	-I${top_srcdir}/mtbl
-AM_CFLAGS = ${my_CFLAGS}
+AM_CFLAGS = \
+	${my_CFLAGS} \
+	$(liblz4_CFLAGS)
 AM_LDFLAGS =
 
 #
@@ -35,6 +37,7 @@ mtbl_libmtbl_la_SOURCES = \
 	mtbl/block.c \
 	mtbl/block_builder.c \
 	mtbl/bytes.h \
+	mtbl/compression.c \
 	mtbl/crc32c_wrap.c \
 	mtbl/fileset.c \
 	mtbl/fixed.c \
@@ -49,7 +52,7 @@ mtbl_libmtbl_la_SOURCES = \
 	mtbl/varint.c \
 	mtbl/writer.c
 
-mtbl_libmtbl_la_LIBADD = -lsnappy -lz
+mtbl_libmtbl_la_LIBADD = -lsnappy -lz $(liblz4_LIBS)
 mtbl_libmtbl_la_LDFLAGS = $(AM_LDFLAGS) \
 	-version-info $(LIBMTBL_VERSION_INFO)
 if HAVE_LD_VERSION_SCRIPT
@@ -138,6 +141,8 @@ t/test-deb716628.sh: src/mtbl_dump
 
 TESTS += t/test-gh1.sh
 EXTRA_DIST += t/test-gh1.sh
+EXTRA_DIST += t/test-gh1-lz4.data
+EXTRA_DIST += t/test-gh1-lz4hc.data
 EXTRA_DIST += t/test-gh1-snappy.data
 EXTRA_DIST += t/test-gh1-zlib.data
 t/test-gh1.sh: src/mtbl_dump
@@ -146,6 +151,13 @@ TESTS += t/test-foreign-prefix.sh
 EXTRA_DIST += t/test-foreign-prefix.sh
 EXTRA_DIST += t/test-foreign-prefix.data
 t/test-foreign-prefix.sh: src/mtbl_dump
+
+TESTS += t/test-compression.sh
+EXTRA_DIST += t/test-compression.sh
+check_PROGRAMS += t/test-compression
+t_test_compression_SOURCES = t/test-compression.c
+t_test_compression_LDADD = mtbl/libmtbl.la
+t/test-compression.sh: t/test-compression
 
 #
 ##

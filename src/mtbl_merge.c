@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, 2014 by Farsight Security, Inc.
+ * Copyright (c) 2012, 2014-2015 by Farsight Security, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,23 +17,32 @@
 #include <sys/time.h>
 #include <assert.h>
 #include <dlfcn.h>
+#include <errno.h>
+#include <inttypes.h>
+#include <limits.h>
 #include <locale.h>
+#include <stdbool.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#include <unistd.h>
 
 #include <mtbl.h>
-#include "mtbl-private.h"
 
 #include "libmy/getenv_int.h"
 #include "libmy/ubuf.h"
 
+#define DEFAULT_BLOCK_SIZE	8192
 #define STATS_INTERVAL		1000000
 
 static const char		*program_name;
 
 static const char		*mtbl_output_fname;
+
+static mtbl_compression_type	opt_compression_type	= MTBL_COMPRESSION_ZLIB;
+static size_t			opt_block_size		= DEFAULT_BLOCK_SIZE;
 
 static const char		*merge_dso_path;
 static const char		*merge_dso_prefix;
@@ -54,10 +63,19 @@ static void
 usage(void)
 {
 	fprintf(stderr,
-		"Usage: %s <INPUT MTBL FILE> [<INPUT MTBL FILE>...] <OUTPUT MTBL FILE>\n"
+		"Usage: %s [-b <SIZE>] [-c <COMPRESSION>] <INPUT> [<INPUT>...] <OUTPUT>\n"
+		"\n"
 		"Merges one or more MTBL input files into a single output file.\n"
 		"Requires a merge function provided by the user at runtime via a DSO.\n"
-		"See mtbl_merge(1) for details.\n",
+		"See mtbl_merge(1) for details.\n"
+		"\n"
+		"<SIZE> is the uncompressed data block size hint, in bytes.\n"
+		"The default value if unspecified is 8192 bytes (8 kilobytes).\n"
+		"\n"
+		"<COMPRESSION> is one of none, snappy, zlib, lz4, or lz4hc.\n"
+		"The default compression type if unspecified is zlib.\n"
+		"\n"
+		,
 		program_name
 	);
 	exit(EXIT_FAILURE);
@@ -224,8 +242,8 @@ init_mtbl(void)
 	wopt = mtbl_writer_options_init();
 
 	mtbl_merger_options_set_merge_func(mopt, merge_func, user_clos);
-	mtbl_writer_options_set_compression(wopt, MTBL_COMPRESSION_ZLIB);
-	mtbl_writer_options_set_block_size(wopt, get_block_size());
+	mtbl_writer_options_set_compression(wopt, opt_compression_type);
+	mtbl_writer_options_set_block_size(wopt, opt_block_size);
 
 	merger = mtbl_merger_init(mopt);
 	assert(merger != NULL);
@@ -241,13 +259,79 @@ init_mtbl(void)
 	mtbl_writer_options_destroy(&wopt);
 }
 
+static bool
+parse_long(const char *str, long int *val)
+{
+	char *endptr;
+
+	errno = 0;
+	*val = strtol(str, &endptr, 0);
+
+	if ((errno == ERANGE && (*val == LONG_MAX || *val == LONG_MIN))
+	    || (errno != 0 && *val == 0))
+	{
+		return false;
+	}
+
+	if (endptr == str || *endptr != '\0')
+		return false;
+
+	return true;
+}
+
+static bool
+parse_arg_block_size(const char *arg)
+{
+	long int arg_block_size = 0;
+
+	if (getenv("MTBL_MERGE_BLOCK_SIZE") != NULL) {
+		fprintf(stderr,
+			"%s: Error: specify block size via command-line or environment, not both\n",
+			program_name);
+		return false;
+	}
+
+	if (!parse_long(arg, &arg_block_size))
+		return false;
+
+	opt_block_size = arg_block_size;
+	return true;
+}
+
+static bool
+parse_arg_compression(const char *arg)
+{
+	mtbl_res res;
+
+	res = mtbl_compression_type_from_str(arg, &opt_compression_type);
+	return res == mtbl_res_success;
+}
+
 int
 main(int argc, char **argv)
 {
 	setlocale(LC_ALL, "");
 	program_name = argv[0];
 
-	if (argc < 3)
+	opt_block_size = get_block_size();
+
+	int c;
+	while ((c = getopt(argc, argv, "b:c:")) != -1) {
+		switch (c) {
+		case 'b':
+			if (!parse_arg_block_size(optarg))
+				usage();
+			break;
+		case 'c':
+			if (!parse_arg_compression(optarg))
+				usage();
+			break;
+		default:
+			usage();
+		}
+	}
+
+	if (argc - optind < 2)
 		usage();
 	mtbl_output_fname = argv[argc - 1];
 
@@ -258,9 +342,10 @@ main(int argc, char **argv)
 	init_mtbl();
 
 	/* open readers */
-	struct mtbl_reader *readers[argc-2];
-	for (int i = 0; i < argc - 2; i++) {
-		const char *fname = argv[i+1];
+	const size_t n_readers = argc - 1 - optind;
+	struct mtbl_reader *readers[n_readers];
+	for (size_t i = 0; i < n_readers; i++) {
+		const char *fname = argv[i + optind];
 		fprintf(stderr, "%s: opening input file %s\n", program_name, fname);
 		readers[i] = mtbl_reader_init(fname, NULL);
 		if (readers[i] == NULL) {
@@ -275,7 +360,7 @@ main(int argc, char **argv)
 	merge();
 
 	/* cleanup readers */
-	for (int i = 0; i < argc - 2; i++)
+	for (size_t i = 0; i < n_readers; i++)
 		mtbl_reader_destroy(&readers[i]);
 
 	/* call user cleanup */

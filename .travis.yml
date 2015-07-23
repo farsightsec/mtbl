@@ -1,10 +1,12 @@
 language: c
 
 before_install:
+  - sudo wget -O /etc/apt/trusted.gpg.d/debian-farsightsec.gpg https://dl.farsightsecurity.com/debian/archive.pubkey
+  - sudo sh -c 'echo "deb [arch=amd64] http://dl.farsightsecurity.com/debian wheezy-farsightsec main" > /etc/apt/sources.list.d/debian-farsightsec.list'
   - sudo apt-get update -qq
 
 install:
-  - sudo apt-get -q install libsnappy-dev zlib1g-dev
+  - sudo apt-get -q install liblz4-dev libsnappy-dev zlib1g-dev
 
 script:
   - ./autogen.sh

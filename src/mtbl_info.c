@@ -81,17 +81,13 @@ print_info(const char *fname)
 	printf("entry count:           %'" PRIu64 "\n", count_entries);
 	printf("key bytes:             %'" PRIu64 "\n", bytes_keys);
 	printf("value bytes:           %'" PRIu64 "\n", bytes_values);
-	printf("compression algorithm: ");
 
-	if (compression_algorithm == MTBL_COMPRESSION_NONE) {
-		puts("none");
-	} else if (compression_algorithm == MTBL_COMPRESSION_SNAPPY) {
-		puts("snappy");
-	} else if (compression_algorithm == MTBL_COMPRESSION_ZLIB) {
-		puts("zlib");
-	} else {
+	printf("compression algorithm: ");
+	const char *compression = mtbl_compression_type_to_str(compression_algorithm);
+	if (compression != NULL)
+		puts(compression);
+	else
 		printf("%u\n", compression_algorithm);
-	}
 
 	printf("compactness:           %'.2f%%\n", compactness);
 

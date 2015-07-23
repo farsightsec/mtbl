@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012 by Farsight Security, Inc.
+ * Copyright (c) 2012, 2014-2015 by Farsight Security, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,15 +26,41 @@ extern "C" {
 #include <stdint.h>
 
 typedef enum {
-	MTBL_COMPRESSION_NONE = 0,
-	MTBL_COMPRESSION_SNAPPY = 1,
-	MTBL_COMPRESSION_ZLIB = 2
-} mtbl_compression_type;
-
-typedef enum {
 	mtbl_res_failure = 0,
 	mtbl_res_success = 1
 } mtbl_res;
+
+/* compression */
+
+typedef enum {
+	MTBL_COMPRESSION_NONE = 0,
+	MTBL_COMPRESSION_SNAPPY = 1,
+	MTBL_COMPRESSION_ZLIB = 2,
+	MTBL_COMPRESSION_LZ4 = 3,
+	MTBL_COMPRESSION_LZ4HC = 4,
+} mtbl_compression_type;
+
+mtbl_res
+mtbl_compress(
+	mtbl_compression_type,
+	const uint8_t *input,
+	const size_t input_size,
+	uint8_t **output,
+	size_t *output_size);
+
+mtbl_res
+mtbl_decompress(
+	mtbl_compression_type,
+	const uint8_t *input,
+	const size_t input_size,
+	uint8_t **output,
+	size_t *output_size);
+
+const char *
+mtbl_compression_type_to_str(mtbl_compression_type);
+
+mtbl_res
+mtbl_compression_type_from_str(const char *, mtbl_compression_type *);
 
 /* exported types */
 
