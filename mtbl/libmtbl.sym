@@ -77,6 +77,7 @@ global:
         mtbl_compression_type_to_str;
         mtbl_compression_type_from_str;
         mtbl_decompress;
+        mtbl_fileset_reload_now;
         mtbl_reader_metadata;
         mtbl_metadata_index_block_offset;
         mtbl_metadata_data_block_size;
