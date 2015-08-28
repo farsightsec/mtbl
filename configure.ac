@@ -1,5 +1,9 @@
-AC_PREREQ(2.60)
-AC_INIT([mtbl], [0.8.0-pre])
+AC_PREREQ(2.64)
+AC_INIT([mtbl],
+        [0.8.0-pre],
+        [https://github.com/farsightsec/mtbl/issues],
+        [mtbl],
+        [https://github.com/farsightsec/mtbl])
 AC_CONFIG_SRCDIR([mtbl/mtbl.h])
 AC_CONFIG_AUX_DIR([build-aux])
 AM_INIT_AUTOMAKE([foreign 1.11 -Wall -Wno-portability silent-rules subdir-objects color-tests])
