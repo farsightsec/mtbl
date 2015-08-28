@@ -1,7 +1,12 @@
 libmtbl.so.0 libmtbl0 #MINVER#
  LIBMTBL_0.6.0@LIBMTBL_0.6.0 0.6.0
  LIBMTBL_0.7.0@LIBMTBL_0.7.0 0.7.0
+ LIBMTBL_0.8.0@LIBMTBL_0.8.0 0.8.0
+ mtbl_compress@LIBMTBL_0.8.0 0.8.0
+ mtbl_compression_type_from_str@LIBMTBL_0.8.0 0.8.0
+ mtbl_compression_type_to_str@LIBMTBL_0.8.0 0.8.0
  mtbl_crc32c@LIBMTBL_0.6.0 0.6.0
+ mtbl_decompress@LIBMTBL_0.8.0 0.8.0
  mtbl_fileset_destroy@LIBMTBL_0.6.0 0.6.0
  mtbl_fileset_init@LIBMTBL_0.6.0 0.6.0
  mtbl_fileset_options_destroy@LIBMTBL_0.6.0 0.6.0
@@ -9,6 +14,7 @@ libmtbl.so.0 libmtbl0 #MINVER#
  mtbl_fileset_options_set_merge_func@LIBMTBL_0.6.0 0.6.0
  mtbl_fileset_options_set_reload_interval@LIBMTBL_0.6.0 0.6.0
  mtbl_fileset_reload@LIBMTBL_0.6.0 0.6.0
+ mtbl_fileset_reload_now@LIBMTBL_0.8.0 0.8.0
  mtbl_fileset_source@LIBMTBL_0.6.0 0.6.0
  mtbl_fixed_decode32@LIBMTBL_0.6.0 0.6.0
  mtbl_fixed_decode64@LIBMTBL_0.6.0 0.6.0
@@ -24,9 +30,19 @@ libmtbl.so.0 libmtbl0 #MINVER#
  mtbl_merger_options_init@LIBMTBL_0.6.0 0.6.0
  mtbl_merger_options_set_merge_func@LIBMTBL_0.6.0 0.6.0
  mtbl_merger_source@LIBMTBL_0.6.0 0.6.0
+ mtbl_metadata_bytes_data_blocks@LIBMTBL_0.8.0 0.8.0
+ mtbl_metadata_bytes_index_block@LIBMTBL_0.8.0 0.8.0
+ mtbl_metadata_bytes_keys@LIBMTBL_0.8.0 0.8.0
+ mtbl_metadata_bytes_values@LIBMTBL_0.8.0 0.8.0
+ mtbl_metadata_compression_algorithm@LIBMTBL_0.8.0 0.8.0
+ mtbl_metadata_count_data_blocks@LIBMTBL_0.8.0 0.8.0
+ mtbl_metadata_count_entries@LIBMTBL_0.8.0 0.8.0
+ mtbl_metadata_data_block_size@LIBMTBL_0.8.0 0.8.0
+ mtbl_metadata_index_block_offset@LIBMTBL_0.8.0 0.8.0
  mtbl_reader_destroy@LIBMTBL_0.6.0 0.6.0
  mtbl_reader_init@LIBMTBL_0.6.0 0.6.0
  mtbl_reader_init_fd@LIBMTBL_0.6.0 0.6.0
+ mtbl_reader_metadata@LIBMTBL_0.8.0 0.8.0
  mtbl_reader_options_destroy@LIBMTBL_0.6.0 0.6.0
  mtbl_reader_options_init@LIBMTBL_0.6.0 0.6.0
  mtbl_reader_options_set_madvise_random@LIBMTBL_0.7.0 0.7.0
