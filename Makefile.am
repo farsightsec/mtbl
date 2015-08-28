@@ -184,6 +184,7 @@ dist_man_MANS = \
 	man/mtbl_dump.1 \
 	man/mtbl_info.1 \
 	man/mtbl_merge.1 \
+	man/mtbl_verify.1 \
 	man/mtbl_iter.3 \
 	man/mtbl_metadata.3 \
 	man/mtbl_source.3 \
@@ -201,6 +202,7 @@ EXTRA_DIST += \
 	man/mtbl_dump.1.txt \
 	man/mtbl_info.1.txt \
 	man/mtbl_merge.1.txt \
+	man/mtbl_verify.1.txt \
 	man/mtbl_iter.3.txt \
 	man/mtbl_metadata.3.txt \
 	man/mtbl_source.3.txt \
