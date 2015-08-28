@@ -1,3 +1,13 @@
+mtbl (0.8.0-1) unstable; urgency=medium
+
+  * New upstream release.
+  * [2a155298] debian/libmtbl0.symbols: Update symbols for 0.8.0
+  * [c781da27] debian/control: wrap-and-sort
+  * [85f6f28c] debian/control: Add Build-Depends on liblz4-dev for mtbl 0.8.0
+  * [8f5119b7] debian/gbp.conf: Add [dch]
+
+ -- Robert Edmonds <edmonds@debian.org>  Fri, 28 Aug 2015 18:39:13 -0400
+
 mtbl (0.7.0-1) UNRELEASED; urgency=medium
 
   * New upstream release.
