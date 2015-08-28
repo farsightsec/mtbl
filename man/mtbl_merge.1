@@ -2,12 +2,12 @@
 .\"     Title: mtbl_merge
 .\"    Author: [FIXME: author] [see http://docbook.sf.net/el/author]
 .\" Generator: DocBook XSL Stylesheets v1.78.1 <http://docbook.sf.net/>
-.\"      Date: 01/31/2014
+.\"      Date: 07/21/2015
 .\"    Manual: \ \&
 .\"    Source: \ \&
 .\"  Language: English
 .\"
-.TH "MTBL_MERGE" "1" "01/31/2014" "\ \&" "\ \&"
+.TH "MTBL_MERGE" "1" "07/21/2015" "\ \&" "\ \&"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -57,7 +57,7 @@ Command line tool:
 .nf
 \fBexport MTBL_MERGE_DSO="\fR\fB\fIlibexample\&.so\&.0\fR\fR\fB"\fR
 \fBexport MTBL_MERGE_FUNC_PREFIX="\fR\fB\fIexample_merge\fR\fR\fB"\fR
-\fBmtbl_merge\fR \fIINPUT\fR [\fIINPUT\fR]\&... \fIOUTPUT\fR
+\fBmtbl_merge\fR [\fB\-b\fR \fISIZE\fR] [\fB\-c\fR \fICOMPRESSION\fR] \fIINPUT\fR [\fIINPUT\fR]\&... \fIOUTPUT\fR
 .fi
 .SH "DESCRIPTION"
 .sp
@@ -68,6 +68,19 @@ The user\-provided merge function must have the same type as the \fImtbl_merge_f
 Additionally, two optional functions may be provided: an "init" function whose symbol name is "_init" appended to the function prefix, and a "free" function whose symbol name is "_free" appended to the function prefix\&. If the "init" function exists, it will be called at the beginning, before any calls to the merge function, and the return value from the init function will be passed as the first argument to the merge function\&. If the "free" function exists, it will be called at the end, after any calls to the merge function, and its argument will be the return value of the "init" function\&.
 .sp
 The environment variable \fIMTBL_MERGE_BLOCK_SIZE\fR may optionally be set in order to configure the MTBL block size (in bytes) of the output file\&.
+.SH "OPTIONS"
+.PP
+\fB\-b\fR \fISIZE\fR
+.RS 4
+The uncompressed data block size hint for the output file, in bytes\&. The default value if unspecified is 8192 bytes (8 kilobytes)\&.
+.RE
+.PP
+\fB\-c\fR \fICOMPRESSION\fR
+.RS 4
+The compression algorithm to use for data blocks in the output file\&. The default value if unspecified is
+\fBzlib\fR\&. See the
+\fBmtbl_info\fR(1) manpage for the list of possible compression algorithms\&.
+.RE
 .SH "SEE ALSO"
 .sp
-\fBmtbl_merger\fR(3)
+\fBmtbl_info\fR(1) \fBmtbl_merger\fR(3)

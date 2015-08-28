@@ -42,8 +42,7 @@ struct mtbl_reader_options {
 };
 
 struct mtbl_reader {
-	int				fd;
-	struct trailer			t;
+	struct mtbl_metadata		m;
 	uint8_t				*data;
 	size_t				len_data;
 	struct mtbl_reader_options	opt;
@@ -101,6 +100,12 @@ mtbl_reader_options_set_verify_checksums(struct mtbl_reader_options *opt,
 	opt->verify_checksums = verify_checksums;
 }
 
+const struct mtbl_metadata *
+mtbl_reader_metadata(struct mtbl_reader *r)
+{
+	return &r->m;
+}
+
 static void
 reader_init_madvise(struct mtbl_reader *r)
 {
@@ -119,59 +124,64 @@ reader_init_madvise(struct mtbl_reader *r)
 
 	if (b) {
 #if defined(HAVE_POSIX_MADVISE)
-		(void) posix_madvise(r->data, r->t.index_block_offset, POSIX_MADV_RANDOM);
+		(void) posix_madvise(r->data, r->m.index_block_offset, POSIX_MADV_RANDOM);
 #elif defined(HAVE_MADVISE)
-		(void) madvise(r->data, r->t.index_block_offset, MADV_RANDOM);
+		(void) madvise(r->data, r->m.index_block_offset, MADV_RANDOM);
 #endif
 	}
 }
 
 struct mtbl_reader *
-mtbl_reader_init_fd(int orig_fd, const struct mtbl_reader_options *opt)
+mtbl_reader_init_fd(int fd, const struct mtbl_reader_options *opt)
 {
 	struct mtbl_reader *r;
 	struct stat ss;
-	size_t trailer_offset;
-	int fd;
+	size_t metadata_offset;
 
 	size_t index_len;
 	uint32_t index_crc;
 	uint8_t *index_data;
 
-	assert(orig_fd >= 0);
-	fd = dup(orig_fd);
-	assert(fd >= 0);
 	int ret = fstat(fd, &ss);
 	assert(ret == 0);
 
-	if (ss.st_size < MTBL_TRAILER_SIZE) {
-		close(fd);
+	if (ss.st_size < MTBL_METADATA_SIZE)
 		return (NULL);
-	}
 
 	r = my_calloc(1, sizeof(*r));
 	if (opt != NULL)
 		memcpy(&r->opt, opt, sizeof(*opt));
-	r->fd = fd;
 	r->len_data = ss.st_size;
-	r->data = mmap(NULL, r->len_data, PROT_READ, MAP_PRIVATE, r->fd, 0);
+	r->data = mmap(NULL, r->len_data, PROT_READ, MAP_PRIVATE, fd, 0);
 	if (r->data == MAP_FAILED) {
-		close(r->fd);
 		free(r);
 		return (NULL);
 	}
 
-	trailer_offset = r->len_data - MTBL_TRAILER_SIZE;
-	if (!trailer_read(r->data + trailer_offset, &r->t)) {
+	metadata_offset = r->len_data - MTBL_METADATA_SIZE;
+	if (!metadata_read(r->data + metadata_offset, &r->m)) {
+		mtbl_reader_destroy(&r);
+		return (NULL);
+	}
+
+	/**
+	 * Sanitize the index block offset.
+	 * We calculate the maximum possible index block offset for this file to
+	 * be the total size of the file (r->len_data) minus the length of the
+	 * metadata block (MTBL_METADATA_SIZE) minus the length of the minimum
+	 * sized block, which requires 4 fixed-length 32-bit integers (16 bytes).
+	 */
+	const uint64_t max_index_block_offset = r->len_data - MTBL_METADATA_SIZE - 16;
+	if (r->m.index_block_offset > max_index_block_offset) {
 		mtbl_reader_destroy(&r);
 		return (NULL);
 	}
 
 	reader_init_madvise(r);
 
-	index_len = mtbl_fixed_decode32(r->data + r->t.index_block_offset + 0);
-	index_crc = mtbl_fixed_decode32(r->data + r->t.index_block_offset + sizeof(uint32_t));
-	index_data = r->data + r->t.index_block_offset + 2 * sizeof(uint32_t);
+	index_len = mtbl_fixed_decode32(r->data + r->m.index_block_offset + 0);
+	index_crc = mtbl_fixed_decode32(r->data + r->m.index_block_offset + sizeof(uint32_t));
+	index_data = r->data + r->m.index_block_offset + 2 * sizeof(uint32_t);
 	assert(index_crc == mtbl_crc32c(index_data, index_len));
 	r->index = block_init(index_data, index_len, false);
 	r->source = mtbl_source_init(reader_iter,
@@ -203,7 +213,6 @@ mtbl_reader_destroy(struct mtbl_reader **r)
 	if (*r != NULL) {
 		block_destroy(&(*r)->index);
 		munmap((*r)->data, (*r)->len_data);
-		close((*r)->fd);
 		mtbl_source_destroy(&(*r)->source);
 		free(*r);
 		*r = NULL;
@@ -217,50 +226,13 @@ mtbl_reader_source(struct mtbl_reader *r)
 	return (r->source);
 }
 
-static void
-get_block_zlib_decompress(uint8_t *raw_contents, size_t raw_contents_size,
-			  uint8_t **block_contents, size_t *block_contents_size)
-{
-	int zret;
-	z_stream zs;
-
-	memset(&zs, 0, sizeof(zs));
-	zs.zalloc = Z_NULL;
-	zs.zfree = Z_NULL;
-	zs.opaque = Z_NULL;
-	zs.avail_in = 0;
-	zs.next_in = Z_NULL;
-
-	zret = inflateInit(&zs);
-	assert(zret == Z_OK);
-	zs.avail_in = raw_contents_size;
-	zs.next_in = raw_contents;
-	zs.avail_out = *block_contents_size;
-	zs.next_out = *block_contents = my_malloc(*block_contents_size);
-
-	do {
-		zret = inflate(&zs, Z_FINISH);
-		assert(zret == Z_STREAM_END || zret == Z_BUF_ERROR);
-		if (zret != Z_STREAM_END) {
-			*block_contents = my_realloc(*block_contents,
-						     *block_contents_size * 2);
-			zs.next_out = *block_contents + *block_contents_size;
-			zs.avail_out = *block_contents_size;
-			*block_contents_size *= 2;
-		}
-	} while (zret != Z_STREAM_END);
-
-	*block_contents_size = zs.total_out;
-	inflateEnd(&zs);
-}
-
 static struct block *
 get_block(struct mtbl_reader *r, uint64_t offset)
 {
 	bool needs_free = false;
 	uint8_t *block_contents = NULL, *raw_contents = NULL;
 	size_t block_contents_size = 0, raw_contents_size = 0;
-	snappy_status res;
+	mtbl_res res;
 
 	assert(offset < r->len_data);
 
@@ -274,27 +246,30 @@ get_block(struct mtbl_reader *r, uint64_t offset)
 		assert(block_crc == calc_crc);
 	}
 
-	switch (r->t.compression_algorithm) {
+	switch ((mtbl_compression_type) r->m.compression_algorithm) {
 	case MTBL_COMPRESSION_NONE:
 		block_contents = raw_contents;
 		block_contents_size = raw_contents_size;
 		break;
+	case MTBL_COMPRESSION_LZ4:
+		/* Fall through, LZ4 and LZ4HC use the same decompressor. */
+	case MTBL_COMPRESSION_LZ4HC:
+		needs_free = true;
+		res = _mtbl_decompress_lz4(raw_contents, raw_contents_size,
+					   &block_contents, &block_contents_size);
+		assert(res == mtbl_res_success);
+		break;
 	case MTBL_COMPRESSION_SNAPPY:
 		needs_free = true;
-		res = snappy_uncompressed_length((const char *)raw_contents,
-						 raw_contents_size,
-						 &block_contents_size);
-		assert(res == SNAPPY_OK);
-		block_contents = my_malloc(block_contents_size);
-		res = snappy_uncompress((const char *)raw_contents, raw_contents_size,
-					(char *)block_contents, &block_contents_size);
-		assert(res == SNAPPY_OK);
+		res = _mtbl_decompress_snappy(raw_contents, raw_contents_size,
+					      &block_contents, &block_contents_size);
+		assert(res == mtbl_res_success);
 		break;
 	case MTBL_COMPRESSION_ZLIB:
 		needs_free = true;
-		block_contents_size = 4 * r->t.data_block_size;
-		get_block_zlib_decompress(raw_contents, raw_contents_size,
-					  &block_contents, &block_contents_size);
+		res = _mtbl_decompress_zlib(raw_contents, raw_contents_size,
+					    &block_contents, &block_contents_size);
+		assert(res == mtbl_res_success);
 		break;
 	}
 

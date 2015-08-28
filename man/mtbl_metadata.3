@@ -1,0 +1,110 @@
+'\" t
+.\"     Title: mtbl_metadata
+.\"    Author: [FIXME: author] [see http://docbook.sf.net/el/author]
+.\" Generator: DocBook XSL Stylesheets v1.78.1 <http://docbook.sf.net/>
+.\"      Date: 02/03/2015
+.\"    Manual: \ \&
+.\"    Source: \ \&
+.\"  Language: English
+.\"
+.TH "MTBL_METADATA" "3" "02/03/2015" "\ \&" "\ \&"
+.\" -----------------------------------------------------------------
+.\" * Define some portability stuff
+.\" -----------------------------------------------------------------
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.\" http://bugs.debian.org/507673
+.\" http://lists.gnu.org/archive/html/groff/2009-02/msg00013.html
+.\" ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.\" -----------------------------------------------------------------
+.\" * set default formatting
+.\" -----------------------------------------------------------------
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.\" -----------------------------------------------------------------
+.\" * MAIN CONTENT STARTS HERE *
+.\" -----------------------------------------------------------------
+.SH "NAME"
+mtbl_metadata \- get MTBL file metadata
+.SH "SYNOPSIS"
+.sp
+\fB#include <mtbl\&.h>\fR
+.sp
+.nf
+\fBuint64_t
+mtbl_metadata_index_block_offset(const struct mtbl_metadata *\fR\fB\fIm\fR\fR\fB);\fR
+.fi
+.sp
+.nf
+\fBuint64_t
+mtbl_metadata_data_block_size(const struct mtbl_metadata *\fR\fB\fIm\fR\fR\fB);\fR
+.fi
+.sp
+.nf
+\fBmtbl_compression_type
+mtbl_metadata_compression_algorithm(const struct mtbl_metadata *\fR\fB\fIm\fR\fR\fB);\fR
+.fi
+.sp
+.nf
+\fBuint64_t
+mtbl_metadata_count_entries(const struct mtbl_metadata *\fR\fB\fIm\fR\fR\fB);\fR
+.fi
+.sp
+.nf
+\fBuint64_t
+mtbl_metadata_count_data_blocks(const struct mtbl_metadata *\fR\fB\fIm\fR\fR\fB);\fR
+.fi
+.sp
+.nf
+\fBuint64_t
+mtbl_metadata_bytes_data_blocks(const struct mtbl_metadata *\fR\fB\fIm\fR\fR\fB);\fR
+.fi
+.sp
+.nf
+\fBuint64_t
+mtbl_metadata_bytes_index_block(const struct mtbl_metadata *\fR\fB\fIm\fR\fR\fB);\fR
+.fi
+.sp
+.nf
+\fBuint64_t
+mtbl_metadata_bytes_keys(const struct mtbl_metadata *\fR\fB\fIm\fR\fR\fB);\fR
+.fi
+.sp
+.nf
+\fBuint64_t
+mtbl_metadata_bytes_values(const struct mtbl_metadata *\fR\fB\fIm\fR\fR\fB);\fR
+.fi
+.SH "DESCRIPTION"
+.sp
+An \fBmtbl_metadata\fR object may be obtained from an \fBmtbl_reader\fR(3)\&. Its accessors export attributes and file statistics that are recorded in the metadata block\&.
+.SH "RETURN VALUE"
+.SS "mtbl_metadata_index_block_offset()"
+.sp
+Byte offset in the MTBL file where the index begins\&.
+.SS "mtbl_metadata_data_block_size()"
+.sp
+Maximum size of an uncompressed data block, see \fBmtbl_writer\fR(3)\&.
+.SS "mtbl_metadata_compression_algorithm()"
+.sp
+One of the \fBcompression\fR values allowed by \fBmtbl_writer\fR(3)\&.
+.SS "mtbl_metadata_count_entries()"
+.sp
+Total number of key\-value entries\&.
+.SS "mtbl_metadata_count_data_blocks()"
+.sp
+Total number of data blocks\&.
+.SS "mtbl_metadata_bytes_data_blocks()"
+.sp
+Total number of bytes consumed by data blocks\&.
+.SS "mtbl_metadata_bytes_index_block()"
+.sp
+Total number of bytes consumed by the index\&.
+.SS "mtbl_metadata_bytes_keys()"
+.sp
+Total number of bytes that all keys would occupy if stored end\-to\-end in a byte array with no delimiters\&.
+.SS "mtbl_metadata_bytes_values()"
+.sp
+Total number of bytes that all values in the file would occupy if stored end\-to\-end in a byte array with no delimiters\&.

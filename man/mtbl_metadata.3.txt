@@ -1,0 +1,91 @@
+= MTBL_METADATA(3) =
+
+== NAME ==
+
+mtbl_metadata - get MTBL file metadata
+
+== SYNOPSIS ==
+
+^#include <mtbl.h>^
+
+[verse]
+^uint64_t
+mtbl_metadata_index_block_offset(const struct mtbl_metadata *'m');^
+
+[verse]
+^uint64_t
+mtbl_metadata_data_block_size(const struct mtbl_metadata *'m');^
+
+[verse]
+^mtbl_compression_type
+mtbl_metadata_compression_algorithm(const struct mtbl_metadata *'m');^
+
+[verse]
+^uint64_t
+mtbl_metadata_count_entries(const struct mtbl_metadata *'m');^
+
+[verse]
+^uint64_t
+mtbl_metadata_count_data_blocks(const struct mtbl_metadata *'m');^
+
+[verse]
+^uint64_t
+mtbl_metadata_bytes_data_blocks(const struct mtbl_metadata *'m');^
+
+[verse]
+^uint64_t
+mtbl_metadata_bytes_index_block(const struct mtbl_metadata *'m');^
+
+[verse]
+^uint64_t
+mtbl_metadata_bytes_keys(const struct mtbl_metadata *'m');^
+
+[verse]
+^uint64_t
+mtbl_metadata_bytes_values(const struct mtbl_metadata *'m');^
+
+== DESCRIPTION ==
+
+An ^mtbl_metadata^ object may be obtained from an ^mtbl_reader^(3).
+Its accessors export attributes and file statistics that are recorded in the
+metadata block.
+
+== RETURN VALUE ==
+
+=== mtbl_metadata_index_block_offset() ===
+
+Byte offset in the MTBL file where the index begins.
+
+=== mtbl_metadata_data_block_size() ===
+
+Maximum size of an uncompressed data block, see ^mtbl_writer^(3).
+
+=== mtbl_metadata_compression_algorithm() ===
+
+One of the ^compression^ values allowed by ^mtbl_writer^(3).
+
+=== mtbl_metadata_count_entries() ===
+
+Total number of key-value entries.
+
+=== mtbl_metadata_count_data_blocks() ===
+
+Total number of data blocks.
+
+=== mtbl_metadata_bytes_data_blocks() ===
+
+Total number of bytes consumed by data blocks.
+
+=== mtbl_metadata_bytes_index_block() ===
+
+Total number of bytes consumed by the index.
+
+=== mtbl_metadata_bytes_keys() ===
+
+Total number of bytes that all keys would occupy if stored end-to-end in a byte
+array with no delimiters.
+
+=== mtbl_metadata_bytes_values() ===
+
+Total number of bytes that all values in the file would occupy if stored
+end-to-end in a byte array with no delimiters.

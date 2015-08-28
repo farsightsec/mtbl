@@ -6,7 +6,7 @@ mtbl_dump - print key-value entries from an MTBL file
 
 == SYNOPSIS ==
 
-^mtbl_dump^ 'FILE'
+^mtbl_dump^ ['-s'] 'FILE'
 
 == DESCRIPTION ==
 
@@ -15,3 +15,8 @@ file order. Each entry is printed on its own line, with double quotes
 surrounding the key and the value, with a single space character separating
 the two. Unprintable characters and embedded double quote characters are
 escaped using the Python string literal syntax.
+
+== OPTIONS ==
+
+^-s^::
+    Silent mode (don't output anything). Useful for benchmarking.

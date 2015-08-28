@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, 2014 by Farsight Security, Inc.
+ * Copyright (c) 2012, 2014-2015 by Farsight Security, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,7 +27,7 @@ struct mtbl_writer_options {
 
 struct mtbl_writer {
 	int				fd;
-	struct trailer			t;
+	struct mtbl_metadata		m;
 	struct block_builder		*data;
 	struct block_builder		*index;
 
@@ -73,9 +73,11 @@ void
 mtbl_writer_options_set_compression(struct mtbl_writer_options *opt,
 				    mtbl_compression_type compression_type)
 {
-	assert(compression_type == MTBL_COMPRESSION_NONE ||
-	       compression_type == MTBL_COMPRESSION_SNAPPY ||
-	       compression_type == MTBL_COMPRESSION_ZLIB);
+	assert(compression_type == MTBL_COMPRESSION_NONE	||
+	       compression_type == MTBL_COMPRESSION_SNAPPY	||
+	       compression_type == MTBL_COMPRESSION_ZLIB	||
+	       compression_type == MTBL_COMPRESSION_LZ4		||
+	       compression_type == MTBL_COMPRESSION_LZ4HC);
 	opt->compression_type = compression_type;
 }
 
@@ -112,9 +114,13 @@ mtbl_writer_init_fd(int orig_fd, const struct mtbl_writer_options *opt)
 		memcpy(&w->opt, opt, sizeof(*opt));
 	}
 	w->fd = fd;
+	// Start writing from the current offset. This allows mtbl's callers
+	// to reserve some initial bytes in the file.
+	w->last_offset = lseek(fd, 0, SEEK_CUR);
+	w->pending_offset = w->last_offset;
 	w->last_key = ubuf_init(256);
-	w->t.compression_algorithm = w->opt.compression_type;
-	w->t.data_block_size = w->opt.block_size;
+	w->m.compression_algorithm = w->opt.compression_type;
+	w->m.data_block_size = w->opt.block_size;
 	w->data = block_builder_init(w->opt.block_restart_interval);
 	w->index = block_builder_init(w->opt.block_restart_interval);
 	return (w);
@@ -156,7 +162,7 @@ mtbl_writer_add(struct mtbl_writer *w,
 		const uint8_t *val, size_t len_val)
 {
 	assert(!w->closed);
-	if (w->t.count_entries > 0) {
+	if (w->m.count_entries > 0) {
 		if (!(bytes_compare(key, len_key,
 				    ubuf_data(w->last_key), ubuf_size(w->last_key)) > 0))
 		{
@@ -189,9 +195,9 @@ mtbl_writer_add(struct mtbl_writer *w,
 	ubuf_reset(w->last_key);
 	ubuf_append(w->last_key, key, len_key);
 
-	w->t.count_entries += 1;
-	w->t.bytes_keys += len_key;
-	w->t.bytes_values += len_val;
+	w->m.count_entries += 1;
+	w->m.bytes_keys += len_key;
+	w->m.bytes_values += len_val;
 	block_builder_add(w->data, key, len_key, val, len_val);
 	return (mtbl_res_success);
 }
@@ -199,7 +205,7 @@ mtbl_writer_add(struct mtbl_writer *w,
 static void
 _mtbl_writer_finish(struct mtbl_writer *w)
 {
-	uint8_t tbuf[MTBL_TRAILER_SIZE];
+	uint8_t tbuf[MTBL_METADATA_SIZE];
 
 	_mtbl_writer_flush(w);
 	assert(!w->closed);
@@ -218,10 +224,10 @@ _mtbl_writer_finish(struct mtbl_writer *w)
 				  enc, len_enc);
 		w->pending_index_entry = false;
 	}
-	w->t.index_block_offset = w->pending_offset;
-	w->t.bytes_index_block = _mtbl_writer_writeblock(w, w->index, MTBL_COMPRESSION_NONE);
+	w->m.index_block_offset = w->pending_offset;
+	w->m.bytes_index_block = _mtbl_writer_writeblock(w, w->index, MTBL_COMPRESSION_NONE);
 
-	trailer_write(&w->t, tbuf);
+	metadata_write(&w->m, tbuf);
 	_write_all(w->fd, tbuf, sizeof(tbuf));
 }
 
@@ -232,8 +238,8 @@ _mtbl_writer_flush(struct mtbl_writer *w)
 	if (block_builder_empty(w->data))
 		return;
 	assert(!w->pending_index_entry);
-	w->t.bytes_data_blocks += _mtbl_writer_writeblock(w, w->data, w->opt.compression_type);
-	w->t.count_data_blocks += 1;
+	w->m.bytes_data_blocks += _mtbl_writer_writeblock(w, w->data, w->opt.compression_type);
+	w->m.count_data_blocks += 1;
 	w->pending_index_entry = true;
 }
 
@@ -242,11 +248,9 @@ _mtbl_writer_writeblock(struct mtbl_writer *w,
 			struct block_builder *b,
 			mtbl_compression_type compression_type)
 {
-	uint8_t *raw_contents = NULL, *block_contents = NULL, *comp_contents = NULL;
-	size_t raw_contents_size = 0, block_contents_size = 0, comp_contents_size = 0;
-	snappy_status res;
-	int zret;
-	z_stream zs;
+	mtbl_res res;
+	uint8_t *raw_contents = NULL, *block_contents = NULL;
+	size_t raw_contents_size = 0, block_contents_size = 0;
 
 	block_builder_finish(b, &raw_contents, &raw_contents_size);
 
@@ -255,36 +259,25 @@ _mtbl_writer_writeblock(struct mtbl_writer *w,
 		block_contents = raw_contents;
 		block_contents_size = raw_contents_size;
 		break;
+	case MTBL_COMPRESSION_LZ4:
+		res = _mtbl_compress_lz4(raw_contents, raw_contents_size,
+					 &block_contents, &block_contents_size);
+		assert(res == mtbl_res_success);
+		break;
+	case MTBL_COMPRESSION_LZ4HC:
+		res = _mtbl_compress_lz4hc(raw_contents, raw_contents_size,
+					   &block_contents, &block_contents_size);
+		assert(res == mtbl_res_success);
+		break;
 	case MTBL_COMPRESSION_SNAPPY:
-		comp_contents_size = snappy_max_compressed_length(raw_contents_size);
-		comp_contents = my_malloc(comp_contents_size);
-		res = snappy_compress((const char *) raw_contents, raw_contents_size,
-				      (char *) comp_contents, &comp_contents_size);
-		assert(res == SNAPPY_OK);
-		block_contents = comp_contents;
-		block_contents_size = comp_contents_size;
+		res = _mtbl_compress_snappy(raw_contents, raw_contents_size,
+					    &block_contents, &block_contents_size);
+		assert(res == mtbl_res_success);
 		break;
 	case MTBL_COMPRESSION_ZLIB:
-		comp_contents_size = 2 * raw_contents_size;
-		comp_contents = my_malloc(comp_contents_size);
-		memset(&zs, 0, sizeof(zs));
-		zs.zalloc = Z_NULL;
-		zs.zfree = Z_NULL;
-		zs.opaque = Z_NULL;
-		zret = deflateInit(&zs, Z_DEFAULT_COMPRESSION);
-		assert(zret == Z_OK);
-		zs.avail_in = raw_contents_size;
-		zs.next_in = raw_contents;
-		zs.avail_out = comp_contents_size;
-		zs.next_out = comp_contents;
-		zret = deflate(&zs, Z_FINISH);
-		assert(zret == Z_STREAM_END);
-		assert(zs.avail_in == 0);
-		comp_contents_size = zs.total_out;
-		zret = deflateEnd(&zs);
-		assert(zret == Z_OK);
-		block_contents = comp_contents;
-		block_contents_size = comp_contents_size;
+		res = _mtbl_compress_zlib(raw_contents, raw_contents_size,
+					  &block_contents, &block_contents_size);
+		assert(res == mtbl_res_success);
 		break;
 	}
 
@@ -303,7 +296,8 @@ _mtbl_writer_writeblock(struct mtbl_writer *w,
 
 	block_builder_reset(b);
 	free(raw_contents);
-	free(comp_contents);
+	if (compression_type != MTBL_COMPRESSION_NONE)
+		free(block_contents);
 
 	return (bytes_written);
 }

@@ -199,3 +199,22 @@ mtbl_fileset_reload(struct mtbl_fileset *f)
 		f->last = now;
 	}
 }
+
+void
+mtbl_fileset_reload_now(struct mtbl_fileset *f)
+{
+	assert(f != NULL);
+	struct timespec now;
+	int res;
+
+	res = clock_gettime(CLOCK_MONOTONIC, &now);
+	assert(res == 0);
+
+	f->n_loaded = 0;
+	f->n_unloaded = 0;
+	assert(f->fs != NULL);
+	my_fileset_reload(f->fs);
+	if (f->n_loaded > 0 || f->n_unloaded > 0)
+		fs_reinit_merger(f);
+	f->last = now;
+}

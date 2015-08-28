@@ -29,7 +29,7 @@ Command line tool:
 [verse]
 ^export MTBL_MERGE_DSO="'libexample.so.0'"^
 ^export MTBL_MERGE_FUNC_PREFIX="'example_merge'"^
-^mtbl_merge^ 'INPUT' ['INPUT']... 'OUTPUT'
+^mtbl_merge^ [^-b^ 'SIZE'] [^-c^ 'COMPRESSION'] 'INPUT' ['INPUT']... 'OUTPUT'
 
 == DESCRIPTION ==
 
@@ -56,6 +56,17 @@ will be the return value of the "init" function.
 The environment variable 'MTBL_MERGE_BLOCK_SIZE' may optionally be set in order
 to configure the MTBL block size (in bytes) of the output file.
 
+== OPTIONS ==
+
+^-b^ 'SIZE'::
+    The uncompressed data block size hint for the output file, in bytes. The
+    default value if unspecified is 8192 bytes (8 kilobytes).
+
+^-c^ 'COMPRESSION'::
+    The compression algorithm to use for data blocks in the output file. The
+    default value if unspecified is ^zlib^. See the ^mtbl_info^(1) manpage for
+    the list of possible compression algorithms.
+
 == SEE ALSO ==
 
-^mtbl_merger^(3)
+^mtbl_info^(1) ^mtbl_merger^(3)

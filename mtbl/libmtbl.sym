@@ -70,3 +70,22 @@ LIBMTBL_0.7.0 {
 global:
         mtbl_reader_options_set_madvise_random;
 } LIBMTBL_0.6.0;
+
+LIBMTBL_0.8.0 {
+global:
+        mtbl_compress;
+        mtbl_compression_type_to_str;
+        mtbl_compression_type_from_str;
+        mtbl_decompress;
+        mtbl_fileset_reload_now;
+        mtbl_reader_metadata;
+        mtbl_metadata_index_block_offset;
+        mtbl_metadata_data_block_size;
+        mtbl_metadata_compression_algorithm;
+        mtbl_metadata_count_entries;
+        mtbl_metadata_count_data_blocks;
+        mtbl_metadata_bytes_data_blocks;
+        mtbl_metadata_bytes_index_block;
+        mtbl_metadata_bytes_keys;
+        mtbl_metadata_bytes_values;
+} LIBMTBL_0.7.0;
