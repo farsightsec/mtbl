@@ -11,7 +11,9 @@ ACLOCAL_AMFLAGS = -I m4 ${ACLOCAL_FLAGS}
 AM_CPPFLAGS = \
 	-include $(top_builddir)/config.h \
 	-I${top_srcdir}/mtbl
-AM_CFLAGS = ${my_CFLAGS}
+AM_CFLAGS = \
+	${my_CFLAGS} \
+	$(liblz4_CFLAGS)
 AM_LDFLAGS =
 
 #
@@ -35,6 +37,7 @@ mtbl_libmtbl_la_SOURCES = \
 	mtbl/block.c \
 	mtbl/block_builder.c \
 	mtbl/bytes.h \
+	mtbl/compression.c \
 	mtbl/crc32c_wrap.c \
 	mtbl/fileset.c \
 	mtbl/fixed.c \
@@ -45,11 +48,11 @@ mtbl_libmtbl_la_SOURCES = \
 	mtbl/reader.c \
 	mtbl/sorter.c \
 	mtbl/source.c \
-	mtbl/trailer.c \
+	mtbl/metadata.c \
 	mtbl/varint.c \
 	mtbl/writer.c
 
-mtbl_libmtbl_la_LIBADD = -lsnappy -lz
+mtbl_libmtbl_la_LIBADD = -lsnappy -lz $(liblz4_LIBS)
 mtbl_libmtbl_la_LDFLAGS = $(AM_LDFLAGS) \
 	-version-info $(LIBMTBL_VERSION_INFO)
 if HAVE_LD_VERSION_SCRIPT
@@ -79,6 +82,10 @@ bin_PROGRAMS += src/mtbl_info
 src_mtbl_info_SOURCES = src/mtbl_info.c
 src_mtbl_info_LDADD = mtbl/libmtbl.la
 
+bin_PROGRAMS += src/mtbl_verify
+src_mtbl_verify_SOURCES = src/mtbl_verify.c
+src_mtbl_verify_LDADD = mtbl/libmtbl.la
+
 bin_PROGRAMS += src/mtbl_merge
 src_mtbl_merge_SOURCES = src/mtbl_merge.c libmy/getenv_int.h
 src_mtbl_merge_LDADD = mtbl/libmtbl.la
@@ -107,10 +114,10 @@ check_PROGRAMS += t/test-fixed
 t_test_fixed_SOURCES = t/test-fixed.c
 t_test_fixed_LDADD = mtbl/libmtbl.la
 
-TESTS += t/test-trailer
-check_PROGRAMS += t/test-trailer
-t_test_trailer_SOURCES = t/test-trailer.c
-t_test_trailer_LDADD = mtbl/libmtbl.la
+TESTS += t/test-metadata
+check_PROGRAMS += t/test-metadata
+t_test_metadata_SOURCES = t/test-metadata.c
+t_test_metadata_LDADD = mtbl/libmtbl.la
 
 TESTS += t/test-varint
 check_PROGRAMS += t/test-varint
@@ -122,6 +129,11 @@ check_PROGRAMS += t/test-vector
 t_test_vector_SOURCES = t/test-vector.c
 t_test_vector_LDADD = mtbl/libmtbl.la
 
+TESTS += t/test-verify.sh
+EXTRA_DIST += t/test-verify.sh
+EXTRA_DIST += t/test-verify-good1.data t/test-verify-bad1.data t/test-verify-bad2.data
+t/test-verify.sh: src/mtbl_verify
+
 TESTS += t/test-deb716628.sh
 EXTRA_DIST += t/test-deb716628.sh
 EXTRA_DIST += t/test-deb716628.data
@@ -129,9 +141,23 @@ t/test-deb716628.sh: src/mtbl_dump
 
 TESTS += t/test-gh1.sh
 EXTRA_DIST += t/test-gh1.sh
+EXTRA_DIST += t/test-gh1-lz4.data
+EXTRA_DIST += t/test-gh1-lz4hc.data
 EXTRA_DIST += t/test-gh1-snappy.data
 EXTRA_DIST += t/test-gh1-zlib.data
 t/test-gh1.sh: src/mtbl_dump
+
+TESTS += t/test-foreign-prefix.sh
+EXTRA_DIST += t/test-foreign-prefix.sh
+EXTRA_DIST += t/test-foreign-prefix.data
+t/test-foreign-prefix.sh: src/mtbl_dump
+
+TESTS += t/test-compression.sh
+EXTRA_DIST += t/test-compression.sh
+check_PROGRAMS += t/test-compression
+t_test_compression_SOURCES = t/test-compression.c
+t_test_compression_LDADD = mtbl/libmtbl.la
+t/test-compression.sh: t/test-compression
 
 #
 ##
@@ -159,6 +185,7 @@ dist_man_MANS = \
 	man/mtbl_info.1 \
 	man/mtbl_merge.1 \
 	man/mtbl_iter.3 \
+	man/mtbl_metadata.3 \
 	man/mtbl_source.3 \
 	man/mtbl_reader.3 \
 	man/mtbl_writer.3 \
@@ -175,6 +202,7 @@ EXTRA_DIST += \
 	man/mtbl_info.1.txt \
 	man/mtbl_merge.1.txt \
 	man/mtbl_iter.3.txt \
+	man/mtbl_metadata.3.txt \
 	man/mtbl_source.3.txt \
 	man/mtbl_reader.3.txt \
 	man/mtbl_writer.3.txt \

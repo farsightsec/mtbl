@@ -2,12 +2,12 @@
 .\"     Title: mtbl_reader
 .\"    Author: [FIXME: author] [see http://docbook.sf.net/el/author]
 .\" Generator: DocBook XSL Stylesheets v1.78.1 <http://docbook.sf.net/>
-.\"      Date: 11/18/2014
+.\"      Date: 02/03/2015
 .\"    Manual: \ \&
 .\"    Source: \ \&
 .\"  Language: English
 .\"
-.TH "MTBL_READER" "3" "11/18/2014" "\ \&" "\ \&"
+.TH "MTBL_READER" "3" "02/03/2015" "\ \&" "\ \&"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -55,6 +55,11 @@ mtbl_reader_destroy(struct mtbl_reader **\fR\fB\fIr\fR\fR\fB);\fR
 mtbl_reader_source(struct mtbl_reader *\fR\fB\fIr\fR\fR\fB);\fR
 .fi
 .sp
+.nf
+\fBconst struct mtbl_metadata *
+mtbl_reader_metadata(struct mtbl_reader *\fR\fB\fIr\fR\fR\fB);\fR
+.fi
+.sp
 Reader options:
 .sp
 .nf
@@ -87,6 +92,8 @@ MTBL files are accessed by creating an \fBmtbl_reader\fR object, calling \fBmtbl
 \fBmtbl_reader\fR objects may be created by calling \fBmtbl_reader_init\fR() with an \fIfname\fR argument specifying the filename to be opened, or \fBmtbl_reader_init_fd\fR() may be called with an \fIfd\fR argument specifying an open, readable file descriptor\&. Since MTBL files are immutable, the same MTBL file may be opened and read from concurrently by independent threads or processes\&.
 .sp
 If the \fIropt\fR parameter to \fBmtbl_reader_init\fR() or \fBmtbl_reader_init_fd\fR() is non\-NULL, the parameters specified in the \fBmtbl_reader_options\fR object will be configured into the \fBmtbl_reader\fR object\&.
+.sp
+File\-level metadata may be accessed using the \fBmtbl_metadata\fR(3) interface, using the object returned by \fBmtbl_reader_metadata\fR()\&. Note that the metadata object is valid only as long as the reader object exists\&.
 .SS "Reader options"
 .sp
 .it 1 an-trap

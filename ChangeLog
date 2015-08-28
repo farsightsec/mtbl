@@ -1,3 +1,37 @@
+mtbl (0.8.0)
+
+  [ Alexey Spiridonov ]
+  * mtbl_reader(3): New reader getters, which expose the values stored
+    in the "metadata" (formerly "trailer") at the end of MTBL files. For
+    example: the number of bytes of source data in the keys & values is
+    available via mtbl_metadata_bytes_keys() & mtbl_metadata_bytes_values().
+
+  * mtbl_writer(3): Allow foreign data to be written to the beginning of a
+    file before its file descriptor is passed to mtbl_writer_init_fd().
+
+  [ Robert Edmonds ]
+  * Add mtbl_verify(1) utility which verifies the embedded data and index
+    block checksums in an MTBL file.
+
+  * Stop keeping dup()'d copies of the file descriptors passed to
+    mtbl_reader_init_fd(). POSIX does not require a process to keep an open
+    file descriptor corresponding to an mmap()'d file. This change allows a
+    process to open more MTBL files than the process file descriptor limit.
+
+  * mtbl_dump(1): Add silent ("-s") option which omits the actual dump output.
+    This is useful when benchmarking decompression performance.
+
+  * Add LZ4/LZ4HC compression support. This adds a new library dependency on
+    liblz4.
+
+  * mtbl_merge(1): Add block size ("-b") and compression algorithm ("-c")
+    options.
+
+  * mtbl_fileset(3): Add mtbl_fileset_reload_now() function that
+    instantaneously checks and, if necessary, reloads the fileset.
+
+ -- Robert Edmonds <edmonds@fsi.io>  Fri, 28 Aug 2015 17:36:39 -0400
+
 mtbl (0.7.0)
 
   * mtbl_reader(3): New reader option 'madvise_random' which may drastically

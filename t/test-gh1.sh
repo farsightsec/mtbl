@@ -12,6 +12,8 @@ fi
 
 ulimit -c 0
 
+"${top_builddir}/src/mtbl_dump" "${top_srcdir}/t/test-gh1-lz4.data" 1>/dev/null
+"${top_builddir}/src/mtbl_dump" "${top_srcdir}/t/test-gh1-lz4hc.data" 1>/dev/null
 "${top_builddir}/src/mtbl_dump" "${top_srcdir}/t/test-gh1-snappy.data" 1>/dev/null
 "${top_builddir}/src/mtbl_dump" "${top_srcdir}/t/test-gh1-zlib.data" 1>/dev/null
 

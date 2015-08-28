@@ -75,8 +75,13 @@ used instead.
 ^mtbl_writer^ objects may be created by calling ^mtbl_writer_init^() with an
 _fname_ argument specifying a filename to be created. The filename must not
 already exist on the filesystem. Or, ^mtbl_writer_init_fd^() may be called with
-an _fd_ argument specifying an open, writable file descriptor. No data may have been
-written to the file descriptor.
+an _fd_ argument specifying an open, writable file descriptor. Prior to the
+call, moving _fd_'s cursor via ^write^(2) or ^lseek^(2) will have the effect
+of reserving the file's initial bytes for non-MTBL use. MTBL will only write
+at, or above the current offset. Thereafter, only ^mtbl_writer^ may access this
+_fd_ (including closing it), and no other writes may be made to the underlying 
+file above the first offset of the MTBL data. The MTBL data must be last in the
+file.
 
 If the _wopt_ parameter to ^mtbl_writer_init^() or ^mtbl_writer_init_fd^() is
 non-NULL, the parameters specified in the ^mtbl_writer_options^ object will be
@@ -86,8 +91,8 @@ configured into the ^mtbl_writer^ object.
 
 ==== compression ====
 Specifies the compression algorithm to use on data blocks. Possible values are
-^MTBL_COMPRESSION_NONE^, ^MTBL_COMPRESSION_SNAPPY^, or ^MTBL_COMPRESSION_ZLIB^
-(the default).
+^MTBL_COMPRESSION_NONE^, ^MTBL_COMPRESSION_SNAPPY^, ^MTBL_COMPRESSION_LZ4^,
+^MTBL_COMPRESSION_LZ4HC^, or ^MTBL_COMPRESSION_ZLIB^ (the default).
 
 ==== block_size ====
 The maximum size of uncompressed data blocks, specified in bytes. The default

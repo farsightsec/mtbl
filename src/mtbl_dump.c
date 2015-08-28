@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, 2014 by Farsight Security, Inc.
+ * Copyright (c) 2012, 2014-2015 by Farsight Security, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,15 +14,17 @@
  * limitations under the License.
  */
 
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
 
 #include <mtbl.h>
 
 #include "libmy/print_string.h"
 
 static bool
-dump(const char *fname)
+dump(const char *fname, const bool silent)
 {
 	const uint8_t *key, *val;
 	size_t len_key, len_val;
@@ -37,6 +39,8 @@ dump(const char *fname)
 
 	it = mtbl_source_iter(mtbl_reader_source(r));
 	while (mtbl_iter_next(it, &key, &len_key, &val, &len_val)) {
+		if (silent)
+			continue;
 		print_string(key, len_key, stdout);
 		fputc(' ', stdout);
 		print_string(val, len_val, stdout);
@@ -49,18 +53,34 @@ dump(const char *fname)
 	return (true);
 }
 
+static void
+usage(void)
+{
+	fprintf(stderr, "Usage: mtbl_dump [-s] <MTBL FILE>\n");
+	exit(EXIT_FAILURE);
+}
+
 int
 main(int argc, char **argv)
 {
 	char *fname;
+	bool silent = false;
 
-	if (argc != 2) {
-		fprintf(stderr, "Usage: %s <MTBL FILE>\n", argv[0]);
-		exit(EXIT_FAILURE);
+	int c;
+	while ((c = getopt(argc, argv, "s")) != -1) {
+		switch (c) {
+		case 's':
+			silent = true;
+			break;
+		default:
+			usage();
+		}
 	}
-	fname = argv[1];
+	if (optind >= argc)
+		usage();
+	fname = argv[optind];
 
-	if (!dump(fname))
+	if (!dump(fname, silent))
 		return (EXIT_FAILURE);
 	return (EXIT_SUCCESS);
 }

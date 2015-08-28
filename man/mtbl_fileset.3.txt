@@ -23,6 +23,10 @@ mtbl_fileset_destroy(struct mtbl_fileset **'f');^
 mtbl_fileset_reload(struct mtbl_fileset *'f');^
 
 [verse]
+^void
+mtbl_fileset_reload_now(struct mtbl_fileset *'f');^
+
+[verse]
 ^const struct mtbl_source *
 mtbl_fileset_source(struct mtbl_fileset *'f');^
 
@@ -45,9 +49,9 @@ mtbl_fileset_options_set_merge_func(
 
 [verse]
 ^void
-mtbl_fileset_options_set_reload_frequency(
+mtbl_fileset_options_set_reload_interval(
         struct mtbl_fileset_options *'fopt',
-        uint32_t 'reload_frequency');^
+        uint32_t 'reload_interval');^
 
 == DESCRIPTION ==
 
@@ -74,10 +78,15 @@ which has been configured with a merge function _fp_. ^mtbl_fileset_source^()
 should then be called in order to consume output via the ^mtbl_source^(3)
 interface.
 
-Accesses via the ^mtbl_source^(3) interface will implicitly check for updates to
-the setfile. However, it may be necessary to explicitly call the
+Accesses via the ^mtbl_source^(3) interface will implicitly check for updates
+to the setfile. However, it may be necessary to explicitly call the
 ^mtbl_fileset_reload^() function in order to check for updates, especially if
-files are being removed from the setfile.
+files are being removed from the setfile and the ^mtbl_source^ is infrequently
+accessed.
+
+The ^mtbl_fileset_reload^() function avoids checking for updates more frequently
+than every _reload_interval_ seconds. The ^mtbl_fileset_reload_now^() function
+can be called to bypass the _reload_interval_ check.
 
 === Fileset options ===
 
