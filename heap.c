@@ -52,6 +52,16 @@ heap_destroy(struct heap **h)
 	}
 }
 
+void heap_reset(struct heap *h)
+{
+	ptrvec_reset(h->vec);
+}
+
+void heap_clip(struct heap *h, size_t n_elems)
+{
+	ptrvec_clip(h->vec, n_elems);
+}
+
 static int
 siftdown(struct heap *h, size_t startpos, size_t pos)
 {
@@ -97,6 +107,20 @@ siftup(struct heap *h, size_t pos)
 	}
 	ptrvec_data(h->vec)[pos] = newitem;
 	return (siftdown(h, startpos, pos));
+}
+
+void
+heap_heapify(struct heap *h)
+{
+	for (size_t i = ptrvec_size(h->vec)/2; i-- > 0; ) {
+		siftup(h, i);
+	}
+}
+
+void
+heap_add(struct heap *h, void *item)
+{
+	ptrvec_add(h->vec, item);
 }
 
 void
