@@ -279,6 +279,14 @@ mtbl_sorter_add(struct mtbl_sorter *s,
 }
 
 static mtbl_res
+sorter_iter_seek(void *v,
+		 const uint8_t *key, size_t len_key)
+{
+	struct sorter_iter *it = (struct sorter_iter *) v;
+	return (mtbl_iter_seek(it->m_iter, key, len_key));
+}
+
+static mtbl_res
 sorter_iter_next(void *v,
 		 const uint8_t **key, size_t *len_key,
 		 const uint8_t **val, size_t *len_val)
@@ -333,5 +341,5 @@ mtbl_sorter_iter(struct mtbl_sorter *s)
 
 	it->m_iter = mtbl_source_iter(mtbl_merger_source(it->m));
 	s->iterating = true;
-	return (mtbl_iter_init(sorter_iter_next, sorter_iter_free, it));
+	return (mtbl_iter_init(sorter_iter_seek, sorter_iter_next, sorter_iter_free, it));
 }

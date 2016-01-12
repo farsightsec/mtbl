@@ -5,3 +5,4 @@ test-fixed
 test-metadata
 test-varint
 test-vector
+test-iter-seek

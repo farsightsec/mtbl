@@ -96,6 +96,11 @@ typedef void
 /* iter */
 
 typedef mtbl_res
+(*mtbl_iter_seek_func)(
+	void *,
+	const uint8_t *key, size_t len_key);
+
+typedef mtbl_res
 (*mtbl_iter_next_func)(
 	void *,
 	const uint8_t **key, size_t *len_key,
@@ -105,10 +110,16 @@ typedef void
 (*mtbl_iter_free_func)(void *);
 
 struct mtbl_iter *
-mtbl_iter_init(mtbl_iter_next_func, mtbl_iter_free_func, void *clos);
+mtbl_iter_init(mtbl_iter_seek_func, mtbl_iter_next_func, mtbl_iter_free_func, void *clos);
 
 void
 mtbl_iter_destroy(struct mtbl_iter **);
+
+mtbl_res
+mtbl_iter_seek(
+	struct mtbl_iter *,
+	const uint8_t *key, size_t len_key)
+__attribute__((warn_unused_result));
 
 mtbl_res
 mtbl_iter_next(

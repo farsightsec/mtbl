@@ -17,18 +17,22 @@
 #include "mtbl-private.h"
 
 struct mtbl_iter {
+	mtbl_iter_seek_func	iter_seek;
 	mtbl_iter_next_func	iter_next;
 	mtbl_iter_free_func	iter_free;
 	void			*clos;
 };
 
 struct mtbl_iter *
-mtbl_iter_init(mtbl_iter_next_func iter_next,
+mtbl_iter_init(mtbl_iter_seek_func iter_seek,
+	       mtbl_iter_next_func iter_next,
 	       mtbl_iter_free_func iter_free,
 	       void *clos)
 {
+	assert(iter_seek != NULL);
 	assert(iter_next != NULL);
 	struct mtbl_iter *it = my_calloc(1, sizeof(*it));
+	it->iter_seek = iter_seek;
 	it->iter_next = iter_next;
 	it->iter_free = iter_free;
 	it->clos = clos;
@@ -44,6 +48,15 @@ mtbl_iter_destroy(struct mtbl_iter **it)
 		free(*it);
 		*it = NULL;
 	}
+}
+
+mtbl_res
+mtbl_iter_seek(struct mtbl_iter *it,
+	       const uint8_t *key, size_t len_key)
+{
+	if (it == NULL)
+		return (mtbl_res_failure);
+	return (it->iter_seek(it->clos, key, len_key));
 }
 
 mtbl_res

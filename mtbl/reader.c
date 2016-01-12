@@ -27,6 +27,7 @@ typedef enum {
 
 struct reader_iter {
 	struct mtbl_reader		*r;
+	uint64_t                        block_offset;
 	struct block			*b;
 	struct block_iter		*bi;
 	struct block_iter		*index_iter;
@@ -52,6 +53,9 @@ struct mtbl_reader {
 
 static void
 reader_init_madvise(struct mtbl_reader *);
+
+static mtbl_res
+reader_iter_seek(void *, const uint8_t *, size_t);
 
 static mtbl_res
 reader_iter_next(void *, const uint8_t **, size_t *, const uint8_t **, size_t *);
@@ -329,7 +333,7 @@ reader_iter(void *clos)
 	it->first = true;
 	it->valid = true;
 	it->it_type = READER_ITER_TYPE_ITER;
-	return (mtbl_iter_init(reader_iter_next, reader_iter_free, it));
+	return (mtbl_iter_init(reader_iter_seek, reader_iter_next, reader_iter_free, it));
 }
 
 static struct reader_iter *
@@ -367,7 +371,7 @@ reader_get(void *clos, const uint8_t *key, size_t len_key)
 	it->k = ubuf_init(len_key);
 	ubuf_append(it->k, key, len_key);
 	it->it_type = READER_ITER_TYPE_GET;
-	return (mtbl_iter_init(reader_iter_next, reader_iter_free, it));
+	return (mtbl_iter_init(reader_iter_seek, reader_iter_next, reader_iter_free, it));
 }
 
 static struct mtbl_iter *
@@ -380,7 +384,7 @@ reader_get_prefix(void *clos, const uint8_t *key, size_t len_key)
 	it->k = ubuf_init(len_key);
 	ubuf_append(it->k, key, len_key);
 	it->it_type = READER_ITER_TYPE_GET_PREFIX;
-	return (mtbl_iter_init(reader_iter_next, reader_iter_free, it));
+	return (mtbl_iter_init(reader_iter_seek, reader_iter_next, reader_iter_free, it));
 }
 
 static struct mtbl_iter *
@@ -395,7 +399,7 @@ reader_get_range(void *clos,
 	it->k = ubuf_init(len_key1);
 	ubuf_append(it->k, key1, len_key1);
 	it->it_type = READER_ITER_TYPE_GET_RANGE;
-	return (mtbl_iter_init(reader_iter_next, reader_iter_free, it));
+	return (mtbl_iter_init(reader_iter_seek, reader_iter_next, reader_iter_free, it));
 }
 
 static void
@@ -409,6 +413,44 @@ reader_iter_free(void *v)
 		block_iter_destroy(&it->index_iter);
 		free(it);
 	}
+}
+
+static mtbl_res
+reader_iter_seek(void *v,
+	       const uint8_t *key, size_t len_key)
+{
+	struct reader_iter *it = (struct reader_iter *) v;
+	
+	const uint8_t *ikey, *ival;
+	size_t len_ikey, len_ival;
+	uint64_t new_offset;
+
+	block_iter_seek(it->index_iter, key, len_key);
+
+	if (block_iter_get(it->index_iter, &ikey, &len_ikey, &ival, &len_ival)) {
+		mtbl_varint_decode64(ival, &new_offset);
+	}
+
+	/* We can skip decoding a new block if our new key is within the
+	 * currently-decoded block. */ 
+	if (it->b == NULL || it->block_offset != new_offset) {
+		block_destroy(&it->b);
+		block_iter_destroy(&it->bi);
+
+		it->block_offset = new_offset;
+		it->b = get_block(it->r, new_offset);
+		if (it->b == NULL)
+			return (mtbl_res_failure);
+
+		it->bi = block_iter_init(it->b);
+	}
+
+	block_iter_seek(it->bi, key, len_key);
+
+	it->first = true;
+	it->valid = true;
+
+	return (mtbl_res_success);
 }
 
 static mtbl_res
