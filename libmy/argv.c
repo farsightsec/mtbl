@@ -34,7 +34,7 @@ static	void	do_list(argv_t *grid, const int arg_c, char **argv,
 			argv_t **queue_list, int *queue_head_p,
 			int *queue_tail_p, int *okay_bp);
 
-#define LOC_SNPRINTF		(void)snprintf
+#define LOC_SNPRINTF(...)	(void)snprintf(__VA_ARGS__);
 #define SNP_ARG(buf, buf_size)	buf, buf_size
 
 /*

@@ -6,6 +6,7 @@
 #include <errno.h>
 #include <time.h>
 
+#if HAVE_CLOCK_GETTIME
 static inline void
 my_gettime(clockid_t clk_id, struct timespec *ts)
 {
@@ -13,6 +14,20 @@ my_gettime(clockid_t clk_id, struct timespec *ts)
 	res = clock_gettime(clk_id, ts);
 	assert(res == 0);
 }
+#else
+static inline void
+my_gettime(int clk_id __attribute__((unused)), struct timespec *ts)
+{
+	struct timeval tv;
+	int res;
+
+	res = gettimeofday(&tv, NULL);
+	assert(res == 0);
+
+	ts->tv_sec = tv.tv_sec;
+	ts->tv_nsec = tv.tv_usec * 1000;
+}
+#endif
 
 static inline void
 my_timespec_add(const struct timespec *a, struct timespec *b) {
@@ -33,6 +48,27 @@ my_timespec_sub(const struct timespec *a, struct timespec *b)
 		b->tv_sec -= 1;
 		b->tv_nsec += 1000000000;
 	}
+}
+
+/*
+ * Comparison function for struct timespec suitable for use with bsearch,
+ * qsort, etc.  Returns an integer less than, equal to, or greater than zero
+ * if the first argument is considered to be respectively less than, equal
+ * to, or greater than the second.
+ */
+static inline int
+my_timespec_cmp(const struct timespec *a, const struct timespec *b)
+{
+	if (a->tv_sec < b->tv_sec)
+		return (-1);
+	else if (a->tv_sec > b->tv_sec)
+		return (1);
+	else if (a->tv_nsec < b->tv_nsec)
+		return (-1);
+	else if (a->tv_nsec > b->tv_nsec)
+		return (1);
+	else
+		return (0);
 }
 
 static inline double

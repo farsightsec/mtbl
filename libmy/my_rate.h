@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008, 2009, 2013 by Farsight Security, Inc.
+ * Copyright (c) 2008, 2009, 2013, 2014 by Farsight Security, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,15 +17,15 @@
 #ifndef MY_RATE_H
 #define MY_RATE_H
 
-struct rate;
+struct my_rate;
 
-struct rate *
-rate_init(unsigned rate, unsigned freq);
-
-void
-rate_destroy(struct rate **);
+struct my_rate *
+my_rate_init(unsigned rate, unsigned freq);
 
 void
-rate_sleep(struct rate *);
+my_rate_destroy(struct my_rate **);
+
+void
+my_rate_sleep(struct my_rate *);
 
 #endif /* MY_RATE_H */
