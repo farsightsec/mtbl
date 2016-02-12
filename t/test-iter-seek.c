@@ -9,6 +9,8 @@
 #include "libmy/ubuf.h"
 #include "mtbl-private.h"
 
+#define NAME		"test-iter-seek"
+
 #define NUM_KEYS	128
 
 #define KEY_FMT		"%08x"
@@ -46,7 +48,7 @@ int main(int argc, char ** argv) {
 	assert(iter != NULL);
 
 	test_iter(iter);
-	fprintf(stderr, "iter run successful\n");
+	fprintf(stderr, NAME ": PASS: iter run successful\n");
 
 	mtbl_iter_destroy(&iter);
 
@@ -67,7 +69,7 @@ int main(int argc, char ** argv) {
 	assert(merger_iter != NULL);
 
 	test_iter(merger_iter);
-	fprintf(stderr, "merger run 1 successful\n");
+	fprintf(stderr, NAME ": PASS: merger run 1 successful\n");
 
 	mtbl_iter_destroy(&merger_iter);
 	
@@ -85,7 +87,7 @@ int main(int argc, char ** argv) {
 	assert(merger_iter != NULL);
 
 	test_iter(merger_iter);
-	fprintf(stderr, "merger run 2 successful\n");
+	fprintf(stderr, NAME ": PASS: merger run 2 successful\n");
 
 	mtbl_iter_destroy(&merger_iter);
 
