@@ -106,7 +106,7 @@ mtbl_res _mtbl_decompress_zlib	(const uint8_t *, const size_t, uint8_t **, size_
 /* iter */
 
 struct mtbl_iter *
-mtbl_iter_init(mtbl_iter_seek_func, mtbl_iter_next_func, mtbl_iter_free_func, void *clos);
+_mtbl_iter_init(mtbl_iter_seek_func, mtbl_iter_next_func, mtbl_iter_free_func, void *clos);
 
 /* metadata */
 

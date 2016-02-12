@@ -24,10 +24,10 @@ struct mtbl_iter {
 };
 
 struct mtbl_iter *
-mtbl_iter_init(mtbl_iter_seek_func iter_seek,
-	       mtbl_iter_next_func iter_next,
-	       mtbl_iter_free_func iter_free,
-	       void *clos)
+_mtbl_iter_init(mtbl_iter_seek_func iter_seek,
+		mtbl_iter_next_func iter_next,
+		mtbl_iter_free_func iter_free,
+		void *clos)
 {
 	assert(iter_seek != NULL);
 	assert(iter_next != NULL);
