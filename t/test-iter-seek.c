@@ -9,7 +9,10 @@
 #include "libmy/ubuf.h"
 #include "mtbl-private.h"
 
-#define NUM_KEYS 64
+#define NUM_KEYS	128
+
+#define KEY_FMT		"%08x"
+#define VAL_FMT		"%032d"
 
 static void
 init_mtbl(int fd);
@@ -102,7 +105,7 @@ test_iter(struct mtbl_iter *iter)
 	/* Iterate completely through the mtbl */
 	for (uint32_t i = 0; i < NUM_KEYS; i++) {
 		ubuf *expected_key = ubuf_init(1);
-		ubuf_add_fmt(expected_key, "%04x", i);
+		ubuf_add_fmt(expected_key, KEY_FMT, i);
 
 		const uint8_t *key, *value;
 		size_t len_key, len_value;
@@ -126,7 +129,7 @@ test_iter(struct mtbl_iter *iter)
 	 * all the way to the end. */
 	for (uint32_t i = NUM_KEYS; i-- > 0; ) {
 		ubuf *seek_key = ubuf_init(1);
-		ubuf_add_fmt(seek_key, "%04x", i);
+		ubuf_add_fmt(seek_key, KEY_FMT, i);
 
 		const uint8_t *key, *value;
 		size_t len_key, len_value;
@@ -135,7 +138,7 @@ test_iter(struct mtbl_iter *iter)
 		
 		for (uint32_t j = i; j < NUM_KEYS; j++) {
 			ubuf *expected_key = ubuf_init(1);
-			ubuf_add_fmt(expected_key, "%04x", j);
+			ubuf_add_fmt(expected_key, KEY_FMT, j);
 
 			assert(mtbl_iter_next(iter, &key, &len_key, &value, &len_value) == mtbl_res_success);
 			
@@ -168,6 +171,8 @@ init_mtbl(int fd) {
 	struct mtbl_writer_options *writer_options = mtbl_writer_options_init();
 	assert(writer_options != NULL);
 
+	mtbl_writer_options_set_block_size(writer_options, 1024);
+
 	struct mtbl_writer *writer = mtbl_writer_init_fd(fd, writer_options);
 	assert(writer != NULL);
 
@@ -176,8 +181,8 @@ init_mtbl(int fd) {
 		ubuf *key = ubuf_init(1);
 		ubuf *value = ubuf_init(1);
 
-		ubuf_add_fmt(key, "%04x", i);
-		ubuf_add_fmt(value, "%d", i);
+		ubuf_add_fmt(key, KEY_FMT, i);
+		ubuf_add_fmt(value, VAL_FMT, i);
 
 		assert(mtbl_writer_add(writer, ubuf_data(key), ubuf_size(key), ubuf_data(value), ubuf_size(value)) == mtbl_res_success);
 
