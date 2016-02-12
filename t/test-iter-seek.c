@@ -5,10 +5,11 @@
 #include <unistd.h>
 
 #include <mtbl.h>
-#include <mtbl-private.h>
-#include <libmy/ubuf.h>
 
-#define NUM_KEYS 64 
+#include "libmy/ubuf.h"
+#include "mtbl-private.h"
+
+#define NUM_KEYS 64
 
 static void
 init_mtbl(int fd);
@@ -29,7 +30,7 @@ int main(int argc, char ** argv) {
 
 	init_mtbl(dup(fileno(tmp)));
 
-	struct mtbl_reader_options *reader_options = mtbl_reader_options_init(); 
+	struct mtbl_reader_options *reader_options = mtbl_reader_options_init();
 	assert(reader_options != NULL);
 
 	struct mtbl_reader *reader = mtbl_reader_init_fd(dup(fileno(tmp)), reader_options);
@@ -42,7 +43,7 @@ int main(int argc, char ** argv) {
 	assert(iter != NULL);
 
 	test_iter(iter);
-	fprintf (stderr, "iter run successful\n");
+	fprintf(stderr, "iter run successful\n");
 
 	mtbl_iter_destroy(&iter);
 
@@ -63,7 +64,7 @@ int main(int argc, char ** argv) {
 	assert(merger_iter != NULL);
 
 	test_iter(merger_iter);
-	fprintf (stderr, "merger run 1 successful\n");
+	fprintf(stderr, "merger run 1 successful\n");
 
 	mtbl_iter_destroy(&merger_iter);
 	
@@ -81,7 +82,7 @@ int main(int argc, char ** argv) {
 	assert(merger_iter != NULL);
 
 	test_iter(merger_iter);
-	fprintf (stderr, "merger run 2 successful\n");
+	fprintf(stderr, "merger run 2 successful\n");
 
 	mtbl_iter_destroy(&merger_iter);
 
@@ -164,7 +165,7 @@ my_merge_func(void *clos,
 
 static void
 init_mtbl(int fd) {
-	struct mtbl_writer_options *writer_options = mtbl_writer_options_init(); 
+	struct mtbl_writer_options *writer_options = mtbl_writer_options_init();
 	assert(writer_options != NULL);
 
 	struct mtbl_writer *writer = mtbl_writer_init_fd(fd, writer_options);
