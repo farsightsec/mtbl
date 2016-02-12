@@ -109,9 +109,6 @@ typedef mtbl_res
 typedef void
 (*mtbl_iter_free_func)(void *);
 
-struct mtbl_iter *
-mtbl_iter_init(mtbl_iter_seek_func, mtbl_iter_next_func, mtbl_iter_free_func, void *clos);
-
 void
 mtbl_iter_destroy(struct mtbl_iter **);
 
