@@ -64,7 +64,9 @@ AC_CHECK_LIB([z], [deflate], [], [
 ])
 
 AC_SEARCH_LIBS([dlopen], [dl])
+
 AC_SEARCH_LIBS([clock_gettime], [rt])
+AC_CHECK_FUNCS([clock_gettime])
 
 AC_PATH_PROG([ASCIIDOC], [a2x])
 AM_CONDITIONAL([BUILD_MAN], [test -n "$ASCIIDOC"])

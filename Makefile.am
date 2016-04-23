@@ -32,6 +32,7 @@ mtbl_libmtbl_la_SOURCES = \
 	libmy/heap.c libmy/heap.h \
 	libmy/my_alloc.h \
 	libmy/my_fileset.c libmy/my_fileset.h \
+	libmy/my_time.h \
 	libmy/ubuf.h \
 	libmy/vector.h \
 	mtbl/block.c \
