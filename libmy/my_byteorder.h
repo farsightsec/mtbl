@@ -11,33 +11,20 @@
 # endif
 #endif
 
-#if HAVE_DECL_HTOLE32
-# define my_htole32 htole32
-#else
-# if defined(WORDS_BIGENDIAN)
-#  define my_htole32 my_bswap32
-# else
-#  define my_htole32(x) (x)
-# endif
+#if defined(__APPLE__)
+# include <libkern/OSByteOrder.h>
+# define be16toh OSSwapBigToHostInt16
+# define be32toh OSSwapBigToHostInt32
+# define be64toh OSSwapBigToHostInt64
+# define htobe16 OSSwapHostToBigInt16
+# define htobe32 OSSwapHostToBigInt32
+# define htobe64 OSSwapHostToBigInt64
+# define htole16 OSSwapHostToLittleInt16
+# define htole32 OSSwapHostToLittleInt32
+# define htole64 OSSwapHostToLittleInt64
+# define le16toh OSSwapLittleToHostInt16
+# define le32toh OSSwapLittleToHostInt32
+# define le64toh OSSwapLittleToHostInt64
 #endif
-
-#if HAVE_DECL_LE32TOH
-# define my_le32toh le32toh
-#else
-# if defined(WORDS_BIGENDIAN)
-#  define my_le32toh my_bswap32
-# else
-#  define my_le32toh(x) (x)
-# endif
-#endif
-
-static inline uint32_t
-my_bswap32(uint32_t x)
-{
-	return  ((x << 24) & 0xff000000 ) |
-		((x <<  8) & 0x00ff0000 ) |
-		((x >>  8) & 0x0000ff00 ) |
-		((x >> 24) & 0x000000ff );
-}
 
 #endif /* MY_BYTEORDER_H */
