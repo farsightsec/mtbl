@@ -31,6 +31,7 @@ mtbl_libmtbl_la_SOURCES = \
 	libmy/crc32c.c libmy/crc32c.h libmy/crc32c-slicing.c libmy/crc32c-sse42.c \
 	libmy/heap.c libmy/heap.h \
 	libmy/my_alloc.h \
+	libmy/my_byteorder.h \
 	libmy/my_fileset.c libmy/my_fileset.h \
 	libmy/my_time.h \
 	libmy/ubuf.h \
