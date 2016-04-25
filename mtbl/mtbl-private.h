@@ -17,14 +17,6 @@
 #ifndef MTBL_PRIVATE_H
 #define MTBL_PRIVATE_H
 
-#ifdef HAVE_ENDIAN_H
-# include <endian.h>
-#else
-# ifdef HAVE_SYS_ENDIAN_H
-#  include <sys/endian.h>
-# endif
-#endif
-
 #include <sys/mman.h>
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -46,6 +38,7 @@
 #include "mtbl.h"
 
 #include "libmy/my_alloc.h"
+#include "libmy/my_byteorder.h"
 
 #define MTBL_MAGIC			0x77846676
 #define MTBL_METADATA_SIZE		512
