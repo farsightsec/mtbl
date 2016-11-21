@@ -69,4 +69,4 @@ to configure the MTBL block size (in bytes) of the output file.
 
 == SEE ALSO ==
 
-^mtbl_info^(1) ^mtbl_merger^(3)
+^mtbl_info^(1), ^mtbl_merger^(3)
