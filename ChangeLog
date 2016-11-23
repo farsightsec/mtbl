@@ -1,3 +1,18 @@
+mtbl (0.8.1)
+
+ [ Robert Edmonds ]
+ * Add portability for clock time.
+
+ * Simplify and improve portability related to byte order primitives.
+
+ [ Henry Stern ]
+ * Fix assertion failure. If there is a broken mtbl file in the fileset
+   then a NULL reader will be returned. This change checks for that
+   error condition in fs_reinit_merger() and does not pass the empty
+   reader onwards to mtbl_merger_add_source().
+
+ -- Jeremy C. Reed <reed@fsi.io>  Wed, 23 Nov 2016 10:27:11 -0600
+
 mtbl (0.8.0)
 
   [ Alexey Spiridonov ]
