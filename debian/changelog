@@ -1,0 +1,77 @@
+mtbl (0.8.1) unstable; urgency=low
+
+  [ Robert Edmonds ]
+  * fileset: Use the my_gettime() wrapper
+
+  [ Henry Stern ]
+  * fileset: assertion failure in fs_reinit_merger on broken mtbl file
+
+ -- Henry Stern <stern@fsi.io>  Wed, 23 Nov 2016 18:26:20 +0000
+
+mtbl (0.8.0-1) unstable; urgency=medium
+
+  * New upstream release.
+  * [2a155298] debian/libmtbl0.symbols: Update symbols for 0.8.0
+  * [c781da27] debian/control: wrap-and-sort
+  * [85f6f28c] debian/control: Add Build-Depends on liblz4-dev for mtbl 0.8.0
+  * [8f5119b7] debian/gbp.conf: Add [dch]
+
+ -- Robert Edmonds <edmonds@debian.org>  Fri, 28 Aug 2015 18:39:13 -0400
+
+mtbl (0.7.0-1) UNRELEASED; urgency=medium
+
+  * New upstream release.
+
+ -- Robert Edmonds <edmonds@debian.org>  Wed, 19 Nov 2014 13:31:33 -0500
+
+mtbl (0.6.0-1) unstable; urgency=medium
+
+  * New upstream release.
+
+ -- Robert S. Edmonds <edmonds@debian.org>  Wed, 21 May 2014 16:52:20 -0400
+
+mtbl (0.5-1) unstable; urgency=medium
+
+  * New upstream release.
+    - Fix detection of big endian architectures. (Closes: #737123).
+    - Avoid crashing when the MTBL file is too small to include the complete
+      MTBL trailer. (Closes: #716628).
+  * Use the pre-built manpage documentation rather than re-building the
+    documentation at package build time. This avoids including potentially
+    architecture dependent content in /usr/share in the -dev package when
+    packages are built on different architectures on different days, due to
+    the inclusion of today's date in the built man pages. (Closes: #736340).
+
+ -- Robert S. Edmonds <edmonds@debian.org>  Mon, 03 Feb 2014 13:49:21 -0500
+
+mtbl (0.4-1) unstable; urgency=medium
+
+  * New upstream release.
+
+ -- Robert S. Edmonds <edmonds@debian.org>  Tue, 21 Jan 2014 16:30:22 -0500
+
+mtbl (0.3-1) UNRELEASED; urgency=low
+
+  * New upstream release.
+
+ -- Robert S. Edmonds <edmonds@debian.org>  Wed, 26 Dec 2012 17:22:52 -0500
+
+mtbl (0.2-1.1) unstable; urgency=low
+
+  * Non-maintainer upload.
+  * debian/patches/eglibc2.17.patch: Rename timespec_get to prevent name
+    clashes with timespec_get provided by eglibc 2.17 (Closes: #701405)
+
+ -- Sebastian Ramacher <sramacher@debian.org>  Sun, 26 May 2013 22:52:55 +0200
+
+mtbl (0.2-1) unstable; urgency=low
+
+  * New upstream release.
+
+ -- Robert S. Edmonds <edmonds@debian.org>  Tue, 29 May 2012 22:36:36 -0400
+
+mtbl (0.1-1) unstable; urgency=low
+
+  * Initial release; closes: #661208.
+
+ -- Robert S. Edmonds <edmonds@debian.org>  Sun, 04 Mar 2012 17:32:34 -0500
