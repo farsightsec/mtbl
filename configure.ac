@@ -38,6 +38,7 @@ else
 fi
 
 PKG_CHECK_MODULES([liblz4], [liblz4 > 129])
+PKG_CHECK_MODULES([libzstd], [libzstd >= 0.8.0])
 
 AC_C_BIGENDIAN
 
