@@ -1,6 +1,7 @@
 LIBMTBL_1.0.0 {
 global:
         mtbl_compress;
+        mtbl_compress_level;
         mtbl_compression_type_from_str;
         mtbl_compression_type_to_str;
         mtbl_crc32c;
@@ -80,6 +81,7 @@ global:
         mtbl_writer_options_set_block_restart_interval;
         mtbl_writer_options_set_block_size;
         mtbl_writer_options_set_compression;
+        mtbl_writer_options_set_compression_level;
 local:
         *;
 };
