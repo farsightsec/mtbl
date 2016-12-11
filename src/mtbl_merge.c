@@ -72,7 +72,7 @@ usage(void)
 		"<SIZE> is the uncompressed data block size hint, in bytes.\n"
 		"The default value if unspecified is 8192 bytes (8 kilobytes).\n"
 		"\n"
-		"<COMPRESSION> is one of none, snappy, zlib, lz4, or lz4hc.\n"
+		"<COMPRESSION> is one of none, snappy, zlib, lz4, lz4hc, or zstd.\n"
 		"The default compression type if unspecified is zlib.\n"
 		"\n"
 		,
