@@ -20,6 +20,7 @@
 #include <lz4hc.h>
 #include <snappy-c.h>
 #include <zlib.h>
+#include <zstd.h>
 
 const char *
 mtbl_compression_type_to_str(mtbl_compression_type compression_type)
@@ -35,6 +36,8 @@ mtbl_compression_type_to_str(mtbl_compression_type compression_type)
 		return "lz4";
 	case MTBL_COMPRESSION_LZ4HC:
 		return "lz4hc";
+	case MTBL_COMPRESSION_ZSTD:
+		return "zstd";
 	default:
 		return NULL;
 	}
@@ -57,6 +60,9 @@ mtbl_compression_type_from_str(const char *s, mtbl_compression_type *t)
 		return mtbl_res_success;
 	} else if (strcasecmp(s, "lz4hc") == 0) {
 		*t = MTBL_COMPRESSION_LZ4HC;
+		return mtbl_res_success;
+	} else if (strcasecmp(s, "zstd") == 0) {
+		*t = MTBL_COMPRESSION_ZSTD;
 		return mtbl_res_success;
 	}
 
@@ -82,6 +88,8 @@ mtbl_compress(
 		return _mtbl_compress_lz4(input, input_size, output, output_size);
 	case MTBL_COMPRESSION_LZ4HC:
 		return _mtbl_compress_lz4hc(input, input_size, output, output_size);
+	case MTBL_COMPRESSION_ZSTD:
+		return _mtbl_compress_zstd(input, input_size, output, output_size);
 	default:
 		return mtbl_res_failure;
 	}
@@ -106,6 +114,8 @@ mtbl_decompress(
 		/* Fall through, LZ4 and LZ4HC use the same decompressor. */
 	case MTBL_COMPRESSION_LZ4HC:
 		return _mtbl_decompress_lz4(input, input_size, output, output_size);
+	case MTBL_COMPRESSION_ZSTD:
+		return _mtbl_decompress_zstd(input, input_size, output, output_size);
 	default:
 		return mtbl_res_failure;
 	}
@@ -191,6 +201,49 @@ _mtbl_compress_lz4hc(
 }
 
 mtbl_res
+_mtbl_compress_zstd(
+	const uint8_t *input,
+	const size_t input_size,
+	uint8_t **output,
+	size_t *output_size)
+{
+	size_t zstd_size;
+	char *zstd_bytes;
+
+	if (input_size > INT_MAX)
+		return (mtbl_res_failure);
+
+	zstd_size = ZSTD_compressBound(input_size);
+	if (zstd_size < INT_MAX/2) {
+		/**
+		 * "Compression runs faster if `dstCapacity` >=
+		 * `ZSTD_compressBound(srcSize)`."
+		 */
+		zstd_size *= 2;
+	}
+
+	*output_size = zstd_size;
+	*output = my_malloc(*output_size);
+	zstd_bytes = (char *) (*output);
+
+	zstd_size = ZSTD_compress(
+		zstd_bytes,		/* dst */
+		zstd_size,		/* dstCapacity */
+		input,			/* src */
+		input_size,		/* srcSize */
+		9			/* compressionLevel */
+	);
+
+	if (ZSTD_isError(zstd_size)) {
+		free(*output);
+		return (mtbl_res_failure);
+	}
+	*output_size = zstd_size;
+
+	return (mtbl_res_success);
+}
+
+mtbl_res
 _mtbl_compress_snappy(
 	const uint8_t *input,
 	const size_t input_size,
@@ -270,6 +323,39 @@ _mtbl_decompress_lz4(
 				  input_size - sizeof(uint32_t),
 				  *output_size);
 	if (ret < 0) {
+		free(*output);
+		return (mtbl_res_failure);
+	}
+
+	return (mtbl_res_success);
+}
+
+mtbl_res
+_mtbl_decompress_zstd(
+	const uint8_t *input,
+	const size_t input_size,
+	uint8_t **output,
+	size_t *output_size)
+{
+	size_t ret = 0;
+
+	if (input_size > INT_MAX)
+		return (mtbl_res_failure);
+
+	*output_size = (size_t) ZSTD_getDecompressedSize(input, input_size);
+	if (*output_size == 0)
+		return (mtbl_res_failure);
+
+	*output = my_malloc(*output_size);
+
+	ret = ZSTD_decompress(
+		*output,		/* dst */
+		*output_size,		/* dstCapacity */
+		input,			/* src */
+		input_size		/* compressedSize */
+	);
+
+	if (ZSTD_isError(ret)) {
 		free(*output);
 		return (mtbl_res_failure);
 	}
