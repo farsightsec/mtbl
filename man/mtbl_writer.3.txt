@@ -92,7 +92,8 @@ configured into the ^mtbl_writer^ object.
 ==== compression ====
 Specifies the compression algorithm to use on data blocks. Possible values are
 ^MTBL_COMPRESSION_NONE^, ^MTBL_COMPRESSION_SNAPPY^, ^MTBL_COMPRESSION_LZ4^,
-^MTBL_COMPRESSION_LZ4HC^, or ^MTBL_COMPRESSION_ZLIB^ (the default).
+^MTBL_COMPRESSION_LZ4HC^, ^MTBL_COMPRESSION_ZSTD^, or ^MTBL_COMPRESSION_ZLIB^
+(the default).
 
 ==== block_size ====
 The maximum size of uncompressed data blocks, specified in bytes. The default
