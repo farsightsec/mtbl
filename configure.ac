@@ -42,6 +42,8 @@ AC_CHECK_LIB(lz4, LZ4_compress_HC, [], [
     AC_MSG_ERROR([liblz4 >= r130 required])
 ])
 
+PKG_CHECK_MODULES([libzstd], [libzstd >= 0.8.0])
+
 AC_C_BIGENDIAN
 
 AC_CHECK_FUNC([mkstemp], [], [
