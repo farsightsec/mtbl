@@ -83,17 +83,45 @@ mtbl_compress(
 	case MTBL_COMPRESSION_SNAPPY:
 		return _mtbl_compress_snappy(input, input_size, output, output_size);
 	case MTBL_COMPRESSION_ZLIB:
-		return _mtbl_compress_zlib(input, input_size, output, output_size);
+		return _mtbl_compress_zlib(input, input_size, output, output_size, Z_DEFAULT_COMPRESSION);
 	case MTBL_COMPRESSION_LZ4:
 		return _mtbl_compress_lz4(input, input_size, output, output_size);
 	case MTBL_COMPRESSION_LZ4HC:
-		return _mtbl_compress_lz4hc(input, input_size, output, output_size);
+		return _mtbl_compress_lz4hc(input, input_size, output, output_size, 9);
 	case MTBL_COMPRESSION_ZSTD:
-		return _mtbl_compress_zstd(input, input_size, output, output_size);
+		return _mtbl_compress_zstd(input, input_size, output, output_size, 9);
 	default:
 		return mtbl_res_failure;
 	}
 }
+
+mtbl_res
+mtbl_compress_level(
+	mtbl_compression_type compression_type,
+	int compression_level,
+	const uint8_t *input,
+	const size_t input_size,
+	uint8_t **output,
+	size_t *output_size)
+{
+	switch (compression_type) {
+	case MTBL_COMPRESSION_NONE:
+		return mtbl_res_failure;
+	case MTBL_COMPRESSION_SNAPPY:
+		return _mtbl_compress_snappy(input, input_size, output, output_size);
+	case MTBL_COMPRESSION_ZLIB:
+		return _mtbl_compress_zlib(input, input_size, output, output_size, compression_level);
+	case MTBL_COMPRESSION_LZ4:
+		return _mtbl_compress_lz4(input, input_size, output, output_size);
+	case MTBL_COMPRESSION_LZ4HC:
+		return _mtbl_compress_lz4hc(input, input_size, output, output_size, compression_level);
+	case MTBL_COMPRESSION_ZSTD:
+		return _mtbl_compress_zstd(input, input_size, output, output_size, compression_level);
+	default:
+		return mtbl_res_failure;
+	}
+}
+
 
 mtbl_res
 mtbl_decompress(
@@ -165,13 +193,17 @@ _mtbl_compress_lz4hc(
 	const uint8_t *input,
 	const size_t input_size,
 	uint8_t **output,
-	size_t *output_size)
+	size_t *output_size,
+	int compression_level)
 {
 	int lz4_size;
 	char *lz4_bytes;
 
 	if (input_size > INT_MAX)
 		return (mtbl_res_failure);
+
+	if (compression_level < 0)
+		compression_level = 0;
 
 	lz4_size = LZ4_compressBound(input_size);
 
@@ -183,7 +215,7 @@ _mtbl_compress_lz4hc(
 					lz4_bytes,
 					(int) input_size,
 					lz4_size,
-					9 /* compressionLevel */);
+					compression_level);
 	if (lz4_size == 0) {
 		free(*output);
 		return (mtbl_res_failure);
@@ -205,13 +237,19 @@ _mtbl_compress_zstd(
 	const uint8_t *input,
 	const size_t input_size,
 	uint8_t **output,
-	size_t *output_size)
+	size_t *output_size,
+	int compression_level)
 {
 	size_t zstd_size;
 	char *zstd_bytes;
 
 	if (input_size > INT_MAX)
 		return (mtbl_res_failure);
+
+	if (compression_level < 1)
+		compression_level = 1;
+	else if (compression_level > 22 /* ZSTD_MAX_CLEVEL */)
+		compression_level = 22;
 
 	zstd_size = ZSTD_compressBound(input_size);
 	if (zstd_size < INT_MAX/2) {
@@ -231,7 +269,7 @@ _mtbl_compress_zstd(
 		zstd_size,		/* dstCapacity */
 		input,			/* src */
 		input_size,		/* srcSize */
-		9			/* compressionLevel */
+		compression_level	/* compressionLevel */
 	);
 
 	if (ZSTD_isError(zstd_size)) {
@@ -269,7 +307,8 @@ _mtbl_compress_zlib(
 	const uint8_t *input,
 	const size_t input_size,
 	uint8_t **output,
-	size_t *output_size)
+	size_t *output_size,
+	int compression_level)
 {
 	int zret;
 	z_stream zs = {
@@ -278,9 +317,15 @@ _mtbl_compress_zlib(
 		.zfree	= Z_NULL,
 	};
 
+	if (compression_level < Z_NO_COMPRESSION) {
+		compression_level = Z_NO_COMPRESSION;
+	} else if (compression_level > Z_BEST_COMPRESSION) {
+		compression_level = Z_BEST_COMPRESSION;
+	}
+
 	*output_size = 2 * input_size;
 	*output = my_malloc(*output_size);
-	zret = deflateInit(&zs, Z_DEFAULT_COMPRESSION);
+	zret = deflateInit(&zs, compression_level);
 	assert(zret == Z_OK);
 	zs.avail_in = input_size;
 	zs.next_in = (uint8_t *) input;

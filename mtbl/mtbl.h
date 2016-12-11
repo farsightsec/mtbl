@@ -50,6 +50,15 @@ mtbl_compress(
 	size_t *output_size);
 
 mtbl_res
+mtbl_compress_level(
+	mtbl_compression_type,
+	int compression_level,
+	const uint8_t *input,
+	const size_t input_size,
+	uint8_t **output,
+	size_t *output_size);
+
+mtbl_res
 mtbl_decompress(
 	mtbl_compression_type,
 	const uint8_t *input,
@@ -198,6 +207,11 @@ void
 mtbl_writer_options_set_compression(
 	struct mtbl_writer_options *,
 	mtbl_compression_type);
+
+void
+mtbl_writer_options_set_compression_level(
+	struct mtbl_writer_options *,
+	int);
 
 void
 mtbl_writer_options_set_block_size(
