@@ -255,31 +255,18 @@ _mtbl_writer_writeblock(struct mtbl_writer *w,
 
 	block_builder_finish(b, &raw_contents, &raw_contents_size);
 
-	switch (compression_type) {
-	case MTBL_COMPRESSION_NONE:
+	if (compression_type == MTBL_COMPRESSION_NONE) {
 		block_contents = raw_contents;
 		block_contents_size = raw_contents_size;
-		break;
-	case MTBL_COMPRESSION_LZ4:
-		res = _mtbl_compress_lz4(raw_contents, raw_contents_size,
-					 &block_contents, &block_contents_size);
+	} else {
+		res = mtbl_compress(
+			compression_type,
+			raw_contents,
+			raw_contents_size,
+			&block_contents,
+			&block_contents_size
+		);
 		assert(res == mtbl_res_success);
-		break;
-	case MTBL_COMPRESSION_LZ4HC:
-		res = _mtbl_compress_lz4hc(raw_contents, raw_contents_size,
-					   &block_contents, &block_contents_size);
-		assert(res == mtbl_res_success);
-		break;
-	case MTBL_COMPRESSION_SNAPPY:
-		res = _mtbl_compress_snappy(raw_contents, raw_contents_size,
-					    &block_contents, &block_contents_size);
-		assert(res == mtbl_res_success);
-		break;
-	case MTBL_COMPRESSION_ZLIB:
-		res = _mtbl_compress_zlib(raw_contents, raw_contents_size,
-					  &block_contents, &block_contents_size);
-		assert(res == mtbl_res_success);
-		break;
 	}
 
 	assert(w->m.file_version == MTBL_FORMAT_V2);
