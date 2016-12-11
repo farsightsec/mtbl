@@ -18,6 +18,7 @@ for compression_type in \
     zlib \
     lz4 \
     lz4hc \
+    zstd \
 ; do
     echo "$0: Testing compression type ${compression_type}"
     "${top_builddir}/t/test-compression" "${compression_type}"
