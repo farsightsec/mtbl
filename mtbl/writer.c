@@ -77,7 +77,9 @@ mtbl_writer_options_set_compression(struct mtbl_writer_options *opt,
 	       compression_type == MTBL_COMPRESSION_SNAPPY	||
 	       compression_type == MTBL_COMPRESSION_ZLIB	||
 	       compression_type == MTBL_COMPRESSION_LZ4		||
-	       compression_type == MTBL_COMPRESSION_LZ4HC);
+	       compression_type == MTBL_COMPRESSION_LZ4HC	||
+	       compression_type == MTBL_COMPRESSION_ZSTD
+	);
 	opt->compression_type = compression_type;
 }
 

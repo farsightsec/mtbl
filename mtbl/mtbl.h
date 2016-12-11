@@ -38,6 +38,7 @@ typedef enum {
 	MTBL_COMPRESSION_ZLIB = 2,
 	MTBL_COMPRESSION_LZ4 = 3,
 	MTBL_COMPRESSION_LZ4HC = 4,
+	MTBL_COMPRESSION_ZSTD = 5,
 } mtbl_compression_type;
 
 mtbl_res
