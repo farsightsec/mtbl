@@ -9,6 +9,10 @@ mtbl_metadata - get MTBL file metadata
 ^#include <mtbl.h>^
 
 [verse]
+^mtbl_file_version
+mtbl_metadata_file_version(const struct mtbl_metadata *'m');^
+
+[verse]
 ^uint64_t
 mtbl_metadata_index_block_offset(const struct mtbl_metadata *'m');^
 
@@ -51,6 +55,10 @@ Its accessors export attributes and file statistics that are recorded in the
 metadata block.
 
 == RETURN VALUE ==
+
+=== mtbl_metadata_file_version() ===
+
+File format version of the MTBL file. Either MTBL_FORMAT_V1 or MTBL_FORMAT_V2.
 
 === mtbl_metadata_index_block_offset() ===
 
