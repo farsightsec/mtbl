@@ -51,7 +51,8 @@ verify_data_blocks(
 	const char *prefix,
 	const uint64_t file_offset,
 	const uint64_t bytes_data_blocks,
-	const uint64_t count_data_blocks)
+	const uint64_t count_data_blocks,
+	mtbl_file_version file_version)
 {
 	bool res = true;
 	size_t len_mmap_data;
@@ -76,18 +77,23 @@ verify_data_blocks(
 	/* Verify each data block. */
 	for (uint64_t block = 0; block < count_data_blocks; block++) {
 		uint32_t block_crc, calc_crc;
-		uint32_t raw_contents_size;
+		size_t raw_contents_size, raw_contents_size_len;
 		uint8_t *raw_contents;
 
 		/* Get the data block size. */
-		raw_contents_size = mtbl_fixed_decode32(&data[offset + 0]);
+		if (file_version == MTBL_FORMAT_V1) {
+			raw_contents_size = mtbl_fixed_decode32(&data[offset + 0]);
+			raw_contents_size_len = sizeof(uint32_t);
+		} else {
+			raw_contents_size_len = mtbl_varint_decode64(&data[offset + 0], &raw_contents_size);
+		}
 
 		/* Bounds check. */
-		bytes_consumed += 2 * sizeof(uint32_t);
+		bytes_consumed += raw_contents_size_len + sizeof(uint32_t);
 		bytes_consumed += raw_contents_size;
 		if (bytes_consumed > bytes_data_blocks) {
 			clear_line_stdout();
-			fprintf(stderr, "%s: Error: Block length (%u bytes) exceeds "
+			fprintf(stderr, "%s: Error: Block length (%'" PRIu64 " bytes) exceeds "
 				"total data length at "
 				"data block %" PRIu64 " (%" PRIu64 " bytes into file)\n",
 				prefix,
@@ -98,8 +104,8 @@ verify_data_blocks(
 		}
 
 		/* CRC32C check. */
-		raw_contents = &data[offset + 2 * sizeof(uint32_t)];
-		block_crc = mtbl_fixed_decode32(&data[offset + 1 * sizeof(uint32_t)]);
+		raw_contents = &data[offset + raw_contents_size_len + sizeof(uint32_t)];
+		block_crc = mtbl_fixed_decode32(&data[offset + raw_contents_size_len]);
 		calc_crc = mtbl_crc32c(raw_contents, raw_contents_size);
 		if (block_crc != calc_crc) {
 			clear_line_stdout();
@@ -128,7 +134,7 @@ verify_data_blocks(
 		}
 
 		/* Update 'offset' to the next data block. */
-		offset += 2 * sizeof(uint32_t);
+		offset += raw_contents_size_len + sizeof(uint32_t);
 		offset += raw_contents_size;
 	}
 
@@ -168,7 +174,7 @@ verify_file(const char *fname)
 
 	uint64_t data_offset = index_offset - bytes_data_blocks;
 
-	if (verify_data_blocks(fd, fname, data_offset, bytes_data_blocks, count_data_blocks)) {
+	if (verify_data_blocks(fd, fname, data_offset, bytes_data_blocks, count_data_blocks, mtbl_metadata_file_version(m))) {
 		printf("%s: OK\n", fname);
 		res = true;
 	} else {

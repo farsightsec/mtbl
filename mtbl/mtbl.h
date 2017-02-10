@@ -241,6 +241,14 @@ mtbl_reader_options_set_verify_checksums(struct mtbl_reader_options *, bool);
 
 /* metadata */
 
+typedef enum {
+	MTBL_FORMAT_V1 = 0,
+	MTBL_FORMAT_V2 = 1
+} mtbl_file_version;
+
+mtbl_file_version
+mtbl_metadata_file_version(const struct mtbl_metadata *);
+
 uint64_t
 mtbl_metadata_index_block_offset(const struct mtbl_metadata *);
 

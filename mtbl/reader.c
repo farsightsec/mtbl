@@ -138,7 +138,7 @@ mtbl_reader_init_fd(int fd, const struct mtbl_reader_options *opt)
 	struct stat ss;
 	size_t metadata_offset;
 
-	size_t index_len;
+	size_t index_len, index_len_len;
 	uint32_t index_crc;
 	uint8_t *index_data;
 
@@ -179,9 +179,14 @@ mtbl_reader_init_fd(int fd, const struct mtbl_reader_options *opt)
 
 	reader_init_madvise(r);
 
-	index_len = mtbl_fixed_decode32(r->data + r->m.index_block_offset + 0);
-	index_crc = mtbl_fixed_decode32(r->data + r->m.index_block_offset + sizeof(uint32_t));
-	index_data = r->data + r->m.index_block_offset + 2 * sizeof(uint32_t);
+	if (r->m.file_version == MTBL_FORMAT_V1) {
+		index_len_len = sizeof(uint32_t);
+		index_len = mtbl_fixed_decode32(r->data + r->m.index_block_offset + 0);
+	} else {
+		index_len_len = mtbl_varint_decode64(r->data + r->m.index_block_offset + 0, &index_len);
+	}
+	index_crc = mtbl_fixed_decode32(r->data + r->m.index_block_offset + index_len_len);
+	index_data = r->data + r->m.index_block_offset + index_len_len + sizeof(uint32_t);
 	assert(index_crc == mtbl_crc32c(index_data, index_len));
 	r->index = block_init(index_data, index_len, false);
 	r->source = mtbl_source_init(reader_iter,
@@ -232,16 +237,22 @@ get_block(struct mtbl_reader *r, uint64_t offset)
 	bool needs_free = false;
 	uint8_t *block_contents = NULL, *raw_contents = NULL;
 	size_t block_contents_size = 0, raw_contents_size = 0;
+	size_t raw_contents_size_len;
 	mtbl_res res;
 
 	assert(offset < r->len_data);
 
-	raw_contents_size = mtbl_fixed_decode32(&r->data[offset + 0]);
-	raw_contents = &r->data[offset + 2 * sizeof(uint32_t)];
+	if (r->m.file_version == MTBL_FORMAT_V1) {
+		raw_contents_size_len = sizeof(uint32_t);
+		raw_contents_size = mtbl_fixed_decode32(&r->data[offset + 0]);
+	} else {
+		raw_contents_size_len = mtbl_varint_decode64(&r->data[offset + 0], &raw_contents_size);
+	}
+	raw_contents = &r->data[offset + raw_contents_size_len + sizeof(uint32_t)];
 
 	if (r->opt.verify_checksums) {
 		uint32_t block_crc, calc_crc;
-		block_crc = mtbl_fixed_decode32(&r->data[offset + sizeof(uint32_t)]);
+		block_crc = mtbl_fixed_decode32(&r->data[offset + raw_contents_size_len]);
 		calc_crc = mtbl_crc32c(raw_contents, raw_contents_size);
 		assert(block_crc == calc_crc);
 	}

@@ -45,7 +45,11 @@ metadata_read(const uint8_t *buf, struct mtbl_metadata *m)
 	const uint8_t *p = buf;
 
 	magic = mtbl_fixed_decode32(buf + MTBL_METADATA_SIZE - sizeof(uint32_t));
-	if (magic != MTBL_MAGIC)
+	if (magic == MTBL_MAGIC_V1)
+		m->file_version = MTBL_FORMAT_V1;
+	else if (magic == MTBL_MAGIC)
+		m->file_version = MTBL_FORMAT_V2;
+	else
 		return (false);
 
 	m->index_block_offset = mtbl_fixed_decode64(p); p += 8;
@@ -60,6 +64,12 @@ metadata_read(const uint8_t *buf, struct mtbl_metadata *m)
 
 	return (true);
 
+}
+
+mtbl_file_version
+mtbl_metadata_file_version(const struct mtbl_metadata *m)
+{
+	return m->file_version;
 }
 
 uint64_t

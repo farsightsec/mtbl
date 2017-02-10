@@ -40,7 +40,8 @@
 #include "libmy/my_alloc.h"
 #include "libmy/my_byteorder.h"
 
-#define MTBL_MAGIC			0x77846676
+#define MTBL_MAGIC_V1			0x77846676
+#define MTBL_MAGIC			0x4D54424C
 #define MTBL_METADATA_SIZE		512
 
 #define DEFAULT_COMPRESSION_TYPE	MTBL_COMPRESSION_ZLIB
@@ -105,6 +106,7 @@ mtbl_res _mtbl_decompress_zlib	(const uint8_t *, const size_t, uint8_t **, size_
 /* metadata */
 
 struct mtbl_metadata {
+	mtbl_file_version	file_version;
 	uint64_t	index_block_offset;
 	uint64_t	data_block_size;
 	uint64_t	compression_algorithm;
