@@ -46,6 +46,12 @@ mtbl_writer_options_set_compression(
 
 [verse]
 ^void
+mtbl_writer_options_set_compression_level(
+        struct mtbl_writer_options *'wopt',
+        int 'compression_level');^
+
+[verse]
+^void
 mtbl_writer_options_set_block_size(
         struct mtbl_writer_options *'wopt',
         size_t 'block_size');^
@@ -92,7 +98,18 @@ configured into the ^mtbl_writer^ object.
 ==== compression ====
 Specifies the compression algorithm to use on data blocks. Possible values are
 ^MTBL_COMPRESSION_NONE^, ^MTBL_COMPRESSION_SNAPPY^, ^MTBL_COMPRESSION_LZ4^,
-^MTBL_COMPRESSION_LZ4HC^, or ^MTBL_COMPRESSION_ZLIB^ (the default).
+^MTBL_COMPRESSION_LZ4HC^, ^MTBL_COMPRESSION_ZSTD^, or ^MTBL_COMPRESSION_ZLIB^
+(the default).
+
+==== compression_level ====
+Specifies the compression level to use on data blocks, if the selected
+compression algorithm supports different compression levels. The compression
+algorithms which support different compression levels are
+^MTBL_COMPRESSION_LZ4HC^ (0-16), ^MTBL_COMPRESSION_ZSTD^ (1-22), and
+^MTBL_COMPRESSION_ZLIB^ (0-9). Other compression algorithms ignore this option,
+and compression levels outside the ranges supported by the algorithm will be
+silently clamped to the minimum or maximum supported level. If not specified, a
+reasonable default will be used.
 
 ==== block_size ====
 The maximum size of uncompressed data blocks, specified in bytes. The default

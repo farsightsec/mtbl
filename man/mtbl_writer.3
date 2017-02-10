@@ -1,13 +1,13 @@
 '\" t
 .\"     Title: mtbl_writer
 .\"    Author: [FIXME: author] [see http://docbook.sf.net/el/author]
-.\" Generator: DocBook XSL Stylesheets v1.78.1 <http://docbook.sf.net/>
-.\"      Date: 07/17/2015
+.\" Generator: DocBook XSL Stylesheets v1.79.1 <http://docbook.sf.net/>
+.\"      Date: 12/11/2016
 .\"    Manual: \ \&
 .\"    Source: \ \&
 .\"  Language: English
 .\"
-.TH "MTBL_WRITER" "3" "07/17/2015" "\ \&" "\ \&"
+.TH "MTBL_WRITER" "3" "12/11/2016" "\ \&" "\ \&"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -78,6 +78,13 @@ mtbl_writer_options_set_compression(
 .sp
 .nf
 \fBvoid
+mtbl_writer_options_set_compression_level(
+        struct mtbl_writer_options *\fR\fB\fIwopt\fR\fR\fB,
+        int \fR\fB\fIcompression_level\fR\fR\fB);\fR
+.fi
+.sp
+.nf
+\fBvoid
 mtbl_writer_options_set_block_size(
         struct mtbl_writer_options *\fR\fB\fIwopt\fR\fR\fB,
         size_t \fR\fB\fIblock_size\fR\fR\fB);\fR
@@ -110,7 +117,18 @@ If the \fIwopt\fR parameter to \fBmtbl_writer_init\fR() or \fBmtbl_writer_init_f
 \fBcompression\fR
 .RS 4
 .sp
-Specifies the compression algorithm to use on data blocks\&. Possible values are \fBMTBL_COMPRESSION_NONE\fR, \fBMTBL_COMPRESSION_SNAPPY\fR, \fBMTBL_COMPRESSION_LZ4\fR, \fBMTBL_COMPRESSION_LZ4HC\fR, or \fBMTBL_COMPRESSION_ZLIB\fR (the default)\&.
+Specifies the compression algorithm to use on data blocks\&. Possible values are \fBMTBL_COMPRESSION_NONE\fR, \fBMTBL_COMPRESSION_SNAPPY\fR, \fBMTBL_COMPRESSION_LZ4\fR, \fBMTBL_COMPRESSION_LZ4HC\fR, \fBMTBL_COMPRESSION_ZSTD\fR, or \fBMTBL_COMPRESSION_ZLIB\fR (the default)\&.
+.RE
+.sp
+.it 1 an-trap
+.nr an-no-space-flag 1
+.nr an-break-flag 1
+.br
+.ps +1
+\fBcompression_level\fR
+.RS 4
+.sp
+Specifies the compression level to use on data blocks, if the selected compression algorithm supports different compression levels\&. The compression algorithms which support different compression levels are \fBMTBL_COMPRESSION_LZ4HC\fR (0\-16), \fBMTBL_COMPRESSION_ZSTD\fR (1\-22), and \fBMTBL_COMPRESSION_ZLIB\fR (0\-9)\&. Other compression algorithms ignore this option, and compression levels outside the ranges supported by the algorithm will be silently clamped to the minimum or maximum supported level\&. If not specified, a reasonable default will be used\&.
 .RE
 .sp
 .it 1 an-trap

@@ -246,31 +246,19 @@ get_block(struct mtbl_reader *r, uint64_t offset)
 		assert(block_crc == calc_crc);
 	}
 
-	switch ((mtbl_compression_type) r->m.compression_algorithm) {
-	case MTBL_COMPRESSION_NONE:
+	if (r->m.compression_algorithm == MTBL_COMPRESSION_NONE) {
 		block_contents = raw_contents;
 		block_contents_size = raw_contents_size;
-		break;
-	case MTBL_COMPRESSION_LZ4:
-		/* Fall through, LZ4 and LZ4HC use the same decompressor. */
-	case MTBL_COMPRESSION_LZ4HC:
+	} else {
 		needs_free = true;
-		res = _mtbl_decompress_lz4(raw_contents, raw_contents_size,
-					   &block_contents, &block_contents_size);
+		res = mtbl_decompress(
+			r->m.compression_algorithm,
+			raw_contents,
+			raw_contents_size,
+			&block_contents,
+			&block_contents_size
+		);
 		assert(res == mtbl_res_success);
-		break;
-	case MTBL_COMPRESSION_SNAPPY:
-		needs_free = true;
-		res = _mtbl_decompress_snappy(raw_contents, raw_contents_size,
-					      &block_contents, &block_contents_size);
-		assert(res == mtbl_res_success);
-		break;
-	case MTBL_COMPRESSION_ZLIB:
-		needs_free = true;
-		res = _mtbl_decompress_zlib(raw_contents, raw_contents_size,
-					    &block_contents, &block_contents_size);
-		assert(res == mtbl_res_success);
-		break;
 	}
 
 	return (block_init(block_contents, block_contents_size, needs_free));

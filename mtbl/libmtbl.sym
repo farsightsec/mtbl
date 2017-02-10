@@ -89,3 +89,9 @@ global:
         mtbl_metadata_bytes_keys;
         mtbl_metadata_bytes_values;
 } LIBMTBL_0.7.0;
+
+LIBMTBL_1.0.0 {
+global:
+        mtbl_compress_level;
+        mtbl_writer_options_set_compression_level;
+} LIBMTBL_0.8.0;

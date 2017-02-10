@@ -36,7 +36,7 @@ occupy if stored end-to-end in a byte array with no delimiters.
 occupy if stored end-to-end in a byte array with no delimiters.
 
 'compression algorithm' -- the algorithm used to compress data blocks.
-Possible values are "none", "snappy", "zlib", "lz4", and "lz4hc".
+Possible values are "none", "snappy", "zlib", "lz4", "lz4hc", and "zstd".
 
 'compactness' -- a rough metric comparing the total number of bytes in the
 key-value entries with the total size of the MTBL file. It is calculated as

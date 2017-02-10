@@ -21,6 +21,7 @@
 
 struct mtbl_writer_options {
 	mtbl_compression_type		compression_type;
+	int				compression_level;
 	size_t				block_size;
 	size_t				block_restart_interval;
 };
@@ -55,6 +56,7 @@ mtbl_writer_options_init(void)
 	struct mtbl_writer_options *opt;
 	opt = my_calloc(1, sizeof(*opt));
 	opt->compression_type = DEFAULT_COMPRESSION_TYPE;
+	opt->compression_level = DEFAULT_COMPRESSION_LEVEL;
 	opt->block_size = DEFAULT_BLOCK_SIZE;
 	opt->block_restart_interval = DEFAULT_BLOCK_RESTART_INTERVAL;
 	return (opt);
@@ -77,8 +79,17 @@ mtbl_writer_options_set_compression(struct mtbl_writer_options *opt,
 	       compression_type == MTBL_COMPRESSION_SNAPPY	||
 	       compression_type == MTBL_COMPRESSION_ZLIB	||
 	       compression_type == MTBL_COMPRESSION_LZ4		||
-	       compression_type == MTBL_COMPRESSION_LZ4HC);
+	       compression_type == MTBL_COMPRESSION_LZ4HC	||
+	       compression_type == MTBL_COMPRESSION_ZSTD
+	);
 	opt->compression_type = compression_type;
+}
+
+void
+mtbl_writer_options_set_compression_level(struct mtbl_writer_options *opt,
+					  int compression_level)
+{
+	opt->compression_level = compression_level;
 }
 
 void
@@ -254,31 +265,28 @@ _mtbl_writer_writeblock(struct mtbl_writer *w,
 
 	block_builder_finish(b, &raw_contents, &raw_contents_size);
 
-	switch (compression_type) {
-	case MTBL_COMPRESSION_NONE:
+	if (compression_type == MTBL_COMPRESSION_NONE) {
 		block_contents = raw_contents;
 		block_contents_size = raw_contents_size;
-		break;
-	case MTBL_COMPRESSION_LZ4:
-		res = _mtbl_compress_lz4(raw_contents, raw_contents_size,
-					 &block_contents, &block_contents_size);
+	} else if (w->opt.compression_level == DEFAULT_COMPRESSION_LEVEL) {
+		res = mtbl_compress(
+			compression_type,
+			raw_contents,
+			raw_contents_size,
+			&block_contents,
+			&block_contents_size
+		);
 		assert(res == mtbl_res_success);
-		break;
-	case MTBL_COMPRESSION_LZ4HC:
-		res = _mtbl_compress_lz4hc(raw_contents, raw_contents_size,
-					   &block_contents, &block_contents_size);
+	} else {
+		res = mtbl_compress_level(
+			compression_type,
+			w->opt.compression_level,
+			raw_contents,
+			raw_contents_size,
+			&block_contents,
+			&block_contents_size
+		);
 		assert(res == mtbl_res_success);
-		break;
-	case MTBL_COMPRESSION_SNAPPY:
-		res = _mtbl_compress_snappy(raw_contents, raw_contents_size,
-					    &block_contents, &block_contents_size);
-		assert(res == mtbl_res_success);
-		break;
-	case MTBL_COMPRESSION_ZLIB:
-		res = _mtbl_compress_zlib(raw_contents, raw_contents_size,
-					  &block_contents, &block_contents_size);
-		assert(res == mtbl_res_success);
-		break;
 	}
 
 	assert(block_contents_size < UINT_MAX);

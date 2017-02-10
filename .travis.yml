@@ -21,11 +21,12 @@ before_install:
 
 install:
   # Linux
-  - if [ "$TRAVIS_OS_NAME" == "linux" ]; then sudo apt-get -qq install liblz4-dev libsnappy-dev zlib1g-dev; fi
+  - if [ "$TRAVIS_OS_NAME" == "linux" ]; then sudo apt-get -qq install liblz4-dev libsnappy-dev libzstd-dev zlib1g-dev; fi
 
   # OS X
   - if [ "$TRAVIS_OS_NAME" == "osx" ]; then brew install lz4; fi
   - if [ "$TRAVIS_OS_NAME" == "osx" ]; then brew install snappy; fi
+  - if [ "$TRAVIS_OS_NAME" == "osx" ]; then brew install zstd; fi
 
 script:
   - ./autogen.sh

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, 2014-2015 by Farsight Security, Inc.
+ * Copyright (c) 2012-2016 by Farsight Security, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,11 +38,21 @@ typedef enum {
 	MTBL_COMPRESSION_ZLIB = 2,
 	MTBL_COMPRESSION_LZ4 = 3,
 	MTBL_COMPRESSION_LZ4HC = 4,
+	MTBL_COMPRESSION_ZSTD = 5,
 } mtbl_compression_type;
 
 mtbl_res
 mtbl_compress(
 	mtbl_compression_type,
+	const uint8_t *input,
+	const size_t input_size,
+	uint8_t **output,
+	size_t *output_size);
+
+mtbl_res
+mtbl_compress_level(
+	mtbl_compression_type,
+	int compression_level,
 	const uint8_t *input,
 	const size_t input_size,
 	uint8_t **output,
@@ -197,6 +207,11 @@ void
 mtbl_writer_options_set_compression(
 	struct mtbl_writer_options *,
 	mtbl_compression_type);
+
+void
+mtbl_writer_options_set_compression_level(
+	struct mtbl_writer_options *,
+	int);
 
 void
 mtbl_writer_options_set_block_size(
