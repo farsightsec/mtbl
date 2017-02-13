@@ -333,7 +333,7 @@ reader_iter(void *clos)
 	it->first = true;
 	it->valid = true;
 	it->it_type = READER_ITER_TYPE_ITER;
-	return (_mtbl_iter_init(reader_iter_seek, reader_iter_next, reader_iter_free, it));
+	return (mtbl_iter_init(reader_iter_seek, reader_iter_next, reader_iter_free, it));
 }
 
 static struct reader_iter *
@@ -371,7 +371,7 @@ reader_get(void *clos, const uint8_t *key, size_t len_key)
 	it->k = ubuf_init(len_key);
 	ubuf_append(it->k, key, len_key);
 	it->it_type = READER_ITER_TYPE_GET;
-	return (_mtbl_iter_init(reader_iter_seek, reader_iter_next, reader_iter_free, it));
+	return (mtbl_iter_init(reader_iter_seek, reader_iter_next, reader_iter_free, it));
 }
 
 static struct mtbl_iter *
@@ -384,7 +384,7 @@ reader_get_prefix(void *clos, const uint8_t *key, size_t len_key)
 	it->k = ubuf_init(len_key);
 	ubuf_append(it->k, key, len_key);
 	it->it_type = READER_ITER_TYPE_GET_PREFIX;
-	return (_mtbl_iter_init(reader_iter_seek, reader_iter_next, reader_iter_free, it));
+	return (mtbl_iter_init(reader_iter_seek, reader_iter_next, reader_iter_free, it));
 }
 
 static struct mtbl_iter *
@@ -399,7 +399,7 @@ reader_get_range(void *clos,
 	it->k = ubuf_init(len_key1);
 	ubuf_append(it->k, key1, len_key1);
 	it->it_type = READER_ITER_TYPE_GET_RANGE;
-	return (_mtbl_iter_init(reader_iter_seek, reader_iter_next, reader_iter_free, it));
+	return (mtbl_iter_init(reader_iter_seek, reader_iter_next, reader_iter_free, it));
 }
 
 static void
