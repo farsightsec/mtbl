@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2014 by Farsight Security, Inc.
+ * Copyright (c) 2012-2016 by Farsight Security, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@
 #include "mtbl-private.h"
 
 #include "libmy/my_fileset.h"
+#include "libmy/my_time.h"
 
 struct mtbl_fileset_options {
 	size_t				reload_interval;
@@ -176,7 +177,9 @@ fs_reinit_merger(struct mtbl_fileset *f)
 	}
 	assert(f->merger != NULL);
 	while (my_fileset_get(f->fs, i++, &fname, (void **) &reader))
-		mtbl_merger_add_source(f->merger, mtbl_reader_source(reader));
+		if (reader != NULL) {
+			mtbl_merger_add_source(f->merger, mtbl_reader_source(reader));
+		}
 }
 
 void
@@ -184,10 +187,13 @@ mtbl_fileset_reload(struct mtbl_fileset *f)
 {
 	assert(f != NULL);
 	struct timespec now;
-	int res;
 
-	res = clock_gettime(CLOCK_MONOTONIC, &now);
-	assert(res == 0);
+#if HAVE_CLOCK_GETTIME
+	static const clockid_t clock = CLOCK_MONOTONIC;
+#else
+	static const int clock = -1;
+#endif
+	my_gettime(clock, &now);
 
 	if (now.tv_sec - f->last.tv_sec > f->reload_interval) {
 		f->n_loaded = 0;
@@ -205,10 +211,13 @@ mtbl_fileset_reload_now(struct mtbl_fileset *f)
 {
 	assert(f != NULL);
 	struct timespec now;
-	int res;
 
-	res = clock_gettime(CLOCK_MONOTONIC, &now);
-	assert(res == 0);
+#if HAVE_CLOCK_GETTIME
+	static const clockid_t clock = CLOCK_MONOTONIC;
+#else
+	static const int clock = -1;
+#endif
+	my_gettime(clock, &now);
 
 	f->n_loaded = 0;
 	f->n_unloaded = 0;

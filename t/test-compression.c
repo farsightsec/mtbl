@@ -96,7 +96,7 @@ test_compression(mtbl_compression_type c_type, const char *dirname)
 	}
 
 	/**
-	 * Check that the compresison algorithm on the reader was what we set
+	 * Check that the compression algorithm on the reader was what we set
 	 * on the writer.
 	 */
 	const struct mtbl_metadata *m = mtbl_reader_metadata(r);

@@ -31,7 +31,9 @@ mtbl_libmtbl_la_SOURCES = \
 	libmy/crc32c.c libmy/crc32c.h libmy/crc32c-slicing.c libmy/crc32c-sse42.c \
 	libmy/heap.c libmy/heap.h \
 	libmy/my_alloc.h \
+	libmy/my_byteorder.h \
 	libmy/my_fileset.c libmy/my_fileset.h \
+	libmy/my_time.h \
 	libmy/ubuf.h \
 	libmy/vector.h \
 	mtbl/block.c \
@@ -184,6 +186,7 @@ dist_man_MANS = \
 	man/mtbl_dump.1 \
 	man/mtbl_info.1 \
 	man/mtbl_merge.1 \
+	man/mtbl_verify.1 \
 	man/mtbl_iter.3 \
 	man/mtbl_metadata.3 \
 	man/mtbl_source.3 \
@@ -201,6 +204,7 @@ EXTRA_DIST += \
 	man/mtbl_dump.1.txt \
 	man/mtbl_info.1.txt \
 	man/mtbl_merge.1.txt \
+	man/mtbl_verify.1.txt \
 	man/mtbl_iter.3.txt \
 	man/mtbl_metadata.3.txt \
 	man/mtbl_source.3.txt \

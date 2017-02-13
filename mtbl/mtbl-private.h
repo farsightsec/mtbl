@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, 2014 by Farsight Security, Inc.
+ * Copyright (c) 2012, 2014, 2016 by Farsight Security, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,14 +16,6 @@
 
 #ifndef MTBL_PRIVATE_H
 #define MTBL_PRIVATE_H
-
-#ifdef HAVE_ENDIAN_H
-# include <endian.h>
-#else
-# ifdef HAVE_SYS_ENDIAN_H
-#  include <sys/endian.h>
-# endif
-#endif
 
 #include <sys/mman.h>
 #include <sys/types.h>
@@ -46,6 +38,7 @@
 #include "mtbl.h"
 
 #include "libmy/my_alloc.h"
+#include "libmy/my_byteorder.h"
 
 #define MTBL_MAGIC			0x77846676
 #define MTBL_METADATA_SIZE		512

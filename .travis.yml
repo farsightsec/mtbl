@@ -1,12 +1,31 @@
 language: c
 
+os:
+  - linux
+  - osx
+
+matrix:
+  include:
+    - os: linux
+      dist: trusty
+      sudo: required
+
 before_install:
-  - sudo wget -O /etc/apt/trusted.gpg.d/debian-farsightsec.gpg https://dl.farsightsecurity.com/debian/archive.pubkey
-  - sudo sh -c 'echo "deb [arch=amd64] http://dl.farsightsecurity.com/debian wheezy-farsightsec main" > /etc/apt/sources.list.d/debian-farsightsec.list'
-  - sudo apt-get update -qq
+  # Linux
+  - if [ "$TRAVIS_OS_NAME" == "linux" ]; then sudo sh -c 'wget -O /etc/apt/trusted.gpg.d/debian-farsightsec.gpg https://dl.farsightsecurity.com/debian/archive.pubkey'; fi
+  - if [ "$TRAVIS_OS_NAME" == "linux" ]; then sudo sh -c 'echo "deb [arch=amd64] http://dl.farsightsecurity.com/debian wheezy-farsightsec main" > /etc/apt/sources.list.d/debian-farsightsec.list'; fi
+  - if [ "$TRAVIS_OS_NAME" == "linux" ]; then sudo apt-get update -qq; fi
+
+  # OS X
+  - if [ "$TRAVIS_OS_NAME" == "osx" ]; then brew update; fi
 
 install:
-  - sudo apt-get -q install liblz4-dev libsnappy-dev zlib1g-dev
+  # Linux
+  - if [ "$TRAVIS_OS_NAME" == "linux" ]; then sudo apt-get -qq install liblz4-dev libsnappy-dev zlib1g-dev; fi
+
+  # OS X
+  - if [ "$TRAVIS_OS_NAME" == "osx" ]; then brew install lz4; fi
+  - if [ "$TRAVIS_OS_NAME" == "osx" ]; then brew install snappy; fi
 
 script:
   - ./autogen.sh

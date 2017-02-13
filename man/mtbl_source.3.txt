@@ -39,8 +39,8 @@ mtbl_source_destroy(struct mtbl_source **'s');^
 
 == DESCRIPTION ==
 
-The ^mtbl_source^ iterface provides an abstraction for reading key-value entries
-from mtbl data sources.
+The ^mtbl_source^ interface provides an abstraction for reading key-value
+entries from mtbl data sources.
 
 ^mtbl_source_iter^() provides an iterator over all of the entries in the data
 source.
