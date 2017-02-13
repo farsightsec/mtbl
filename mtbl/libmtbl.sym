@@ -89,3 +89,7 @@ global:
         mtbl_metadata_bytes_keys;
         mtbl_metadata_bytes_values;
 } LIBMTBL_0.7.0;
+
+LIBMTBL_1.0.0 {
+        mtbl_metadata_file_version;
+} LIBMTBL_0.8.0;
