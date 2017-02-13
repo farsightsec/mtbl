@@ -37,6 +37,7 @@ test1(void)
 
 	memset(tbuf, 0, sizeof(tbuf));
 
+	m1.file_version = MTBL_FORMAT_V2;
 	m1.index_block_offset = 123;
 	m1.data_block_size = 65536;
 	m1.compression_algorithm = 1;
