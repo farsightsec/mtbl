@@ -37,7 +37,10 @@ else
     AC_MSG_ERROR([pkg-config is required!])
 fi
 
-PKG_CHECK_MODULES([liblz4], [liblz4 > 129])
+PKG_CHECK_MODULES([liblz4], [liblz4])
+AC_CHECK_LIB(lz4, LZ4_compress_HC, [], [
+    AC_MSG_ERROR([liblz4 >= r130 required])
+])
 
 AC_C_BIGENDIAN
 
