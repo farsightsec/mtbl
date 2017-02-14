@@ -19,6 +19,7 @@ global:
         mtbl_fixed_encode32;
         mtbl_fixed_encode64;
         mtbl_iter_destroy;
+        mtbl_iter_init;
         mtbl_iter_next;
         mtbl_iter_seek;
         mtbl_merger_add_source;
