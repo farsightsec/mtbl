@@ -103,6 +103,9 @@ typedef void *
 typedef void
 (*mtbl_merge_free_func)(void *clos);
 
+typedef bool
+(*mtbl_filename_filter_func)(const char *);
+
 /* iter */
 
 typedef mtbl_res
@@ -343,6 +346,12 @@ mtbl_fileset_reload_now(struct mtbl_fileset *);
 
 const struct mtbl_source *
 mtbl_fileset_source(struct mtbl_fileset *);
+
+void
+mtbl_fileset_partition(struct mtbl_fileset *,
+		mtbl_filename_filter_func,
+		struct mtbl_merger **,
+		struct mtbl_merger **);
 
 /* fileset options */
 

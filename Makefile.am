@@ -112,6 +112,17 @@ check_PROGRAMS += t/test-crc32c
 t_test_crc32c_SOURCES = t/test-crc32c.c
 t_test_crc32c_LDADD = mtbl/libmtbl.la
 
+TESTS += t/test-fileset-partition.sh
+EXTRA_DIST += t/test-fileset-partition.sh
+EXTRA_DIST += t/fileset-partition/test.fileset
+EXTRA_DIST += t/fileset-partition/file1.mtbl
+EXTRA_DIST += t/fileset-partition/file2.mtbl
+EXTRA_DIST += t/fileset-partition/file3.mtbl
+check_PROGRAMS += t/test-fileset-partition
+t_test_fileset_partition_SOURCES = t/test-fileset-partition.c
+t_test_fileset_partition_LDADD = mtbl/libmtbl.la
+t/test-fileset-partition.sh: t/test-fileset-partition
+
 TESTS += t/test-fixed
 check_PROGRAMS += t/test-fixed
 t_test_fixed_SOURCES = t/test-fixed.c
