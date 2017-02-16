@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, 2014-2015 by Farsight Security, Inc.
+ * Copyright (c) 2012-2016 by Farsight Security, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -96,6 +96,11 @@ typedef void
 /* iter */
 
 typedef mtbl_res
+(*mtbl_iter_seek_func)(
+	void *,
+	const uint8_t *key, size_t len_key);
+
+typedef mtbl_res
 (*mtbl_iter_next_func)(
 	void *,
 	const uint8_t **key, size_t *len_key,
@@ -104,11 +109,14 @@ typedef mtbl_res
 typedef void
 (*mtbl_iter_free_func)(void *);
 
-struct mtbl_iter *
-mtbl_iter_init(mtbl_iter_next_func, mtbl_iter_free_func, void *clos);
-
 void
 mtbl_iter_destroy(struct mtbl_iter **);
+
+mtbl_res
+mtbl_iter_seek(
+	struct mtbl_iter *,
+	const uint8_t *key, size_t len_key)
+__attribute__((warn_unused_result));
 
 mtbl_res
 mtbl_iter_next(

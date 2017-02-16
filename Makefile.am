@@ -22,7 +22,7 @@ AM_LDFLAGS =
 ##
 #
 
-LIBMTBL_VERSION_INFO=0:0:0
+LIBMTBL_VERSION_INFO=1:0:0
 
 include_HEADERS = mtbl/mtbl.h
 lib_LTLIBRARIES = mtbl/libmtbl.la
@@ -130,6 +130,11 @@ TESTS += t/test-vector
 check_PROGRAMS += t/test-vector
 t_test_vector_SOURCES = t/test-vector.c
 t_test_vector_LDADD = mtbl/libmtbl.la
+
+TESTS += t/test-iter-seek
+check_PROGRAMS += t/test-iter-seek
+t_test_iter_seek_SOURCES = t/test-iter-seek.c
+t_test_iter_seek_LDADD = mtbl/libmtbl.la
 
 TESTS += t/test-verify.sh
 EXTRA_DIST += t/test-verify.sh

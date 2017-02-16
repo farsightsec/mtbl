@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, 2014, 2016 by Farsight Security, Inc.
+ * Copyright (c) 2012-2017 by Farsight Security, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -102,6 +102,11 @@ mtbl_res _mtbl_compress_zlib	(const uint8_t *, const size_t, uint8_t **, size_t 
 mtbl_res _mtbl_decompress_lz4	(const uint8_t *, const size_t, uint8_t **, size_t *);
 mtbl_res _mtbl_decompress_snappy(const uint8_t *, const size_t, uint8_t **, size_t *);
 mtbl_res _mtbl_decompress_zlib	(const uint8_t *, const size_t, uint8_t **, size_t *);
+
+/* iter */
+
+struct mtbl_iter *
+mtbl_iter_init(mtbl_iter_seek_func, mtbl_iter_next_func, mtbl_iter_free_func, void *clos);
 
 /* metadata */
 
