@@ -30,6 +30,13 @@ mtbl_fileset_reload_now(struct mtbl_fileset *'f');^
 ^const struct mtbl_source *
 mtbl_fileset_source(struct mtbl_fileset *'f');^
 
+[verse]
+^void
+mtbl_fileset_partition(struct mtbl_fileset *'f',
+		mtbl_filename_filter_func 'cb',
+		struct mtbl_merger \**'m1',
+		struct mtbl_merger **'m2');^
+
 Fileset options:
 
 [verse]
@@ -87,6 +94,13 @@ accessed.
 The ^mtbl_fileset_reload^() function avoids checking for updates more frequently
 than every _reload_interval_ seconds. The ^mtbl_fileset_reload_now^() function
 can be called to bypass the _reload_interval_ check.
+
+The ^mtbl_fileset_partition^() function yields two ^struct mtbl_merger^
+objects that are split based on the output of a callback. The caller is
+responsible for calling ^mtbl_merger_destroy^() on each of these mergers.
+Calls to ^mtbl_source_*^() on the fileset's source object, and calls to
+^mtbl_fileset_reload^() and ^mtbl_fileset_reload_now^() may leave these
+mergers in an inconsistent state.
 
 === Fileset options ===
 
