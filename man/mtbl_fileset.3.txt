@@ -34,7 +34,7 @@ mtbl_fileset_source(struct mtbl_fileset *'f');^
 ^void
 mtbl_fileset_partition(struct mtbl_fileset *'f',
 		mtbl_filename_filter_func 'cb',
-		struct mtbl_merger **'m1',
+		struct mtbl_merger \**'m1',
 		struct mtbl_merger **'m2');^
 
 Fileset options:
