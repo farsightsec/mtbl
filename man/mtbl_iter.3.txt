@@ -11,8 +11,8 @@ mtbl_iter - iterate over a sequence of key-value pairs
 [verse]
 ^mtbl_res
 mtbl_iter_next(struct mtbl_iter *'it',
-        const uint8_t * *'key', size_t *'len_key',
-        const uint8_t * *'val', size_t *'len_val');^
+        const uint8_t \**'key', size_t *'len_key',
+        const uint8_t **'val', size_t *'len_val');^
 
 [verse]
 ^void
@@ -21,7 +21,7 @@ mtbl_iter_destroy(struct mtbl_iter **'it');^
 [verse]
 ^mtbl_res
 mtbl_iter_seek(struct mtbl_iter *'it',
-        const uint8_t * *'key', size_t *'len_key');^
+        const uint8_t **'key', size_t *'len_key');^
 
 == DESCRIPTION ==
 
