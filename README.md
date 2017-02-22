@@ -22,7 +22,8 @@ discretion of the `mtbl` library user.
 `mtbl` SSTable files consist of a sequence of data blocks containing sorted
 key-value pairs, where keys and values are arbitrary byte arrays. Data blocks
 are optionally compressed using the
-[zlib](http://www.zlib.net/), [LZ4](https://github.com/Cyan4973/lz4), or
+[zlib](http://www.zlib.net/), [LZ4](https://github.com/Cyan4973/lz4), 
+[zstd](https://github.com/facebook/zstd), or
 [Snappy](http://google.github.io/snappy/) compression algorithms. The data
 blocks are followed by an index block, allowing for fast searches over the
 keyspace.
