@@ -49,3 +49,6 @@ sorted order. Since `mtbl` does not allow duplicate keys in an SSTable file,
 both the sorter and merger interfaces require a caller-provided merge function
 which will be called to merge multiple values for the same key. These interfaces
 also make use of sequential I/O operations only.
+
+The `mtbl` file format was changed in version 1.0.0. Older versions cannot read
+the new file format, but newer versions can read both formats.
