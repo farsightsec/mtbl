@@ -38,9 +38,10 @@ else
 fi
 
 PKG_CHECK_MODULES([liblz4], [liblz4])
-AC_CHECK_LIB(lz4, LZ4_compress_HC, [], [
-    AC_MSG_ERROR([liblz4 >= r130 required])
-])
+
+# space in third argument so success does nothing (does not set LIBS)
+AC_CHECK_LIB(lz4, LZ4_compress_HC, [ ],
+    [AC_MSG_ERROR([liblz4 >= r130 required])], [${liblz4_LIBS}])
 
 PKG_CHECK_MODULES([libzstd], [libzstd >= 0.8.0])
 
