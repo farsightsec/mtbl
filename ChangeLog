@@ -1,3 +1,12 @@
+mtbl (1.0.0)
+
+ * Backwards-incompatible file format change to enable block sizes >4G.
+ * Add support for zstd compression. This adds a new library dependency
+   on libzstd.
+ * Add mtbl_iter_seek function.
+ * Add mtbl_fileset_partition function.
+ * Breaks ABI for version 0.x.x.
+
 mtbl (0.8.1)
 
  [ Robert Edmonds ]
