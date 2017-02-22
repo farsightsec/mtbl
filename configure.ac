@@ -1,6 +1,6 @@
 AC_PREREQ(2.64)
 AC_INIT([mtbl],
-        [0.8.1],
+        [1.0.0],
         [https://github.com/farsightsec/mtbl/issues],
         [mtbl],
         [https://github.com/farsightsec/mtbl])
@@ -37,7 +37,13 @@ else
     AC_MSG_ERROR([pkg-config is required!])
 fi
 
-PKG_CHECK_MODULES([liblz4], [liblz4 > 129])
+PKG_CHECK_MODULES([liblz4], [liblz4])
+
+# space in third argument so success does nothing (does not set LIBS)
+AC_CHECK_LIB(lz4, LZ4_compress_HC, [ ],
+    [AC_MSG_ERROR([liblz4 >= r130 required])], [${liblz4_LIBS}])
+
+PKG_CHECK_MODULES([libzstd], [libzstd >= 0.8.0])
 
 AC_C_BIGENDIAN
 

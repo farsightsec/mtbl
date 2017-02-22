@@ -1,7 +1,9 @@
 test-block_builder
 test-compression
 test-crc32c
+test-fileset-partition
 test-fixed
 test-metadata
 test-varint
 test-vector
+test-iter-seek

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2014 by Farsight Security, Inc.
+ * Copyright (c) 2012-2016 by Farsight Security, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,6 +27,7 @@ typedef enum {
 
 struct reader_iter {
 	struct mtbl_reader		*r;
+	uint64_t                        block_offset;
 	struct block			*b;
 	struct block_iter		*bi;
 	struct block_iter		*index_iter;
@@ -52,6 +53,9 @@ struct mtbl_reader {
 
 static void
 reader_init_madvise(struct mtbl_reader *);
+
+static mtbl_res
+reader_iter_seek(void *, const uint8_t *, size_t);
 
 static mtbl_res
 reader_iter_next(void *, const uint8_t **, size_t *, const uint8_t **, size_t *);
@@ -138,7 +142,7 @@ mtbl_reader_init_fd(int fd, const struct mtbl_reader_options *opt)
 	struct stat ss;
 	size_t metadata_offset;
 
-	size_t index_len;
+	size_t index_len, index_len_len;
 	uint32_t index_crc;
 	uint8_t *index_data;
 
@@ -179,9 +183,14 @@ mtbl_reader_init_fd(int fd, const struct mtbl_reader_options *opt)
 
 	reader_init_madvise(r);
 
-	index_len = mtbl_fixed_decode32(r->data + r->m.index_block_offset + 0);
-	index_crc = mtbl_fixed_decode32(r->data + r->m.index_block_offset + sizeof(uint32_t));
-	index_data = r->data + r->m.index_block_offset + 2 * sizeof(uint32_t);
+	if (r->m.file_version == MTBL_FORMAT_V1) {
+		index_len_len = sizeof(uint32_t);
+		index_len = mtbl_fixed_decode32(r->data + r->m.index_block_offset + 0);
+	} else {
+		index_len_len = mtbl_varint_decode64(r->data + r->m.index_block_offset + 0, &index_len);
+	}
+	index_crc = mtbl_fixed_decode32(r->data + r->m.index_block_offset + index_len_len);
+	index_data = r->data + r->m.index_block_offset + index_len_len + sizeof(uint32_t);
 	assert(index_crc == mtbl_crc32c(index_data, index_len));
 	r->index = block_init(index_data, index_len, false);
 	r->source = mtbl_source_init(reader_iter,
@@ -232,45 +241,39 @@ get_block(struct mtbl_reader *r, uint64_t offset)
 	bool needs_free = false;
 	uint8_t *block_contents = NULL, *raw_contents = NULL;
 	size_t block_contents_size = 0, raw_contents_size = 0;
+	size_t raw_contents_size_len;
 	mtbl_res res;
 
 	assert(offset < r->len_data);
 
-	raw_contents_size = mtbl_fixed_decode32(&r->data[offset + 0]);
-	raw_contents = &r->data[offset + 2 * sizeof(uint32_t)];
+	if (r->m.file_version == MTBL_FORMAT_V1) {
+		raw_contents_size_len = sizeof(uint32_t);
+		raw_contents_size = mtbl_fixed_decode32(&r->data[offset + 0]);
+	} else {
+		raw_contents_size_len = mtbl_varint_decode64(&r->data[offset + 0], &raw_contents_size);
+	}
+	raw_contents = &r->data[offset + raw_contents_size_len + sizeof(uint32_t)];
 
 	if (r->opt.verify_checksums) {
 		uint32_t block_crc, calc_crc;
-		block_crc = mtbl_fixed_decode32(&r->data[offset + sizeof(uint32_t)]);
+		block_crc = mtbl_fixed_decode32(&r->data[offset + raw_contents_size_len]);
 		calc_crc = mtbl_crc32c(raw_contents, raw_contents_size);
 		assert(block_crc == calc_crc);
 	}
 
-	switch ((mtbl_compression_type) r->m.compression_algorithm) {
-	case MTBL_COMPRESSION_NONE:
+	if (r->m.compression_algorithm == MTBL_COMPRESSION_NONE) {
 		block_contents = raw_contents;
 		block_contents_size = raw_contents_size;
-		break;
-	case MTBL_COMPRESSION_LZ4:
-		/* Fall through, LZ4 and LZ4HC use the same decompressor. */
-	case MTBL_COMPRESSION_LZ4HC:
+	} else {
 		needs_free = true;
-		res = _mtbl_decompress_lz4(raw_contents, raw_contents_size,
-					   &block_contents, &block_contents_size);
+		res = mtbl_decompress(
+			r->m.compression_algorithm,
+			raw_contents,
+			raw_contents_size,
+			&block_contents,
+			&block_contents_size
+		);
 		assert(res == mtbl_res_success);
-		break;
-	case MTBL_COMPRESSION_SNAPPY:
-		needs_free = true;
-		res = _mtbl_decompress_snappy(raw_contents, raw_contents_size,
-					      &block_contents, &block_contents_size);
-		assert(res == mtbl_res_success);
-		break;
-	case MTBL_COMPRESSION_ZLIB:
-		needs_free = true;
-		res = _mtbl_decompress_zlib(raw_contents, raw_contents_size,
-					    &block_contents, &block_contents_size);
-		assert(res == mtbl_res_success);
-		break;
 	}
 
 	return (block_init(block_contents, block_contents_size, needs_free));
@@ -318,7 +321,7 @@ reader_iter(void *clos)
 	it->first = true;
 	it->valid = true;
 	it->it_type = READER_ITER_TYPE_ITER;
-	return (mtbl_iter_init(reader_iter_next, reader_iter_free, it));
+	return (mtbl_iter_init(reader_iter_seek, reader_iter_next, reader_iter_free, it));
 }
 
 static struct reader_iter *
@@ -356,7 +359,7 @@ reader_get(void *clos, const uint8_t *key, size_t len_key)
 	it->k = ubuf_init(len_key);
 	ubuf_append(it->k, key, len_key);
 	it->it_type = READER_ITER_TYPE_GET;
-	return (mtbl_iter_init(reader_iter_next, reader_iter_free, it));
+	return (mtbl_iter_init(reader_iter_seek, reader_iter_next, reader_iter_free, it));
 }
 
 static struct mtbl_iter *
@@ -369,7 +372,7 @@ reader_get_prefix(void *clos, const uint8_t *key, size_t len_key)
 	it->k = ubuf_init(len_key);
 	ubuf_append(it->k, key, len_key);
 	it->it_type = READER_ITER_TYPE_GET_PREFIX;
-	return (mtbl_iter_init(reader_iter_next, reader_iter_free, it));
+	return (mtbl_iter_init(reader_iter_seek, reader_iter_next, reader_iter_free, it));
 }
 
 static struct mtbl_iter *
@@ -384,7 +387,7 @@ reader_get_range(void *clos,
 	it->k = ubuf_init(len_key1);
 	ubuf_append(it->k, key1, len_key1);
 	it->it_type = READER_ITER_TYPE_GET_RANGE;
-	return (mtbl_iter_init(reader_iter_next, reader_iter_free, it));
+	return (mtbl_iter_init(reader_iter_seek, reader_iter_next, reader_iter_free, it));
 }
 
 static void
@@ -398,6 +401,44 @@ reader_iter_free(void *v)
 		block_iter_destroy(&it->index_iter);
 		free(it);
 	}
+}
+
+static mtbl_res
+reader_iter_seek(void *v,
+	       const uint8_t *key, size_t len_key)
+{
+	struct reader_iter *it = (struct reader_iter *) v;
+	
+	const uint8_t *ikey, *ival;
+	size_t len_ikey, len_ival;
+	uint64_t new_offset;
+
+	block_iter_seek(it->index_iter, key, len_key);
+
+	if (block_iter_get(it->index_iter, &ikey, &len_ikey, &ival, &len_ival)) {
+		mtbl_varint_decode64(ival, &new_offset);
+	}
+
+	/* We can skip decoding a new block if our new key is within the
+	 * currently-decoded block. */ 
+	if (it->b == NULL || it->block_offset != new_offset) {
+		block_destroy(&it->b);
+		block_iter_destroy(&it->bi);
+
+		it->block_offset = new_offset;
+		it->b = get_block(it->r, new_offset);
+		if (it->b == NULL)
+			return (mtbl_res_failure);
+
+		it->bi = block_iter_init(it->b);
+	}
+
+	block_iter_seek(it->bi, key, len_key);
+
+	it->first = true;
+	it->valid = true;
+
+	return (mtbl_res_success);
 }
 
 static mtbl_res

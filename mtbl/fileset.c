@@ -227,3 +227,24 @@ mtbl_fileset_reload_now(struct mtbl_fileset *f)
 		fs_reinit_merger(f);
 	f->last = now;
 }
+
+void
+mtbl_fileset_partition(struct mtbl_fileset *f,
+		mtbl_filename_filter_func cb,
+		struct mtbl_merger **m1,
+		struct mtbl_merger **m2)
+{
+	const char *fname;
+	struct mtbl_reader *reader;
+	size_t i = 0;
+
+	*m1 = mtbl_merger_init(f->mopt);
+	*m2 = mtbl_merger_init(f->mopt);
+
+	while (my_fileset_get(f->fs, i++, &fname, (void**) &reader)) {
+		if (cb(fname))
+			mtbl_merger_add_source(*m1, mtbl_reader_source(reader));
+		else
+			mtbl_merger_add_source(*m2, mtbl_reader_source(reader));
+	}
+}

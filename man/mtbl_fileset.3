@@ -1,13 +1,13 @@
 '\" t
 .\"     Title: mtbl_fileset
 .\"    Author: [FIXME: author] [see http://docbook.sf.net/el/author]
-.\" Generator: DocBook XSL Stylesheets v1.78.1 <http://docbook.sf.net/>
-.\"      Date: 07/11/2015
+.\" Generator: DocBook XSL Stylesheets v1.79.1 <http://docbook.sf.net/>
+.\"      Date: 02/17/2017
 .\"    Manual: \ \&
 .\"    Source: \ \&
 .\"  Language: English
 .\"
-.TH "MTBL_FILESET" "3" "07/11/2015" "\ \&" "\ \&"
+.TH "MTBL_FILESET" "3" "02/17/2017" "\ \&" "\ \&"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -60,6 +60,14 @@ mtbl_fileset_reload_now(struct mtbl_fileset *\fR\fB\fIf\fR\fR\fB);\fR
 mtbl_fileset_source(struct mtbl_fileset *\fR\fB\fIf\fR\fR\fB);\fR
 .fi
 .sp
+.nf
+\fBvoid
+mtbl_fileset_partition(struct mtbl_fileset *\fR\fB\fIf\fR\fR\fB,
+                mtbl_filename_filter_func \fR\fB\fIcb\fR\fR\fB,
+                struct mtbl_merger **\fR\fB\fIm1\fR\fR\fB,
+                struct mtbl_merger **\fR\fB\fIm2\fR\fR\fB);\fR
+.fi
+.sp
 Fileset options:
 .sp
 .nf
@@ -99,6 +107,8 @@ Because the MTBL format does not allow duplicate keys, the caller must provide a
 Accesses via the \fBmtbl_source\fR(3) interface will implicitly check for updates to the setfile\&. However, it may be necessary to explicitly call the \fBmtbl_fileset_reload\fR() function in order to check for updates, especially if files are being removed from the setfile and the \fBmtbl_source\fR is infrequently accessed\&.
 .sp
 The \fBmtbl_fileset_reload\fR() function avoids checking for updates more frequently than every \fIreload_interval\fR seconds\&. The \fBmtbl_fileset_reload_now\fR() function can be called to bypass the \fIreload_interval\fR check\&.
+.sp
+The \fBmtbl_fileset_partition\fR() function yields two \fBstruct mtbl_merger\fR objects that are split based on the output of a callback\&. The caller is responsible for calling \fBmtbl_merger_destroy\fR() on each of these mergers\&. Calls to \fBmtbl_source_*\fR() on the fileset\(cqs source object, and calls to \fBmtbl_fileset_reload\fR() and \fBmtbl_fileset_reload_now\fR() may leave these mergers in an inconsistent state\&.
 .SS "Fileset options"
 .sp
 .it 1 an-trap

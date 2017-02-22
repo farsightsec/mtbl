@@ -1,13 +1,13 @@
 '\" t
 .\"     Title: mtbl_iter
 .\"    Author: [FIXME: author] [see http://docbook.sf.net/el/author]
-.\" Generator: DocBook XSL Stylesheets v1.78.1 <http://docbook.sf.net/>
-.\"      Date: 01/31/2014
+.\" Generator: DocBook XSL Stylesheets v1.79.1 <http://docbook.sf.net/>
+.\"      Date: 02/17/2017
 .\"    Manual: \ \&
 .\"    Source: \ \&
 .\"  Language: English
 .\"
-.TH "MTBL_ITER" "3" "01/31/2014" "\ \&" "\ \&"
+.TH "MTBL_ITER" "3" "02/17/2017" "\ \&" "\ \&"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -36,17 +36,23 @@ mtbl_iter \- iterate over a sequence of key\-value pairs
 .nf
 \fBmtbl_res
 mtbl_iter_next(struct mtbl_iter *\fR\fB\fIit\fR\fR\fB,
-        const uint8_t * *\fR\fB\fIkey\fR\fR\fB, size_t *\fR\fB\fIlen_key\fR\fR\fB,
-        const uint8_t * *\fR\fB\fIval\fR\fR\fB, size_t *\fR\fB\fIlen_val\fR\fR\fB);\fR
+        const uint8_t **\fR\fB\fIkey\fR\fR\fB, size_t *\fR\fB\fIlen_key\fR\fR\fB,
+        const uint8_t **\fR\fB\fIval\fR\fR\fB, size_t *\fR\fB\fIlen_val\fR\fR\fB);\fR
 .fi
 .sp
 .nf
 \fBvoid
 mtbl_iter_destroy(struct mtbl_iter **\fR\fB\fIit\fR\fR\fB);\fR
 .fi
+.sp
+.nf
+\fBmtbl_res
+mtbl_iter_seek(struct mtbl_iter *\fR\fB\fIit\fR\fR\fB,
+        const uint8_t **\fR\fB\fIkey\fR\fR\fB, size_t *\fR\fB\fIlen_key\fR\fR\fB);\fR
+.fi
 .SH "DESCRIPTION"
 .sp
-The \fBmtbl_iter\fR interface is used to return a sequence of one or more key\-value pairs\&. Once the caller obtains an \fBmtbl_iter\fR object, \fBmtbl_iter_next\fR() should be repeatedly called on it until there are no more key\-value entries to retrieve, at which point the iterator object must be freed by calling \fBmtbl_iter_destroy\fR()\&.
+The \fBmtbl_iter\fR interface is used to return a sequence of one or more key\-value pairs\&. Once the caller obtains an \fBmtbl_iter\fR object, \fBmtbl_iter_next\fR() should be repeatedly called on it until there are no more key\-value entries to retrieve, at which point the iterator object must be freed by calling \fBmtbl_iter_destroy\fR()\&. \fBmtbl_iter_seek\fR() can be called on the iterator to seek to a different location in the index without having to destroy the iterator and create a new one\&.
 .SH "RETURN VALUE"
 .sp
 \fBmtbl_iter_next\fR() returns \fBmtbl_res_success\fR if a key\-value entry was successfully retrieved, in which case \fIkey\fR and \fIval\fR will point to buffers of length \fIlen_key\fR and \fIlen_val\fR respectively\&. The value \fBmtbl_res_failure\fR is returned if there are no more entries to read, or if the \fIit\fR argument is NULL\&.

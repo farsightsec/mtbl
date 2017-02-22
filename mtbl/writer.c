@@ -21,6 +21,7 @@
 
 struct mtbl_writer_options {
 	mtbl_compression_type		compression_type;
+	int				compression_level;
 	size_t				block_size;
 	size_t				block_restart_interval;
 };
@@ -55,6 +56,7 @@ mtbl_writer_options_init(void)
 	struct mtbl_writer_options *opt;
 	opt = my_calloc(1, sizeof(*opt));
 	opt->compression_type = DEFAULT_COMPRESSION_TYPE;
+	opt->compression_level = DEFAULT_COMPRESSION_LEVEL;
 	opt->block_size = DEFAULT_BLOCK_SIZE;
 	opt->block_restart_interval = DEFAULT_BLOCK_RESTART_INTERVAL;
 	return (opt);
@@ -77,8 +79,17 @@ mtbl_writer_options_set_compression(struct mtbl_writer_options *opt,
 	       compression_type == MTBL_COMPRESSION_SNAPPY	||
 	       compression_type == MTBL_COMPRESSION_ZLIB	||
 	       compression_type == MTBL_COMPRESSION_LZ4		||
-	       compression_type == MTBL_COMPRESSION_LZ4HC);
+	       compression_type == MTBL_COMPRESSION_LZ4HC	||
+	       compression_type == MTBL_COMPRESSION_ZSTD
+	);
 	opt->compression_type = compression_type;
+}
+
+void
+mtbl_writer_options_set_compression_level(struct mtbl_writer_options *opt,
+					  int compression_level)
+{
+	opt->compression_level = compression_level;
 }
 
 void
@@ -119,6 +130,7 @@ mtbl_writer_init_fd(int orig_fd, const struct mtbl_writer_options *opt)
 	w->last_offset = lseek(fd, 0, SEEK_CUR);
 	w->pending_offset = w->last_offset;
 	w->last_key = ubuf_init(256);
+	w->m.file_version = MTBL_FORMAT_V2;
 	w->m.compression_algorithm = w->opt.compression_type;
 	w->m.data_block_size = w->opt.block_size;
 	w->data = block_builder_init(w->opt.block_restart_interval);
@@ -254,43 +266,43 @@ _mtbl_writer_writeblock(struct mtbl_writer *w,
 
 	block_builder_finish(b, &raw_contents, &raw_contents_size);
 
-	switch (compression_type) {
-	case MTBL_COMPRESSION_NONE:
+	if (compression_type == MTBL_COMPRESSION_NONE) {
 		block_contents = raw_contents;
 		block_contents_size = raw_contents_size;
-		break;
-	case MTBL_COMPRESSION_LZ4:
-		res = _mtbl_compress_lz4(raw_contents, raw_contents_size,
-					 &block_contents, &block_contents_size);
+	} else if (w->opt.compression_level == DEFAULT_COMPRESSION_LEVEL) {
+		res = mtbl_compress(
+			compression_type,
+			raw_contents,
+			raw_contents_size,
+			&block_contents,
+			&block_contents_size
+		);
 		assert(res == mtbl_res_success);
-		break;
-	case MTBL_COMPRESSION_LZ4HC:
-		res = _mtbl_compress_lz4hc(raw_contents, raw_contents_size,
-					   &block_contents, &block_contents_size);
+	} else {
+		res = mtbl_compress_level(
+			compression_type,
+			w->opt.compression_level,
+			raw_contents,
+			raw_contents_size,
+			&block_contents,
+			&block_contents_size
+		);
 		assert(res == mtbl_res_success);
-		break;
-	case MTBL_COMPRESSION_SNAPPY:
-		res = _mtbl_compress_snappy(raw_contents, raw_contents_size,
-					    &block_contents, &block_contents_size);
-		assert(res == mtbl_res_success);
-		break;
-	case MTBL_COMPRESSION_ZLIB:
-		res = _mtbl_compress_zlib(raw_contents, raw_contents_size,
-					  &block_contents, &block_contents_size);
-		assert(res == mtbl_res_success);
-		break;
 	}
 
-	assert(block_contents_size < UINT_MAX);
+	assert(w->m.file_version == MTBL_FORMAT_V2);
 
 	const uint32_t crc = htole32(mtbl_crc32c(block_contents, block_contents_size));
-	const uint32_t len = htole32(block_contents_size);
+	size_t len_length;
+	uint8_t len[10];
+	len_length = mtbl_varint_encode64(len, block_contents_size);
 
-	_write_all(w->fd, (const uint8_t *) &len, sizeof(len));
+	_write_all(w->fd, (const uint8_t *) len, len_length);
 	_write_all(w->fd, (const uint8_t *) &crc, sizeof(crc));
 	_write_all(w->fd, block_contents, block_contents_size);
 
-	const size_t bytes_written = (sizeof(len) + sizeof(crc) + block_contents_size);
+	const size_t bytes_written = (len_length + sizeof(crc) + block_contents_size);
+
 	w->last_offset = w->pending_offset;
 	w->pending_offset += bytes_written;
 

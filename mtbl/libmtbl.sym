@@ -1,13 +1,20 @@
-LIBMTBL_0.6.0 {
+LIBMTBL_1.0.0 {
 global:
+        mtbl_compress;
+        mtbl_compress_level;
+        mtbl_compression_type_from_str;
+        mtbl_compression_type_to_str;
         mtbl_crc32c;
+        mtbl_decompress;
         mtbl_fileset_destroy;
         mtbl_fileset_init;
         mtbl_fileset_options_destroy;
         mtbl_fileset_options_init;
         mtbl_fileset_options_set_merge_func;
         mtbl_fileset_options_set_reload_interval;
+        mtbl_fileset_partition;
         mtbl_fileset_reload;
+        mtbl_fileset_reload_now;
         mtbl_fileset_source;
         mtbl_fixed_decode32;
         mtbl_fixed_decode64;
@@ -16,6 +23,7 @@ global:
         mtbl_iter_destroy;
         mtbl_iter_init;
         mtbl_iter_next;
+        mtbl_iter_seek;
         mtbl_merger_add_source;
         mtbl_merger_destroy;
         mtbl_merger_init;
@@ -23,11 +31,23 @@ global:
         mtbl_merger_options_init;
         mtbl_merger_options_set_merge_func;
         mtbl_merger_source;
+        mtbl_metadata_bytes_data_blocks;
+        mtbl_metadata_bytes_index_block;
+        mtbl_metadata_bytes_keys;
+        mtbl_metadata_bytes_values;
+        mtbl_metadata_compression_algorithm;
+        mtbl_metadata_count_data_blocks;
+        mtbl_metadata_count_entries;
+        mtbl_metadata_data_block_size;
+        mtbl_metadata_file_version;
+        mtbl_metadata_index_block_offset;
         mtbl_reader_destroy;
         mtbl_reader_init;
         mtbl_reader_init_fd;
+        mtbl_reader_metadata;
         mtbl_reader_options_destroy;
         mtbl_reader_options_init;
+        mtbl_reader_options_set_madvise_random;
         mtbl_reader_options_set_verify_checksums;
         mtbl_reader_source;
         mtbl_sorter_add;
@@ -62,30 +82,7 @@ global:
         mtbl_writer_options_set_block_restart_interval;
         mtbl_writer_options_set_block_size;
         mtbl_writer_options_set_compression;
+        mtbl_writer_options_set_compression_level;
 local:
         *;
 };
-
-LIBMTBL_0.7.0 {
-global:
-        mtbl_reader_options_set_madvise_random;
-} LIBMTBL_0.6.0;
-
-LIBMTBL_0.8.0 {
-global:
-        mtbl_compress;
-        mtbl_compression_type_to_str;
-        mtbl_compression_type_from_str;
-        mtbl_decompress;
-        mtbl_fileset_reload_now;
-        mtbl_reader_metadata;
-        mtbl_metadata_index_block_offset;
-        mtbl_metadata_data_block_size;
-        mtbl_metadata_compression_algorithm;
-        mtbl_metadata_count_entries;
-        mtbl_metadata_count_data_blocks;
-        mtbl_metadata_bytes_data_blocks;
-        mtbl_metadata_bytes_index_block;
-        mtbl_metadata_bytes_keys;
-        mtbl_metadata_bytes_values;
-} LIBMTBL_0.7.0;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, 2014, 2016 by Farsight Security, Inc.
+ * Copyright (c) 2012-2017 by Farsight Security, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,10 +40,12 @@
 #include "libmy/my_alloc.h"
 #include "libmy/my_byteorder.h"
 
-#define MTBL_MAGIC			0x77846676
+#define MTBL_MAGIC_V1			0x77846676
+#define MTBL_MAGIC			0x4D54424C
 #define MTBL_METADATA_SIZE		512
 
 #define DEFAULT_COMPRESSION_TYPE	MTBL_COMPRESSION_ZLIB
+#define DEFAULT_COMPRESSION_LEVEL	(-10000)
 #define DEFAULT_BLOCK_RESTART_INTERVAL	16
 #define DEFAULT_BLOCK_SIZE		8192
 #define MIN_BLOCK_SIZE			1024
@@ -94,17 +96,25 @@ bool block_builder_empty(struct block_builder *);
 /* compression */
 
 mtbl_res _mtbl_compress_lz4	(const uint8_t *, const size_t, uint8_t **, size_t *);
-mtbl_res _mtbl_compress_lz4hc	(const uint8_t *, const size_t, uint8_t **, size_t *);
+mtbl_res _mtbl_compress_lz4hc	(const uint8_t *, const size_t, uint8_t **, size_t *, int);
 mtbl_res _mtbl_compress_snappy	(const uint8_t *, const size_t, uint8_t **, size_t *);
-mtbl_res _mtbl_compress_zlib	(const uint8_t *, const size_t, uint8_t **, size_t *);
+mtbl_res _mtbl_compress_zlib	(const uint8_t *, const size_t, uint8_t **, size_t *, int);
+mtbl_res _mtbl_compress_zstd	(const uint8_t *, const size_t, uint8_t **, size_t *, int);
 
 mtbl_res _mtbl_decompress_lz4	(const uint8_t *, const size_t, uint8_t **, size_t *);
 mtbl_res _mtbl_decompress_snappy(const uint8_t *, const size_t, uint8_t **, size_t *);
 mtbl_res _mtbl_decompress_zlib	(const uint8_t *, const size_t, uint8_t **, size_t *);
+mtbl_res _mtbl_decompress_zstd	(const uint8_t *, const size_t, uint8_t **, size_t *);
+
+/* iter */
+
+struct mtbl_iter *
+mtbl_iter_init(mtbl_iter_seek_func, mtbl_iter_next_func, mtbl_iter_free_func, void *clos);
 
 /* metadata */
 
 struct mtbl_metadata {
+	mtbl_file_version	file_version;
 	uint64_t	index_block_offset;
 	uint64_t	data_block_size;
 	uint64_t	compression_algorithm;

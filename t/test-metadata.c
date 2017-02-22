@@ -8,6 +8,7 @@
 #include <mtbl.h>
 
 #include "metadata.c"
+#include "../libmy/b64_encode.c"
 
 #define NAME	"test-metadata"
 
@@ -28,6 +29,14 @@ test2(void)
 	return (ret);
 }
 
+#define TEST_ATTR(x, y, attr) \
+	do { \
+	if ((x).attr != (y).attr) { \
+		fprintf(stderr, NAME ": " #x "." #attr " != " #y "." #attr); \
+		ret |= 1; \
+	} \
+	} while (0);
+
 static int
 test1(void)
 {
@@ -37,6 +46,7 @@ test1(void)
 
 	memset(tbuf, 0, sizeof(tbuf));
 
+	m1.file_version = MTBL_FORMAT_V2;
 	m1.index_block_offset = 123;
 	m1.data_block_size = 65536;
 	m1.compression_algorithm = 1;
@@ -53,10 +63,16 @@ test1(void)
 		ret |= 1;
 	}
 
-	if (memcmp(&m1, &m2, sizeof(struct mtbl_metadata)) != 0) {
-		fprintf(stderr, NAME ": m1 != m2\n");
-		ret |= 1;
-	}
+	TEST_ATTR(m1, m2, file_version);
+	TEST_ATTR(m1, m2, index_block_offset);
+	TEST_ATTR(m1, m2, data_block_size);
+	TEST_ATTR(m1, m2, compression_algorithm);
+	TEST_ATTR(m1, m2, count_entries);
+	TEST_ATTR(m1, m2, count_data_blocks);
+	TEST_ATTR(m1, m2, bytes_data_blocks);
+	TEST_ATTR(m1, m2, bytes_index_block);
+	TEST_ATTR(m1, m2, bytes_keys);
+	TEST_ATTR(m1, m2, bytes_values);
 
 	return (ret);
 }

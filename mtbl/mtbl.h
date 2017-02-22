@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, 2014-2015 by Farsight Security, Inc.
+ * Copyright (c) 2012-2016 by Farsight Security, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,11 +38,21 @@ typedef enum {
 	MTBL_COMPRESSION_ZLIB = 2,
 	MTBL_COMPRESSION_LZ4 = 3,
 	MTBL_COMPRESSION_LZ4HC = 4,
+	MTBL_COMPRESSION_ZSTD = 5,
 } mtbl_compression_type;
 
 mtbl_res
 mtbl_compress(
 	mtbl_compression_type,
+	const uint8_t *input,
+	const size_t input_size,
+	uint8_t **output,
+	size_t *output_size);
+
+mtbl_res
+mtbl_compress_level(
+	mtbl_compression_type,
+	int compression_level,
 	const uint8_t *input,
 	const size_t input_size,
 	uint8_t **output,
@@ -93,7 +103,15 @@ typedef void *
 typedef void
 (*mtbl_merge_free_func)(void *clos);
 
+typedef bool
+(*mtbl_filename_filter_func)(const char *);
+
 /* iter */
+
+typedef mtbl_res
+(*mtbl_iter_seek_func)(
+	void *,
+	const uint8_t *key, size_t len_key);
 
 typedef mtbl_res
 (*mtbl_iter_next_func)(
@@ -104,11 +122,14 @@ typedef mtbl_res
 typedef void
 (*mtbl_iter_free_func)(void *);
 
-struct mtbl_iter *
-mtbl_iter_init(mtbl_iter_next_func, mtbl_iter_free_func, void *clos);
-
 void
 mtbl_iter_destroy(struct mtbl_iter **);
+
+mtbl_res
+mtbl_iter_seek(
+	struct mtbl_iter *,
+	const uint8_t *key, size_t len_key)
+__attribute__((warn_unused_result));
 
 mtbl_res
 mtbl_iter_next(
@@ -199,6 +220,11 @@ mtbl_writer_options_set_compression(
 	mtbl_compression_type);
 
 void
+mtbl_writer_options_set_compression_level(
+	struct mtbl_writer_options *,
+	int);
+
+void
 mtbl_writer_options_set_block_size(
 	struct mtbl_writer_options *,
 	size_t);
@@ -240,6 +266,14 @@ void
 mtbl_reader_options_set_verify_checksums(struct mtbl_reader_options *, bool);
 
 /* metadata */
+
+typedef enum {
+	MTBL_FORMAT_V1 = 0,
+	MTBL_FORMAT_V2 = 1
+} mtbl_file_version;
+
+mtbl_file_version
+mtbl_metadata_file_version(const struct mtbl_metadata *);
 
 uint64_t
 mtbl_metadata_index_block_offset(const struct mtbl_metadata *);
@@ -312,6 +346,12 @@ mtbl_fileset_reload_now(struct mtbl_fileset *);
 
 const struct mtbl_source *
 mtbl_fileset_source(struct mtbl_fileset *);
+
+void
+mtbl_fileset_partition(struct mtbl_fileset *,
+		mtbl_filename_filter_func,
+		struct mtbl_merger **,
+		struct mtbl_merger **);
 
 /* fileset options */
 

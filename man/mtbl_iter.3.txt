@@ -11,12 +11,17 @@ mtbl_iter - iterate over a sequence of key-value pairs
 [verse]
 ^mtbl_res
 mtbl_iter_next(struct mtbl_iter *'it',
-        const uint8_t * *'key', size_t *'len_key',
-        const uint8_t * *'val', size_t *'len_val');^
+        const uint8_t \**'key', size_t *'len_key',
+        const uint8_t **'val', size_t *'len_val');^
 
 [verse]
 ^void
 mtbl_iter_destroy(struct mtbl_iter **'it');^
+
+[verse]
+^mtbl_res
+mtbl_iter_seek(struct mtbl_iter *'it',
+        const uint8_t **'key', size_t *'len_key');^
 
 == DESCRIPTION ==
 
@@ -24,7 +29,9 @@ The ^mtbl_iter^ interface is used to return a sequence of one or more key-value
 pairs. Once the caller obtains an ^mtbl_iter^ object, ^mtbl_iter_next^() should
 be repeatedly called on it until there are no more key-value entries to
 retrieve, at which point the iterator object must be freed by calling
-^mtbl_iter_destroy^().
+^mtbl_iter_destroy^(). ^mtbl_iter_seek^() can be called on the iterator to seek
+to a different location in the index without having to destroy the iterator
+and create a new one.
 
 == RETURN VALUE ==
 
