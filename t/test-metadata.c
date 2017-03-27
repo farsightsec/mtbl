@@ -7,8 +7,9 @@
 
 #include <mtbl.h>
 
+#include "libmy/b64_encode.h"
+
 #include "metadata.c"
-#include "../libmy/b64_encode.c"
 
 #define NAME	"test-metadata"
 
