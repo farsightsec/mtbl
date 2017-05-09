@@ -11,11 +11,12 @@
 char * fileset;
 
 static bool
-cb(const char *fn)
+cb(const char *fn, void *clos)
 {
+	const char *cn = (const char *)clos;
 	const char *bn;
 	bn = basename((char*)fn);
-	return strcmp(bn, "file1.mtbl") == 0;
+	return strcmp(bn, cn) == 0;
 }
 
 static void
@@ -43,7 +44,7 @@ test1(void)
 	mtbl_fileset_options_set_merge_func(opt, merge_func, NULL);
 	fs = mtbl_fileset_init(fileset, opt);
 
-	mtbl_fileset_partition(fs, cb, &m1, &m2);
+	mtbl_fileset_partition(fs, cb, "file1.mtbl", &m1, &m2);
 
 	s1 = mtbl_merger_source(m1);
 	s2 = mtbl_merger_source(m2);
