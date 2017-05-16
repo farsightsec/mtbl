@@ -51,16 +51,16 @@
 struct block {
 	uint8_t		*data;
 	size_t		size;
-	uint32_t	restart_offset;
+	uint64_t	restart_offset;
 	bool		needs_free;
 };
 
 struct block_iter {
 	struct block	*block;
 	uint8_t		*data;
-	uint32_t	restarts;
+	uint64_t	restarts;
 	uint32_t	num_restarts;
-	uint32_t	current;
+	uint64_t	current;
 	uint32_t	restart_index;
 	uint8_t		*next;
 	ubuf		*key;
@@ -152,14 +152,14 @@ block_iter_destroy(struct block_iter **bi)
 	}
 }
 
-static inline uint32_t
+static inline uint64_t
 next_entry_offset(struct block_iter *bi)
 {
 	/* return the offset in ->data just past the end of the current entry */
 	return (bi->next - bi->data);
 }
 
-static inline uint32_t
+static inline uint64_t
 get_restart_point(struct block_iter *bi, uint32_t idx)
 {
 	assert(idx < bi->num_restarts);
@@ -171,7 +171,7 @@ seek_to_restart_point(struct block_iter *bi, uint32_t idx)
 {
 	ubuf_reset(bi->key);
 	bi->restart_index = idx;
-	uint32_t offset = get_restart_point(bi, idx);
+	uint64_t offset = get_restart_point(bi, idx);
 	bi->next = bi->data + offset;
 }
 
@@ -238,7 +238,7 @@ block_iter_seek(struct block_iter *bi, const uint8_t *target, size_t target_len)
 	uint32_t right = bi->num_restarts - 1;
 	while (left < right) {
 		uint32_t mid = (left + right + 1) / 2;
-		uint32_t region_offset = get_restart_point(bi, mid);
+		uint64_t region_offset = get_restart_point(bi, mid);
 		uint32_t shared, non_shared, value_length;
 		const uint8_t *key_ptr = decode_entry(bi->data + region_offset,
 						      bi->data + bi->restarts,
@@ -286,7 +286,7 @@ void
 block_iter_prev(struct block_iter *bi)
 {
 	assert(block_iter_valid(bi));
-	const uint32_t original = bi->current;
+	const uint64_t original = bi->current;
 	while (get_restart_point(bi, bi->restart_index) >= original) {
 		if (bi->restart_index == 0) {
 			/* no more entries */
