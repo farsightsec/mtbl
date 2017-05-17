@@ -107,9 +107,29 @@ block_init(uint8_t *data, size_t size, bool needs_free)
 		b->size = 0;
 	} else {
 		b->restart_offset = size - (1 + num_restarts(b)) * sizeof(uint32_t);
-		if (b->restart_offset > size - sizeof(uint32_t)) {
+	}
+	/*
+	 * Check if a 32-bit restart array would leave room for restart offsets
+	 * too large for an unsigned 32 bit integer. The writer performs this
+	 * same check, and will switch to 64 bit restart offsets if necessary.
+	 * We detect this situation here, and do the same.
+	 */
+	if (b->restart_offset > UINT32_MAX) {
+		b->restart_offset = size - (sizeof(uint32_t) +
+						num_restarts(b) * sizeof(uint64_t));
+		/*
+		 * b->restart_offset is the offset of the first byte after
+		 * the entries stored in the block. If that offset fits
+		 * in a 32 bit unsigned integer field, the block should have
+		 * used 32 bit restart offsets. We consider a block where
+		 * a 32 bit restart offset array would begin after UINT32_MAX
+		 * and a 64 bit restart array would begin before to be malformed.
+		 */
+		if (b->restart_offset <= UINT32_MAX)
 			b->size = 0;
-		}
+	}
+	if (b->restart_offset > size - sizeof(uint32_t)) {
+		b->size = 0;
 	}
 	b->needs_free = needs_free;
 	return (b);
@@ -163,6 +183,8 @@ static inline uint64_t
 get_restart_point(struct block_iter *bi, uint32_t idx)
 {
 	assert(idx < bi->num_restarts);
+	if (bi->restarts > UINT32_MAX)
+		return (mtbl_fixed_decode64(bi->data + bi->restarts + idx * sizeof(uint64_t)));
 	return (mtbl_fixed_decode32(bi->data + bi->restarts + idx * sizeof(uint32_t)));
 }
 
@@ -179,8 +201,7 @@ static bool
 parse_next_key(struct block_iter *bi)
 {
 	bi->current = next_entry_offset(bi);
-	uint8_t *p = bi->data + bi->current;
-	uint8_t *limit = bi->data + bi->restarts;
+	uint8_t *p = bi->data + bi->current; uint8_t *limit = bi->data + bi->restarts;
 	if (p >= limit) {
 		/* no more entries to return, mark as invalid */
 		bi->current = bi->restarts;
