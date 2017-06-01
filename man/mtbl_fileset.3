@@ -2,12 +2,12 @@
 .\"     Title: mtbl_fileset
 .\"    Author: [FIXME: author] [see http://docbook.sf.net/el/author]
 .\" Generator: DocBook XSL Stylesheets v1.79.1 <http://docbook.sf.net/>
-.\"      Date: 02/17/2017
+.\"      Date: 05/09/2017
 .\"    Manual: \ \&
 .\"    Source: \ \&
 .\"  Language: English
 .\"
-.TH "MTBL_FILESET" "3" "02/17/2017" "\ \&" "\ \&"
+.TH "MTBL_FILESET" "3" "05/09/2017" "\ \&" "\ \&"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -64,6 +64,7 @@ mtbl_fileset_source(struct mtbl_fileset *\fR\fB\fIf\fR\fR\fB);\fR
 \fBvoid
 mtbl_fileset_partition(struct mtbl_fileset *\fR\fB\fIf\fR\fR\fB,
                 mtbl_filename_filter_func \fR\fB\fIcb\fR\fR\fB,
+                void *\fR\fB\fIclos\fR\fR\fB,
                 struct mtbl_merger **\fR\fB\fIm1\fR\fR\fB,
                 struct mtbl_merger **\fR\fB\fIm2\fR\fR\fB);\fR
 .fi

@@ -231,6 +231,7 @@ mtbl_fileset_reload_now(struct mtbl_fileset *f)
 void
 mtbl_fileset_partition(struct mtbl_fileset *f,
 		mtbl_filename_filter_func cb,
+		void *clos,
 		struct mtbl_merger **m1,
 		struct mtbl_merger **m2)
 {
@@ -242,7 +243,7 @@ mtbl_fileset_partition(struct mtbl_fileset *f,
 	*m2 = mtbl_merger_init(f->mopt);
 
 	while (my_fileset_get(f->fs, i++, &fname, (void**) &reader)) {
-		if (cb(fname))
+		if (cb(fname, clos))
 			mtbl_merger_add_source(*m1, mtbl_reader_source(reader));
 		else
 			mtbl_merger_add_source(*m2, mtbl_reader_source(reader));
