@@ -317,7 +317,7 @@ _mtbl_compress_zlib(
 		.zfree	= Z_NULL,
 	};
 
-	if (compression_level < Z_NO_COMPRESSION) {
+	if (compression_level < Z_DEFAULT_COMPRESSION) {
 		compression_level = Z_NO_COMPRESSION;
 	} else if (compression_level > Z_BEST_COMPRESSION) {
 		compression_level = Z_BEST_COMPRESSION;
