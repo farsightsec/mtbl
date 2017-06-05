@@ -18,14 +18,14 @@
 
 #include "libmy/ubuf.h"
 
-VECTOR_GENERATE(uint32_vec, uint32_t);
+VECTOR_GENERATE(uint64_vec, uint64_t);
 
 struct block_builder {
 	size_t		block_restart_interval;
 
 	ubuf		*buf;
 	ubuf		*last_key;
-	uint32_vec	*restarts;
+	uint64_vec	*restarts;
 
 	bool		finished;
 	size_t		counter;
@@ -40,8 +40,8 @@ block_builder_init(size_t block_restart_interval)
 	b->block_restart_interval = block_restart_interval;
 	b->buf = ubuf_init(65536);
 	b->last_key = ubuf_init(256);
-	b->restarts = uint32_vec_init(64);
-	uint32_vec_add(b->restarts, 0);
+	b->restarts = uint64_vec_init(64);
+	uint64_vec_add(b->restarts, 0);
 
 	return (b);
 }
@@ -50,7 +50,7 @@ void
 block_builder_destroy(struct block_builder **b)
 {
 	if (*b) {
-		uint32_vec_destroy(&((*b)->restarts));
+		uint64_vec_destroy(&((*b)->restarts));
 		ubuf_destroy(&((*b)->buf));
 		ubuf_destroy(&((*b)->last_key));
 		free((*b));
@@ -63,8 +63,8 @@ block_builder_reset(struct block_builder *b)
 {
 	ubuf_reset(b->buf);
 	ubuf_reset(b->last_key);
-	uint32_vec_reset(b->restarts);
-	uint32_vec_add(b->restarts, 0);
+	uint64_vec_reset(b->restarts);
+	uint64_vec_add(b->restarts, 0);
 	b->counter = 0;
 	b->finished = false;
 }
@@ -78,24 +78,31 @@ block_builder_empty(struct block_builder *b)
 size_t
 block_builder_current_size_estimate(struct block_builder *b)
 {
-	return (ubuf_bytes(b->buf) + uint32_vec_bytes(b->restarts) + sizeof(uint32_t));
+	if (ubuf_bytes(b->buf) > UINT32_MAX) {
+		return (ubuf_bytes(b->buf) + uint64_vec_bytes(b->restarts) + sizeof(uint32_t));
+	}
+	return (ubuf_bytes(b->buf) + uint64_vec_bytes(b->restarts) / 2 + sizeof(uint32_t));
 }
 
 void
 block_builder_finish(struct block_builder *b, uint8_t **buf, size_t *bufsz)
 {
-	ubuf_reserve(b->buf, uint32_vec_bytes(b->restarts) + sizeof(uint32_t));
+	bool restart64;
 
-	for (size_t i = 0; i < uint32_vec_size(b->restarts); i++) {
-		//fprintf(stderr, "%s: writing restart value: %u\n", __func__,
-			//(unsigned) uint32_vec_value(b->restarts, i));
-		mtbl_fixed_encode32(ubuf_ptr(b->buf), uint32_vec_value(b->restarts, i));
-		ubuf_advance(b->buf, sizeof(uint32_t));
+	restart64 = (ubuf_bytes(b->buf) > UINT32_MAX);
+	ubuf_reserve(b->buf, block_builder_current_size_estimate(b));
+
+	for (size_t i = 0; i < uint64_vec_size(b->restarts); i++) {
+		if (restart64) {
+			mtbl_fixed_encode64(ubuf_ptr(b->buf), uint64_vec_value(b->restarts, i));
+			ubuf_advance(b->buf, sizeof(uint64_t));
+		} else {
+			mtbl_fixed_encode32(ubuf_ptr(b->buf), uint64_vec_value(b->restarts, i));
+			ubuf_advance(b->buf, sizeof(uint32_t));
+		}
 	}
 
-	//fprintf(stderr, "%s: writing number of restarts: %u\n", __func__,
-		//(unsigned) uint32_vec_size(b->restarts));
-	mtbl_fixed_encode32(ubuf_ptr(b->buf), uint32_vec_size(b->restarts));
+	mtbl_fixed_encode32(ubuf_ptr(b->buf), uint64_vec_size(b->restarts));
 	ubuf_advance(b->buf, sizeof(uint32_t));
 
 	b->finished = true;
@@ -126,8 +133,7 @@ block_builder_add(struct block_builder *b,
 			shared++;
 	} else {
 		/* restart compression */
-		//fprintf(stderr, "%s: doing restart\n", __func__);
-		uint32_vec_add(b->restarts, (uint32_t) ubuf_bytes(b->buf));
+		uint64_vec_add(b->restarts, (uint64_t) ubuf_bytes(b->buf));
 		b->counter = 0;
 	}
 	const size_t non_shared = len_key - shared;
@@ -136,21 +142,16 @@ block_builder_add(struct block_builder *b,
 	ubuf_reserve(b->buf, 5*3 + non_shared + len_val);
 
 	/* add "[shared][non-shared][value length]" to buffer */
-	//fprintf(stderr, "%s: writing value %u (shared)\n", __func__, (unsigned) shared);
 	ubuf_advance(b->buf, mtbl_varint_encode32(ubuf_ptr(b->buf), shared));
 
-	//fprintf(stderr, "%s: writing value %u (non-shared)\n", __func__, (unsigned) non_shared);
 	ubuf_advance(b->buf, mtbl_varint_encode32(ubuf_ptr(b->buf), non_shared));
 
-	//fprintf(stderr, "%s: writing value %u (value length)\n", __func__, (unsigned) len_val);
 	ubuf_advance(b->buf, mtbl_varint_encode32(ubuf_ptr(b->buf), len_val));
 
 	/* add key suffix to buffer followed by value */
-	//fprintf(stderr, "%s: writing %u bytes (key suffix)\n", __func__, (unsigned) non_shared);
 	memcpy(ubuf_ptr(b->buf), key + shared, non_shared);
 	ubuf_advance(b->buf, non_shared);
 
-	//fprintf(stderr, "%s: writing %u bytes (value)\n", __func__, (unsigned) len_val);
 	memcpy(ubuf_ptr(b->buf), val, len_val);
 	ubuf_advance(b->buf, len_val);
 
