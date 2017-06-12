@@ -415,9 +415,12 @@ reader_iter_seek(void *v,
 
 	block_iter_seek(it->index_iter, key, len_key);
 
-	if (block_iter_get(it->index_iter, &ikey, &len_ikey, &ival, &len_ival)) {
-		mtbl_varint_decode64(ival, &new_offset);
+	if (!block_iter_get(it->index_iter, &ikey, &len_ikey, &ival, &len_ival)) {
+		it->valid = false;
+		return (mtbl_res_success);
 	}
+
+	mtbl_varint_decode64(ival, &new_offset);
 
 	/* We can skip decoding a new block if our new key is within the
 	 * currently-decoded block. */ 
