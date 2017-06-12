@@ -153,6 +153,15 @@ test_iter(struct mtbl_iter *iter)
 
 		ubuf_destroy(&seek_key);
 	}
+
+	/* Attempt to seek past end of iterator */
+	ubuf *seek_key = ubuf_init(1);
+	const uint8_t *key, *value;
+	size_t len_key, len_value;
+
+	ubuf_add_fmt(seek_key, KEY_FMT, NUM_KEYS + 1);
+	assert(mtbl_iter_seek(iter, ubuf_data(seek_key), ubuf_size(seek_key)) == mtbl_res_success);
+	assert(mtbl_iter_next(iter, &key, &len_key, &value, &len_value) == mtbl_res_failure);
 }
 
 static void
