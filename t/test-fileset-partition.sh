@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 if [ -z "${top_srcdir}" ]; then
     echo "top_srcdir variable not set"

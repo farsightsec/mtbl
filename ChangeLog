@@ -1,3 +1,12 @@
+mtbl (1.1.0)
+
+  * Fix default zlib compression level.
+  * Add callback data (clos) parameter to mtbl_fileset_partition
+    function and its callback. Early users of mtbl_fileset_partition
+    will need to rewrite accordingly.
+  * Use 64-bit offsets in blocks with more than 4G of data.
+  * Fix undefined behavior when seeking past end of mtbl file.
+
 mtbl (1.0.0)
 
  * Backwards-incompatible file format change to enable block sizes >4G.
