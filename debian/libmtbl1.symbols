@@ -1,5 +1,6 @@
 libmtbl.so.1 libmtbl1 #MINVER#
  LIBMTBL_1.0.0@LIBMTBL_1.0.0 1.0.0
+ LIBMTBL_1.1.0@LIBMTBL_1.1.0 1.1.0
  mtbl_compress@LIBMTBL_1.0.0 1.0.0
  mtbl_compress_level@LIBMTBL_1.0.0 1.0.0
  mtbl_compression_type_from_str@LIBMTBL_1.0.0 1.0.0
@@ -12,7 +13,7 @@ libmtbl.so.1 libmtbl1 #MINVER#
  mtbl_fileset_options_init@LIBMTBL_1.0.0 1.0.0
  mtbl_fileset_options_set_merge_func@LIBMTBL_1.0.0 1.0.0
  mtbl_fileset_options_set_reload_interval@LIBMTBL_1.0.0 1.0.0
- mtbl_fileset_partition@LIBMTBL_1.0.0 1.0.0
+ mtbl_fileset_partition@LIBMTBL_1.1.0 1.1.0
  mtbl_fileset_reload@LIBMTBL_1.0.0 1.0.0
  mtbl_fileset_reload_now@LIBMTBL_1.0.0 1.0.0
  mtbl_fileset_source@LIBMTBL_1.0.0 1.0.0
