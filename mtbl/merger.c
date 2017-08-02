@@ -360,8 +360,10 @@ merger_get(void *clos, const uint8_t *key, size_t len_key)
 	for (size_t i = 0; i < source_vec_size(m->sources); i++) {
 		const struct mtbl_source *s = source_vec_value(m->sources, i);
 		struct mtbl_iter *s_it = mtbl_source_get_range(s, key, len_key, key, len_key);
-		if (s_it != NULL)
+		if (s_it != NULL) {
+			iter_vec_add(it->iters, s_it);
 			merger_iter_add_entry(it, s_it);
+		}
 	}
 	if (entry_vec_size(it->entries) == 0) {
 		merger_iter_free(it);
@@ -380,8 +382,10 @@ merger_get_range(void *clos,
 	for (size_t i = 0; i < source_vec_size(m->sources); i++) {
 		const struct mtbl_source *s = source_vec_value(m->sources, i);
 		struct mtbl_iter *s_it = mtbl_source_get_range(s, key0, len_key0, key1, len_key1);
-		if (s_it != NULL)
+		if (s_it != NULL) {
+			iter_vec_add(it->iters, s_it);
 			merger_iter_add_entry(it, s_it);
+		}
 	}
 	if (entry_vec_size(it->entries) == 0) {
 		merger_iter_free(it);
@@ -399,8 +403,10 @@ merger_get_prefix(void *clos,
 	for (size_t i = 0; i < source_vec_size(m->sources); i++) {
 		const struct mtbl_source *s = source_vec_value(m->sources, i);
 		struct mtbl_iter *s_it = mtbl_source_get_prefix(s, key, len_key);
-		if (s_it != NULL)
+		if (s_it != NULL) {
+			iter_vec_add(it->iters, s_it);
 			merger_iter_add_entry(it, s_it);
+		}
 	}
 	if (entry_vec_size(it->entries) == 0) {
 		merger_iter_free(it);
