@@ -60,7 +60,7 @@ metadata_read(const uint8_t *buf, struct mtbl_metadata *m)
 	m->bytes_data_blocks = mtbl_fixed_decode64(p); p += 8;
 	m->bytes_index_block = mtbl_fixed_decode64(p); p += 8;
 	m->bytes_keys = mtbl_fixed_decode64(p); p += 8;
-	m->bytes_values = mtbl_fixed_decode64(p); p += 8;
+	m->bytes_values = mtbl_fixed_decode64(p);
 
 	return (true);
 
