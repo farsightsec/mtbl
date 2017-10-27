@@ -85,7 +85,9 @@ verify_data_blocks(
 			raw_contents_size = mtbl_fixed_decode32(&data[offset + 0]);
 			raw_contents_size_len = sizeof(uint32_t);
 		} else {
-			raw_contents_size_len = mtbl_varint_decode64(&data[offset + 0], &raw_contents_size);
+			uint64_t tmp;
+			raw_contents_size_len = mtbl_varint_decode64(&data[offset + 0], &tmp);
+			raw_contents_size = tmp;
 		}
 
 		/* Bounds check. */
@@ -93,7 +95,7 @@ verify_data_blocks(
 		bytes_consumed += raw_contents_size;
 		if (bytes_consumed > bytes_data_blocks) {
 			clear_line_stdout();
-			fprintf(stderr, "%s: Error: Block length (%'" PRIu64 " bytes) exceeds "
+			fprintf(stderr, "%s: Error: Block length (%'zu bytes) exceeds "
 				"total data length at "
 				"data block %" PRIu64 " (%" PRIu64 " bytes into file)\n",
 				prefix,
