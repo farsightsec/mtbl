@@ -151,6 +151,11 @@ check_PROGRAMS += t/test-iter-seek
 t_test_iter_seek_SOURCES = t/test-iter-seek.c
 t_test_iter_seek_LDADD = mtbl/libmtbl.la
 
+TESTS += t/test-sorted-merge
+check_PROGRAMS += t/test-sorted-merge
+t_test_sorted_merge_SOURCES = t/test-sorted-merge.c
+t_test_sorted_merge_LDADD = mtbl/libmtbl.la
+
 TESTS += t/test-verify.sh
 EXTRA_DIST += t/test-verify.sh
 EXTRA_DIST += t/test-verify-good1.data t/test-verify-bad1.data t/test-verify-bad2.data
