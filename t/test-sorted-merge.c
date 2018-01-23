@@ -197,7 +197,7 @@ test_iter_sorted(struct mtbl_iter *iter, size_t idx, struct mtbl_sorter *sorter)
 		
 		assert(bytes_compare((const uint8_t *)key_values[idx][i], strlen(key_values[idx][i]) + 1, key, len_key) == 0);
 
-		assert(mtbl_sorter_add(sorter, key, len_key, value, len_value));
+		assert(mtbl_sorter_add(sorter, key, len_key, value, len_value) == mtbl_res_success);
 	}
 
 	/* Ensure that we have completely iterated through the set. */
