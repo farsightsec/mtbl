@@ -47,6 +47,7 @@ typedef struct sorter_tester {
 } sorter_tester_t;
 
 sorter_tester_t testers[NUM_SETS];
+char *tmpfname = NULL;
 
 char *key_values[NUM_SETS][NUM_KEYS] = {
 	{ T1,  T2,  T3,  T4,  T5,  T6,  T7,  T8,  T9,  T10 },
@@ -90,6 +91,11 @@ static void cleanup_func(void) {
 
 	}
 
+	if (tmpfname != NULL) {
+		unlink(tmpfname);
+		tmpfname = NULL;
+	}
+
 }
 
 
@@ -101,87 +107,146 @@ my_merge_func(void *clos,
         uint8_t **merged_val, size_t *len_merged_val);
 
 int main(int argc, char ** argv) {
-	size_t i;
+	size_t i, j = 0;
 
-	// Make sure everything is cleaned up afterwards.
+	/* Make sure everything is cleaned up afterwards. */
 	atexit(cleanup_func);
 
-	// Get the sorter ready to process data.
-	struct mtbl_sorter_options *sorter_options = mtbl_sorter_options_init();
-	assert(sorter_options != NULL);
+	for (j = 0; j < 2; j++) {
+		struct mtbl_sorter_options *sorter_options;
+		struct mtbl_sorter *sorter;
+		struct mtbl_iter *sorter_iter;
+		struct mtbl_reader_options *reader_options;
+		struct mtbl_writer *writer;
 
-	mtbl_sorter_options_set_merge_func(sorter_options, my_merge_func, NULL);
+		/* Reset the testers if necessary. */
+		memset(testers, 0, sizeof(testers));
 
-	struct mtbl_sorter *sorter = mtbl_sorter_init(sorter_options);
-	assert(sorter != NULL);
+		/* Get the sorter ready to process data. */
+		sorter_options = mtbl_sorter_options_init();
+		assert(sorter_options != NULL);
 
-	// Prepare the readers.
-	struct mtbl_reader_options *reader_options = mtbl_reader_options_init();
-	assert(reader_options != NULL);
+		mtbl_sorter_options_set_merge_func(sorter_options, my_merge_func, NULL);
 
-	// Go through each of the data sets.
-	for (i = 0; i < NUM_SETS; i++) {
-		// Generate the temporary individual mtbl filename
-		testers[i].filename = strdup(tmpnam(NULL));
-		assert(testers[i].filename != NULL);
-		// First write each individual mtbl component.
-		init_mtbl(testers[i].filename, i);
+		sorter = mtbl_sorter_init(sorter_options);
+		assert(sorter != NULL);
 
-		testers[i].reader = mtbl_reader_init(testers[i].filename, reader_options);
-		assert(testers[i].reader != NULL);
+		/* Prepare the readers. */
+		reader_options = mtbl_reader_options_init();
+		assert(reader_options != NULL);
 
-		testers[i].source = mtbl_reader_source(testers[i].reader);
-		assert(testers[i].source != NULL);
+		/* Go through each of the data sets. */
+		for (i = 0; i < NUM_SETS; i++) {
+			/* Generate the temporary individual mtbl filename */
+			testers[i].filename = strdup(tmpnam(NULL));
+			assert(testers[i].filename != NULL);
+			/* First write each individual mtbl component with key/value pairs. */
+			init_mtbl(testers[i].filename, i);
 
-		testers[i].iter = mtbl_source_iter(testers[i].source);
-		assert(testers[i].iter != NULL);
+			/* Then open up that temporary file for reading. */
+			testers[i].reader = mtbl_reader_init(testers[i].filename, reader_options);
+			assert(testers[i].reader != NULL);
 
-		test_iter_sorted(testers[i].iter, i, sorter);
-	}
+			testers[i].source = mtbl_reader_source(testers[i].reader);
+			assert(testers[i].source != NULL);
 
-	fprintf(stderr, NAME ": PASS: sorter initialization run successful\n");
+			testers[i].iter = mtbl_source_iter(testers[i].source);
+			assert(testers[i].iter != NULL);
 
-	mtbl_reader_options_destroy(&reader_options);
-
-	struct mtbl_iter *sorter_iter = mtbl_sorter_iter(sorter);
-	assert(sorter_iter != NULL);
-
-	size_t total = 0;
-
-	while (1) {
-		const uint8_t *key, *value;
-		size_t len_key, len_value;
-
-		if (mtbl_iter_next(sorter_iter, &key, &len_key, &value, &len_value) != mtbl_res_success)
-			break;
-
-		total++;
-
-		if (total > (sizeof(sorted_values) / sizeof(sorted_values[0])))
-			break;
-
-		assert(bytes_compare((const uint8_t *)sorted_values[total - 1],
-			strlen(sorted_values[total - 1]) + 1, key, len_key) == 0);
-
-		if (sorted_dups[total - 1]) {
-
-			assert(strcmp((char *)value, MERGE_DUP) == 0);
-
-		} else {
-
-			assert(bytes_compare((const uint8_t *)sorted_values[total - 1],
-				strlen(sorted_values[total - 1]) + 1, value, len_value) == 0);
+			/* Finally, double check its contents are what we expect. */
+			test_iter_sorted(testers[i].iter, i, sorter);
 
 		}
 
+		fprintf(stderr, NAME ": PASS: sorter initialization run successful\n");
+
+		mtbl_reader_options_destroy(&reader_options);
+
+		/* The second pass tests mtbl_sorter_write(). */
+		if (j) {
+			/* First open up a writer to accept the sorted values. */
+			struct mtbl_writer_options *writer_options = mtbl_writer_options_init();
+			assert(writer_options != NULL);
+
+			mtbl_writer_options_set_block_size(writer_options, 1024);
+
+			tmpfname = tmpnam(NULL);
+			assert(tmpfname != NULL);
+
+			writer = mtbl_writer_init(tmpfname, writer_options);
+			assert(writer != NULL);
+
+			/* Then flush the sorted entries out to disk. */
+			assert(mtbl_sorter_write(sorter, writer) == mtbl_res_success);
+
+			mtbl_writer_destroy(&writer);
+			mtbl_writer_options_destroy(&writer_options);
+
+			/* Everything is written. Now create an iterator for it. */
+			struct mtbl_reader *iter_reader = mtbl_reader_init(tmpfname, reader_options);
+                        assert(iter_reader != NULL);
+
+			/* Flip that writer around and make it a reader.
+			   For mtbl_sorter_write(), we validate the correctness
+			   of the records written above by iterating over the new MTBL. */
+			const struct mtbl_source *iter_source = mtbl_reader_source(iter_reader);
+			assert(iter_source != NULL);
+
+			sorter_iter = mtbl_source_iter(iter_source);
+			assert(sorter_iter != NULL);
+
+		} else {
+			/* Our normal case scenario is to validate the sorter's
+			   work directly by iterating over it. */
+			sorter_iter = mtbl_sorter_iter(sorter);
+			assert(sorter_iter != NULL);
+		}
+
+		size_t total = 0;
+
+		while (1) {
+			const uint8_t *key, *value;
+			size_t len_key, len_value;
+
+			/* For each expected value, read the key/value pair. */
+			if (mtbl_iter_next(sorter_iter, &key, &len_key, &value, &len_value) != mtbl_res_success)
+				break;
+
+			total++;
+
+			/* Also make sure we don't have any unexpected extra entries. */
+			if (total > (sizeof(sorted_values) / sizeof(sorted_values[0])))
+				break;
+
+			/* Make sure the key values (and hence, order) are correct. */
+			assert(bytes_compare((const uint8_t *)sorted_values[total - 1],
+				strlen(sorted_values[total - 1]) + 1, key, len_key) == 0);
+
+			/* Also verify the values. Merged keys have their values
+			   set to MERGE_DUP, so check for this being the case
+			   wherever we expect a merged value in the sorter output. */
+			if (sorted_dups[total - 1]) {
+
+				assert(strcmp((char *)value, MERGE_DUP) == 0);
+
+			} else {
+
+				assert(bytes_compare((const uint8_t *)sorted_values[total - 1],
+					strlen(sorted_values[total - 1]) + 1, value, len_value) == 0);
+
+			}
+
+		}
+
+		assert(total == (sizeof(sorted_values) / sizeof(sorted_values[0])));
+		fprintf(stderr, NAME ": PASS: sorter run successful\n");
+
+		mtbl_iter_destroy(&sorter_iter);
+		mtbl_sorter_destroy(&sorter);
+		mtbl_sorter_options_destroy(&sorter_options);
+		cleanup_func();
 	}
 
-	assert(total == (sizeof(sorted_values) / sizeof(sorted_values[0])));
-	fprintf(stderr, NAME ": PASS: sorter run successful\n");
-
-	mtbl_iter_destroy(&sorter_iter);
-	mtbl_sorter_destroy(&sorter);
-	mtbl_sorter_options_destroy(&sorter_options);
 }
 
 static void
@@ -198,6 +263,7 @@ test_iter_sorted(struct mtbl_iter *iter, size_t idx, struct mtbl_sorter *sorter)
 		assert(bytes_compare((const uint8_t *)key_values[idx][i], strlen(key_values[idx][i]) + 1, key, len_key) == 0);
 
 		assert(mtbl_sorter_add(sorter, key, len_key, value, len_value) == mtbl_res_success);
+
 	}
 
 	/* Ensure that we have completely iterated through the set. */
