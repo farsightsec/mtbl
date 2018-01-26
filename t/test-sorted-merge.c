@@ -3,6 +3,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <sys/time.h>
 
 #include <mtbl.h>
 
@@ -63,6 +64,43 @@ int sorted_dups[NUM_SORTED] = {
 };
 
 
+/* Suppress aggravating compiler warnings caused by calling plain old tmpnam() */
+static char *
+quiet_tmpnam(char *s)
+{
+	struct timeval tv;
+	char fnamebuf[1024], dirbuf[1024];
+	static unsigned int ctr = 0;
+	size_t i, max_retry = 1000;
+	int not_found = 0;
+	char *res;
+
+	for (i = 0; i < max_retry; i++) {
+		ctr++;
+
+		memset(dirbuf, 0, sizeof(dirbuf));
+		assert(getcwd(dirbuf, sizeof(dirbuf)) != NULL);
+
+		assert(gettimeofday(&tv, NULL) != -1);
+		memset(fnamebuf, 0, sizeof(fnamebuf));
+		snprintf(fnamebuf, sizeof(fnamebuf), "%s/%u-%lu-%lu-%u.tmp.mtbl",
+			dirbuf, getpid(), tv.tv_sec, tv.tv_usec, ctr);
+
+		if ((access(fnamebuf, W_OK) == -1) && (errno == ENOENT)) {
+			not_found = 1;
+			break;
+		}
+
+	}
+
+	assert(not_found == 1);
+
+	res = strdup(fnamebuf);
+	assert(res != NULL);
+
+	return res;
+}
+
 static void
 init_mtbl(const char *filename, size_t idx);
 
@@ -76,6 +114,7 @@ static void cleanup_func(void) {
 
 		if (testers[i].filename) {
 			unlink(testers[i].filename);
+			free(testers[i].filename);
 			testers[i].filename = NULL;
 		}
 
@@ -93,6 +132,7 @@ static void cleanup_func(void) {
 
 	if (tmpfname != NULL) {
 		unlink(tmpfname);
+		free(tmpfname);
 		tmpfname = NULL;
 	}
 
@@ -138,7 +178,7 @@ int main(int argc, char ** argv) {
 		/* Go through each of the data sets. */
 		for (i = 0; i < NUM_SETS; i++) {
 			/* Generate the temporary individual mtbl filename */
-			testers[i].filename = strdup(tmpnam(NULL));
+			testers[i].filename = strdup(quiet_tmpnam(NULL));
 			assert(testers[i].filename != NULL);
 			/* First write each individual mtbl component with key/value pairs. */
 			init_mtbl(testers[i].filename, i);
@@ -170,7 +210,7 @@ int main(int argc, char ** argv) {
 
 			mtbl_writer_options_set_block_size(writer_options, 1024);
 
-			tmpfname = tmpnam(NULL);
+			tmpfname = quiet_tmpnam(NULL);
 			assert(tmpfname != NULL);
 
 			writer = mtbl_writer_init(tmpfname, writer_options);
