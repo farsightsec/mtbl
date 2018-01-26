@@ -202,7 +202,7 @@ int main(int argc, char ** argv) {
 
 		mtbl_reader_options_destroy(&reader_options);
 
-		/* The second pass tests mtbl_sorter_write(). */
+		/* Only the second half of the tests calls mtbl_sorter_write(). */
 		if (j) {
 			/* First open up a writer to accept the sorted values. */
 			struct mtbl_writer_options *writer_options = mtbl_writer_options_init();
@@ -236,8 +236,8 @@ int main(int argc, char ** argv) {
 			assert(sorter_iter != NULL);
 
 		} else {
-			/* Our normal case scenario is to validate the sorter's
-			   work directly by iterating over it. */
+			/* In the first half, our normal case scenario is to validate
+			  the sorter's work directly by iterating over it. */
 			sorter_iter = mtbl_sorter_iter(sorter);
 			assert(sorter_iter != NULL);
 		}
