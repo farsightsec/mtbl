@@ -198,7 +198,8 @@ int main(int argc, char ** argv) {
 
 		}
 
-		fprintf(stderr, NAME ": PASS: sorter initialization run successful\n");
+		fprintf(stderr, NAME ": PASS: %s initialization successful\n",
+			(j ? "sorter writer" : "standard sorter"));
 
 		mtbl_reader_options_destroy(&reader_options);
 
@@ -279,7 +280,8 @@ int main(int argc, char ** argv) {
 		}
 
 		assert(total == (sizeof(sorted_values) / sizeof(sorted_values[0])));
-		fprintf(stderr, NAME ": PASS: sorter run successful\n");
+		fprintf(stderr, NAME ": PASS: %s run successful\n",
+			(j ? "sorter writer" : "standard sorter"));
 
 		mtbl_iter_destroy(&sorter_iter);
 		mtbl_sorter_destroy(&sorter);
