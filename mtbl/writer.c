@@ -145,11 +145,8 @@ mtbl_writer_init(const char *fname, const struct mtbl_writer_options *opt)
 	int fd;
 
 	fd = open(fname, O_WRONLY | O_CREAT | O_TRUNC | O_EXCL, 0644);
-	if (fd < 0) {
-		fprintf(stderr, "Failed to open %s: %s", fname,
-			strerror(errno));
+	if (fd < 0)
 		return (NULL);
-	}
 	w = mtbl_writer_init_fd(fd, opt);
 	close(fd);
 	return (w);
