@@ -12,7 +12,6 @@ global:
         mtbl_fileset_options_init;
         mtbl_fileset_options_set_merge_func;
         mtbl_fileset_options_set_reload_interval;
-        mtbl_fileset_partition;
         mtbl_fileset_reload;
         mtbl_fileset_reload_now;
         mtbl_fileset_source;
@@ -86,3 +85,8 @@ global:
 local:
         *;
 };
+
+LIBMTBL_1.1.0 {
+global:
+        mtbl_fileset_partition;
+} LIBMTBL_1.0.0;

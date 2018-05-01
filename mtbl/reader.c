@@ -187,7 +187,13 @@ mtbl_reader_init_fd(int fd, const struct mtbl_reader_options *opt)
 		index_len_len = sizeof(uint32_t);
 		index_len = mtbl_fixed_decode32(r->data + r->m.index_block_offset + 0);
 	} else {
-		index_len_len = mtbl_varint_decode64(r->data + r->m.index_block_offset + 0, &index_len);
+		uint64_t tmp;
+		index_len_len = mtbl_varint_decode64(r->data + r->m.index_block_offset + 0, &tmp);
+		index_len = tmp;
+		if ((uint64_t)index_len != tmp) {
+			mtbl_reader_destroy(&r);
+			return NULL;
+		}
 	}
 	index_crc = mtbl_fixed_decode32(r->data + r->m.index_block_offset + index_len_len);
 	index_data = r->data + r->m.index_block_offset + index_len_len + sizeof(uint32_t);
@@ -250,7 +256,10 @@ get_block(struct mtbl_reader *r, uint64_t offset)
 		raw_contents_size_len = sizeof(uint32_t);
 		raw_contents_size = mtbl_fixed_decode32(&r->data[offset + 0]);
 	} else {
-		raw_contents_size_len = mtbl_varint_decode64(&r->data[offset + 0], &raw_contents_size);
+		uint64_t tmp;
+		raw_contents_size_len = mtbl_varint_decode64(&r->data[offset + 0], &tmp);
+		raw_contents_size = tmp;
+		assert((uint64_t)raw_contents_size == tmp);
 	}
 	raw_contents = &r->data[offset + raw_contents_size_len + sizeof(uint32_t)];
 
@@ -415,9 +424,16 @@ reader_iter_seek(void *v,
 
 	block_iter_seek(it->index_iter, key, len_key);
 
-	if (block_iter_get(it->index_iter, &ikey, &len_ikey, &ival, &len_ival)) {
-		mtbl_varint_decode64(ival, &new_offset);
+	if (!block_iter_get(it->index_iter, &ikey, &len_ikey, &ival, &len_ival)) {
+		/* This seek puts us after the last key, so we mark the
+		 * iterator as invalid and return success. The next
+		 * mtbl_iter_next() operation will return mtbl_res_failure.
+		 */
+		it->valid = false;
+		return (mtbl_res_success);
 	}
+
+	mtbl_varint_decode64(ival, &new_offset);
 
 	/* We can skip decoding a new block if our new key is within the
 	 * currently-decoded block. */ 
