@@ -3,7 +3,8 @@ test-compression
 test-crc32c
 test-fileset-partition
 test-fixed
+test-iter-seek
 test-metadata
+test-sorted-merge
 test-varint
 test-vector
-test-iter-seek
