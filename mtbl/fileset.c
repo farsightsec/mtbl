@@ -29,7 +29,7 @@ struct mtbl_fileset_options {
 
 struct mtbl_fileset {
 	uint32_t			reload_interval;
-	size_t				n_loaded, n_unloaded;
+	size_t				n_loaded, n_unloaded, n_iters;
 	struct timespec			last;
 	struct my_fileset		*fs;
 	struct mtbl_merger		*merger;
@@ -37,12 +37,59 @@ struct mtbl_fileset {
 	struct mtbl_source		*source;
 };
 
+struct fileset_iter {
+	struct mtbl_fileset *source;
+	struct mtbl_iter *iter;
+};
+
+static mtbl_res
+fileset_iter_seek(void *v, const uint8_t *key, size_t len)
+{
+	struct fileset_iter *it = (struct fileset_iter *)v;
+	return mtbl_iter_seek(it->iter, key, len);
+}
+
+static mtbl_res
+fileset_iter_next(void *v,
+		const uint8_t **key, size_t *len_key,
+		const uint8_t **val, size_t *len_val)
+{
+	struct fileset_iter *it = (struct fileset_iter *)v;
+	return mtbl_iter_next(it->iter, key, len_key, val, len_val);
+}
+
+static void
+fileset_iter_free(void *v)
+{
+	struct fileset_iter *it = (struct fileset_iter *)v;
+	if (it) {
+		it->source->n_iters--;
+		mtbl_iter_destroy(&it->iter);
+		free(it);
+	}
+}
+
+static struct mtbl_iter *
+fileset_iter_init(struct mtbl_fileset *fs, struct mtbl_iter *mit)
+{
+	struct fileset_iter *it = my_calloc(1, sizeof(*it));
+	fs->n_iters++;
+	it->iter = mit;
+	it->source = fs;
+	return mtbl_iter_init(fileset_iter_seek,
+				fileset_iter_next,
+				fileset_iter_free,
+				it);
+}
+
+
 static struct mtbl_iter *
 fileset_source_iter(void *clos)
 {
 	struct mtbl_fileset *f = (struct mtbl_fileset *) clos;
 	mtbl_fileset_reload(f);
-	return mtbl_source_iter(mtbl_merger_source(f->merger));
+	return fileset_iter_init(f,
+			mtbl_source_iter(mtbl_merger_source(f->merger)));
 }
 
 static struct mtbl_iter *
@@ -50,7 +97,9 @@ fileset_source_get(void *clos, const uint8_t *key, size_t len_key)
 {
 	struct mtbl_fileset *f = (struct mtbl_fileset *) clos;
 	mtbl_fileset_reload(f);
-	return mtbl_source_get(mtbl_merger_source(f->merger), key, len_key);
+	return fileset_iter_init(f,
+			mtbl_source_get(mtbl_merger_source(f->merger),
+					key, len_key));
 }
 
 static struct mtbl_iter *
@@ -58,7 +107,9 @@ fileset_source_get_prefix(void *clos, const uint8_t *key, size_t len_key)
 {
 	struct mtbl_fileset *f = (struct mtbl_fileset *) clos;
 	mtbl_fileset_reload(f);
-	return mtbl_source_get_prefix(mtbl_merger_source(f->merger), key, len_key);
+	return fileset_iter_init(f,
+			mtbl_source_get_prefix(mtbl_merger_source(f->merger),
+						key, len_key));
 }
 
 static struct mtbl_iter *
@@ -68,8 +119,9 @@ fileset_source_get_range(void *clos,
 {
 	struct mtbl_fileset *f = (struct mtbl_fileset *) clos;
 	mtbl_fileset_reload(f);
-	return mtbl_source_get_range(mtbl_merger_source(f->merger),
-				     key0, len_key0, key1, len_key1);
+	return fileset_iter_init(f,
+			mtbl_source_get_range(mtbl_merger_source(f->merger),
+				     key0, len_key0, key1, len_key1));
 }
 
 struct mtbl_fileset_options *
@@ -187,6 +239,9 @@ mtbl_fileset_reload(struct mtbl_fileset *f)
 {
 	assert(f != NULL);
 	struct timespec now;
+
+	if (f->n_iters > 0)
+		return;
 
 #if HAVE_CLOCK_GETTIME
 	static const clockid_t clock = CLOCK_MONOTONIC;
