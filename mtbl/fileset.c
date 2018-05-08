@@ -22,7 +22,7 @@
 #include "libmy/my_time.h"
 
 struct mtbl_fileset_options {
-	size_t				reload_interval;
+	uint32_t			reload_interval;
 	mtbl_merge_func			merge;
 	void				*merge_clos;
 };
@@ -234,12 +234,20 @@ fs_reinit_merger(struct mtbl_fileset *f)
 		}
 }
 
+static int fileset_ever_loaded = 0; /* did we ever load a fileset? */
+
 void
 mtbl_fileset_reload(struct mtbl_fileset *f)
 {
 	assert(f != NULL);
 	struct timespec now;
 
+	/* if we loaded at least once and we are configured to *not* reload then do not reload */
+	if (fileset_ever_loaded && f->reload_interval == 0)
+		return;
+	fileset_ever_loaded = 1;
+
+	/* if there are any open iterators under this fileset, do not reload now */
 	if (f->n_iters > 0)
 		return;
 
@@ -264,6 +272,8 @@ mtbl_fileset_reload(struct mtbl_fileset *f)
 void
 mtbl_fileset_reload_now(struct mtbl_fileset *f)
 {
+	fileset_ever_loaded = 1;
+
 	assert(f != NULL);
 	struct timespec now;
 
