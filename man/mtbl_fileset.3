@@ -2,12 +2,12 @@
 .\"     Title: mtbl_fileset
 .\"    Author: [FIXME: author] [see http://docbook.sf.net/el/author]
 .\" Generator: DocBook XSL Stylesheets v1.79.1 <http://docbook.sf.net/>
-.\"      Date: 05/09/2017
+.\"      Date: 05/09/2018
 .\"    Manual: \ \&
 .\"    Source: \ \&
 .\"  Language: English
 .\"
-.TH "MTBL_FILESET" "3" "05/09/2017" "\ \&" "\ \&"
+.TH "MTBL_FILESET" "3" "05/09/2018" "\ \&" "\ \&"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -107,7 +107,7 @@ Because the MTBL format does not allow duplicate keys, the caller must provide a
 .sp
 Accesses via the \fBmtbl_source\fR(3) interface will implicitly check for updates to the setfile\&. However, it may be necessary to explicitly call the \fBmtbl_fileset_reload\fR() function in order to check for updates, especially if files are being removed from the setfile and the \fBmtbl_source\fR is infrequently accessed\&.
 .sp
-The \fBmtbl_fileset_reload\fR() function avoids checking for updates more frequently than every \fIreload_interval\fR seconds\&. The \fBmtbl_fileset_reload_now\fR() function can be called to bypass the \fIreload_interval\fR check\&.
+The \fBmtbl_fileset_reload\fR() function avoids checking for updates more frequently than every \fIreload_interval\fR seconds\&. If \fBreload_interval\fR is set to 0, then \fBmtbl_fileset_reload\fR() function will only load the fileset once\&. The \fBmtbl_fileset_reload_now\fR() function can be called to bypass the \fIreload_interval\fR check\&.
 .sp
 The \fBmtbl_fileset_partition\fR() function yields two \fBstruct mtbl_merger\fR objects that are split based on the output of a callback\&. The caller is responsible for calling \fBmtbl_merger_destroy\fR() on each of these mergers\&. Calls to \fBmtbl_source_*\fR() on the fileset\(cqs source object, and calls to \fBmtbl_fileset_reload\fR() and \fBmtbl_fileset_reload_now\fR() may leave these mergers in an inconsistent state\&.
 .SS "Fileset options"
