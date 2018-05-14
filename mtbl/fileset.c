@@ -30,6 +30,7 @@ struct mtbl_fileset_options {
 struct mtbl_fileset {
 	uint32_t			reload_interval;
 	size_t				n_loaded, n_unloaded, n_iters;
+	int				ever_loaded; /* did we ever load a fileset? */
 	struct timespec			last;
 	struct my_fileset		*fs;
 	struct mtbl_merger		*merger;
@@ -182,6 +183,7 @@ mtbl_fileset_init(const char *fname, const struct mtbl_fileset_options *opt)
 	struct mtbl_fileset *f = my_calloc(1, sizeof(*f));
 	f->reload_interval = opt->reload_interval;
 	f->mopt = mtbl_merger_options_init();
+	f->ever_loaded = 0;
 	mtbl_merger_options_set_merge_func(f->mopt, opt->merge, opt->merge_clos);
 	f->merger = mtbl_merger_init(f->mopt);
 	f->fs = my_fileset_init(fname, fs_load, fs_unload, f);
@@ -234,8 +236,6 @@ fs_reinit_merger(struct mtbl_fileset *f)
 		}
 }
 
-static int fileset_ever_loaded = 0; /* did we ever load a fileset? */
-
 void
 mtbl_fileset_reload(struct mtbl_fileset *f)
 {
@@ -243,9 +243,9 @@ mtbl_fileset_reload(struct mtbl_fileset *f)
 	struct timespec now;
 
 	/* if we loaded at least once and we are configured to *not* reload then do not reload */
-	if (fileset_ever_loaded && f->reload_interval == 0)
+	if (f->ever_loaded && f->reload_interval == 0)
 		return;
-	fileset_ever_loaded = 1;
+	f->ever_loaded = 1;
 
 	/* if there are any open iterators under this fileset, do not reload now */
 	if (f->n_iters > 0)
@@ -272,9 +272,9 @@ mtbl_fileset_reload(struct mtbl_fileset *f)
 void
 mtbl_fileset_reload_now(struct mtbl_fileset *f)
 {
-	fileset_ever_loaded = 1;
-
 	assert(f != NULL);
+	f->ever_loaded = 1;
+
 	struct timespec now;
 
 #if HAVE_CLOCK_GETTIME
