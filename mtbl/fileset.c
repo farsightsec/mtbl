@@ -277,6 +277,10 @@ mtbl_fileset_reload_now(struct mtbl_fileset *f)
 
 	struct timespec now;
 
+	/* if there are any open iterators under this fileset, do not reload now */
+	if (f->n_iters > 0)
+		return;
+
 #if HAVE_CLOCK_GETTIME
 	static const clockid_t clock = CLOCK_MONOTONIC;
 #else
