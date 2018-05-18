@@ -193,7 +193,6 @@ mtbl_fileset_init(const char *fname, const struct mtbl_fileset_options *opt)
 				     fileset_source_get_prefix,
 				     fileset_source_get_range,
 				     NULL, f);
-	mtbl_fileset_reload(f);
 	return (f);
 }
 
