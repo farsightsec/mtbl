@@ -242,7 +242,7 @@ mtbl_fileset_reload(struct mtbl_fileset *f)
 	struct timespec now;
 
 	/* if we loaded at least once and we are configured to *not* reload then do not reload */
-	if (f->ever_loaded && f->reload_interval == FILESET_RELOAD_INTERVAL_NEVER)
+	if (f->ever_loaded && f->reload_interval == MTBL_FILESET_RELOAD_INTERVAL_NEVER)
 		return;
 	f->ever_loaded = 1;
 

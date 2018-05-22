@@ -94,7 +94,7 @@ accessed.
 
 The ^mtbl_fileset_reload^() function avoids checking for updates more
 frequently than every _reload_interval_ seconds.  If 
-^reload_interval^ is set to ^FILESET_RELOAD_INTERVAL_NEVER^, then ^mtbl_fileset_reload^() function
+^reload_interval^ is set to ^MTBL_FILESET_RELOAD_INTERVAL_NEVER^, then ^mtbl_fileset_reload^() function
 will only load the fileset once.  The ^mtbl_fileset_reload_now^()
 function can be called to bypass the _reload_interval_ check.
 
@@ -113,5 +113,5 @@ external sort.
 
 ==== reload_interval ====
 Specifies the interval between checks for updates to the setfile, in seconds.
-Defaults to 60 seconds.  ^FILESET_RELOAD_INTERVAL_NEVER^ is a special value that indicates to never reload the fileset.
+Defaults to 60 seconds.  ^MTBL_FILESET_RELOAD_INTERVAL_NEVER^ is a special value that indicates to never reload the fileset.
 

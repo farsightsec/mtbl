@@ -41,7 +41,7 @@ typedef enum {
 	MTBL_COMPRESSION_ZSTD = 5,
 } mtbl_compression_type;
 
-#define FILESET_RELOAD_INTERVAL_NEVER	UINT32_MAX /* time interval to never reload filesets */
+#define MTBL_FILESET_RELOAD_INTERVAL_NEVER	UINT32_MAX /* time interval to never reload filesets */
 
 mtbl_res
 mtbl_compress(
