@@ -242,7 +242,7 @@ mtbl_fileset_reload(struct mtbl_fileset *f)
 	struct timespec now;
 
 	/* if we loaded at least once and we are configured to *not* reload then do not reload */
-	if (f->ever_loaded && f->reload_interval == 0)
+	if (f->ever_loaded && f->reload_interval == FILESET_RELOAD_INTERVAL_NEVER)
 		return;
 	f->ever_loaded = 1;
 
@@ -306,6 +306,8 @@ mtbl_fileset_partition(struct mtbl_fileset *f,
 	const char *fname;
 	struct mtbl_reader *reader;
 	size_t i = 0;
+
+	mtbl_fileset_reload(f);	/* open the fileset file if not already done */
 
 	*m1 = mtbl_merger_init(f->mopt);
 	*m2 = mtbl_merger_init(f->mopt);
