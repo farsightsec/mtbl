@@ -1,3 +1,7 @@
+mtbl (1.2.1)
+
+ * Fix libtool version number.
+
 mtbl (1.2.0)
 
  * Prevent fileset reloading when the fileset has iterators open.
