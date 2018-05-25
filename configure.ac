@@ -1,6 +1,6 @@
 AC_PREREQ(2.64)
 AC_INIT([mtbl],
-        [1.2.0],
+        [1.2.1],
         [https://github.com/farsightsec/mtbl/issues],
         [mtbl],
         [https://github.com/farsightsec/mtbl])
