@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2016 by Farsight Security, Inc.
+ * Copyright (c) 2012-2018 by Farsight Security, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,6 +40,8 @@ typedef enum {
 	MTBL_COMPRESSION_LZ4HC = 4,
 	MTBL_COMPRESSION_ZSTD = 5,
 } mtbl_compression_type;
+
+#define MTBL_FILESET_RELOAD_INTERVAL_NEVER	UINT32_MAX /* time interval to never reload filesets */
 
 mtbl_res
 mtbl_compress(

@@ -23,7 +23,7 @@ AM_LDFLAGS =
 ##
 #
 
-LIBMTBL_VERSION_INFO=1:1:0
+LIBMTBL_VERSION_INFO=2:0:0
 
 include_HEADERS = mtbl/mtbl.h
 lib_LTLIBRARIES = mtbl/libmtbl.la
@@ -150,6 +150,11 @@ TESTS += t/test-iter-seek
 check_PROGRAMS += t/test-iter-seek
 t_test_iter_seek_SOURCES = t/test-iter-seek.c
 t_test_iter_seek_LDADD = mtbl/libmtbl.la
+
+TESTS += t/test-sorted-merge
+check_PROGRAMS += t/test-sorted-merge
+t_test_sorted_merge_SOURCES = t/test-sorted-merge.c
+t_test_sorted_merge_LDADD = mtbl/libmtbl.la
 
 TESTS += t/test-verify.sh
 EXTRA_DIST += t/test-verify.sh

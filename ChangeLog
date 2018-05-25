@@ -1,3 +1,16 @@
+mtbl (1.2.0)
+
+ * Prevent fileset reloading when the fileset has iterators open.
+ * Add and document facility to disable reloading of filesets.
+ * Defer initial load of fileset until the first operation on a fileset
+   source.
+ * Handle 32bit size_t overflows, failing with an assertion upon opening
+   an mtbl_reader with an oversized data block.
+ * Fix for systems with 32-bit size_t.
+ * Add several unit tests for various libmtbl functions.
+
+ -- Farsight Security, Inc. <software@farsightsecurity.com>  Fri, 25 May 2018 11:55:07 -0400
+
 mtbl (1.1.1)
 
  * Fix iterator leak in mtbl_merger code.

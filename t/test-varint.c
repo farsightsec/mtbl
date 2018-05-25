@@ -9,6 +9,58 @@
 #define NAME	"test-varint"
 
 static int
+test3(void)
+{
+	int ret = 0;
+	unsigned int lval[66];
+
+	for (uint32_t i = 0; i < 66; i++) {
+		uint64_t power = i;
+
+		if (i == 65)
+			power = ~(1);
+		else if (i)
+			power = 1ull << (i - 1);
+
+		lval[i] = mtbl_varint_length(power);
+	}
+
+	for (uint32_t i = 0; i < 66; i++) {
+		unsigned int expected = 0;
+
+		if (i <= 7)
+			expected = 1;
+		else if ((i >= 8) && (i <= 14))
+			expected = 2;
+		else if ((i >= 15) && (i <= 21))
+			expected = 3;
+		else if ((i >= 22) && (i <= 28))
+			expected = 4;
+		else if ((i >= 29) && (i <= 35))
+			expected = 5;
+		else if ((i >= 36) && (i <= 42))
+			expected = 6;
+		else if ((i >= 43) && (i <= 49))
+			expected = 7;
+		else if ((i >= 50) && (i <= 56))
+			expected = 8;
+		else if ((i >= 57) && (i <= 63))
+			expected = 9;
+		else if (i == 64 || i == 65)
+			expected = 10;
+
+		if (expected != lval[i]) {
+			ret |= 1;
+			fprintf(stderr, "expected= %u actual= %u res= %u\n",
+				expected, lval[i], lval[i]== expected);
+		}
+
+	}
+
+	return (ret);
+}
+
+static int
 test2(void)
 {
 	int ret = 0;
@@ -114,6 +166,7 @@ main(int argc, char **argv)
 
 	ret |= check(test1(), "test1");
 	ret |= check(test2(), "test2");
+	ret |= check(test3(), "test3");
 
 	if (ret)
 		return (EXIT_FAILURE);

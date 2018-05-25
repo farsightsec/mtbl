@@ -86,7 +86,6 @@ test_compression(mtbl_compression_type c_type, const char *dirname)
 
 	/* Close the writer. */
 	mtbl_writer_destroy(&w);
-	fd = -1;
 
 	/* Open the reader on the dup()'d file descriptor. */
 	struct mtbl_reader *r = mtbl_reader_init_fd(dup_fd, NULL);

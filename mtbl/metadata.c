@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2015 by Farsight Security, Inc.
+ * Copyright (c) 2012-2015, 2017 by Farsight Security, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -60,7 +60,7 @@ metadata_read(const uint8_t *buf, struct mtbl_metadata *m)
 	m->bytes_data_blocks = mtbl_fixed_decode64(p); p += 8;
 	m->bytes_index_block = mtbl_fixed_decode64(p); p += 8;
 	m->bytes_keys = mtbl_fixed_decode64(p); p += 8;
-	m->bytes_values = mtbl_fixed_decode64(p); p += 8;
+	m->bytes_values = mtbl_fixed_decode64(p);
 
 	return (true);
 
