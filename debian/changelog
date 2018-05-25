@@ -1,3 +1,9 @@
+mtbl (1.2.1-1) debian-fsi; urgency=medium
+
+  * Fix libtool version number.
+
+ -- Farsight Security, Inc. <software@farsightsecurity.com>  Fri, 25 May 2018 17:50:07 -0500
+
 mtbl (1.2.0-1) debian-fsi; urgency=medium
 
   * New release
