@@ -1,3 +1,9 @@
+mtbl (1.2.0-1) debian-fsi; urgency=medium
+
+  * New release
+
+ -- Farsight Security, Inc. <software@farsightsecurity.com>  Fri, 25 May 2018 11:55:07 -0400
+
 mtbl (1.1.1-1) debian-fsi; urgency=medium
 
   * New release
