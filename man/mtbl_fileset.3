@@ -2,12 +2,12 @@
 .\"     Title: mtbl_fileset
 .\"    Author: [FIXME: author] [see http://docbook.sf.net/el/author]
 .\" Generator: DocBook XSL Stylesheets v1.79.1 <http://docbook.sf.net/>
-.\"      Date: 05/22/2018
+.\"      Date: 05/31/2018
 .\"    Manual: \ \&
 .\"    Source: \ \&
 .\"  Language: English
 .\"
-.TH "MTBL_FILESET" "3" "05/22/2018" "\ \&" "\ \&"
+.TH "MTBL_FILESET" "3" "05/31/2018" "\ \&" "\ \&"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -99,7 +99,9 @@ mtbl_fileset_options_set_reload_interval(
 .sp
 The \fBmtbl_fileset\fR is a convenience interface for automatically maintaining a merged view of a set of MTBL data files\&. The merged entries may be consumed via the \fBmtbl_source\fR(3) and \fBmtbl_iter\fR(3) interfaces\&.
 .sp
-\fBmtbl_fileset\fR objects are initialized from a "setfile", which specifies a list of filenames of MTBL data files, one per line\&. Internally, an \fBmtbl_reader\fR object is initialized from each filename and added to an \fBmtbl_merger\fR object\&. The setfile is watched for changes and the addition or removal of filenames from the setfile will result in the corresponding addition or removal of \fBmtbl_reader\fR objects\&.
+\fBmtbl_fileset\fR objects are initialized from a "setfile", which specifies a list of filenames of MTBL data files, one per line\&. For each filename, if it is not an absolute path, then the directory name of the fileset file\(cqs pathname is prepended to it\&. Examples: If the setfile path is "/export/dnstable/mtbl/dns\&.fileset", and a line in it is of the form "dns\&.2017\&.Y\&.mtbl" then \fBdnstable\fR will try to open "/export/dnstable/mtbl/dns\&.2017\&.Y\&.mtbl"\&. If the setfile path is "/export/dnstable/mtbl/dns\&.fileset", and a line in it is of the form "/tmp/dns\&.2017\&.Y\&.mtbl" then \fBdnstable\fR will try to open "/tmp/dns\&.2017\&.Y\&.mtbl"\&.
+.sp
+Internally, an \fBmtbl_reader\fR object is initialized from each filename and added to an \fBmtbl_merger\fR object\&. The setfile is watched for changes and the addition or removal of filenames from the setfile will result in the corresponding addition or removal of \fBmtbl_reader\fR objects\&.
 .sp
 Because the MTBL format does not allow duplicate keys, the caller must provide a function which will accept a key and two conflicting values for that key and return a replacement value\&. This function may be called multiple times for the same key if the same key is inserted more than twice\&. See \fBmtbl_merger\fR(3) for further details about the merge function\&.
 .sp

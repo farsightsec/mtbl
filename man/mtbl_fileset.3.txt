@@ -67,12 +67,22 @@ The ^mtbl_fileset^ is a convenience interface for automatically maintaining a
 merged view of a set of MTBL data files. The merged entries may be consumed via
 the ^mtbl_source^(3) and ^mtbl_iter^(3) interfaces.
 
-^mtbl_fileset^ objects are initialized from a "setfile", which specifies a list
-of filenames of MTBL data files, one per line. Internally, an ^mtbl_reader^
-object is initialized from each filename and added to an ^mtbl_merger^ object.
-The setfile is watched for changes and the addition or removal of filenames
-from the setfile will result in the corresponding addition or removal of
-^mtbl_reader^ objects.
+^mtbl_fileset^ objects are initialized from a "setfile", which
+specifies a list of filenames of MTBL data files, one per line.  For
+each filename, if it is not an absolute path, then the directory name
+of the fileset file's pathname is prepended to it.  Examples: If the
+setfile path is "/export/dnstable/mtbl/dns.fileset", and a line in it
+is of the form "dns.2017.Y.mtbl" then ^dnstable^ will try to open
+"/export/dnstable/mtbl/dns.2017.Y.mtbl".  If the setfile path is
+"/export/dnstable/mtbl/dns.fileset", and a line in it is of the form
+"/tmp/dns.2017.Y.mtbl" then ^dnstable^ will try to open
+"/tmp/dns.2017.Y.mtbl".
+
+Internally, an ^mtbl_reader^ object is initialized from each filename
+and added to an ^mtbl_merger^ object.  The setfile is watched for
+changes and the addition or removal of filenames from the setfile will
+result in the corresponding addition or removal of ^mtbl_reader^
+objects.
 
 Because the MTBL format does not allow duplicate keys, the caller must provide a
 function which will accept a key and two conflicting values for that key and
