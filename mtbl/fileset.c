@@ -30,7 +30,7 @@ struct mtbl_fileset_options {
 struct mtbl_fileset {
 	uint32_t			reload_interval;
 	size_t				n_loaded, n_unloaded, n_iters;
-	int				ever_loaded; /* did we ever load a fileset? */
+	bool				reload_needed;
 	struct timespec			last;
 	struct my_fileset		*fs;
 	struct mtbl_merger		*merger;
@@ -66,6 +66,7 @@ fileset_iter_free(void *v)
 	if (it) {
 		it->source->n_iters--;
 		mtbl_iter_destroy(&it->iter);
+		mtbl_fileset_reload(it->source);
 		free(it);
 	}
 }
@@ -183,7 +184,7 @@ mtbl_fileset_init(const char *fname, const struct mtbl_fileset_options *opt)
 	struct mtbl_fileset *f = my_calloc(1, sizeof(*f));
 	f->reload_interval = opt->reload_interval;
 	f->mopt = mtbl_merger_options_init();
-	f->ever_loaded = 0;
+	f->reload_needed = true;
 	mtbl_merger_options_set_merge_func(f->mopt, opt->merge, opt->merge_clos);
 	f->merger = mtbl_merger_init(f->mopt);
 	f->fs = my_fileset_init(fname, fs_load, fs_unload, f);
@@ -242,9 +243,8 @@ mtbl_fileset_reload(struct mtbl_fileset *f)
 	struct timespec now;
 
 	/* if we loaded at least once and we are configured to *not* reload then do not reload */
-	if (f->ever_loaded && f->reload_interval == MTBL_FILESET_RELOAD_INTERVAL_NEVER)
+	if (!f->reload_needed && f->reload_interval == MTBL_FILESET_RELOAD_INTERVAL_NEVER)
 		return;
-	f->ever_loaded = 1;
 
 	/* if there are any open iterators under this fileset, do not reload now */
 	if (f->n_iters > 0)
@@ -257,7 +257,7 @@ mtbl_fileset_reload(struct mtbl_fileset *f)
 #endif
 	my_gettime(clock, &now);
 
-	if (now.tv_sec - f->last.tv_sec > f->reload_interval) {
+	if (f->reload_needed || (now.tv_sec - f->last.tv_sec > f->reload_interval)) {
 		f->n_loaded = 0;
 		f->n_unloaded = 0;
 		assert(f->fs != NULL);
@@ -265,6 +265,7 @@ mtbl_fileset_reload(struct mtbl_fileset *f)
 		if (f->n_loaded > 0 || f->n_unloaded > 0)
 			fs_reinit_merger(f);
 		f->last = now;
+		f->reload_needed = false;
 	}
 }
 
@@ -272,13 +273,17 @@ void
 mtbl_fileset_reload_now(struct mtbl_fileset *f)
 {
 	assert(f != NULL);
-	f->ever_loaded = 1;
 
 	struct timespec now;
 
-	/* if there are any open iterators under this fileset, do not reload now */
-	if (f->n_iters > 0)
+	/*
+	 * if there are any open iterators under this fileset,
+	 * do not reload now
+	 */
+	if (f->n_iters > 0) {
+		f->reload_needed = true;
 		return;
+	}
 
 #if HAVE_CLOCK_GETTIME
 	static const clockid_t clock = CLOCK_MONOTONIC;
@@ -294,6 +299,7 @@ mtbl_fileset_reload_now(struct mtbl_fileset *f)
 	if (f->n_loaded > 0 || f->n_unloaded > 0)
 		fs_reinit_merger(f);
 	f->last = now;
+	f->reload_needed = false;
 }
 
 void
