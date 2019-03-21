@@ -180,7 +180,6 @@ struct mtbl_fileset *
 mtbl_fileset_init(const char *fname, const struct mtbl_fileset_options *opt)
 {
 	assert(opt != NULL);
-	assert(opt->merge != NULL);
 	struct mtbl_fileset *f = my_calloc(1, sizeof(*f));
 	f->reload_interval = opt->reload_interval;
 	f->mopt = mtbl_merger_options_init();
