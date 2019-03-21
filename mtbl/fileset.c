@@ -39,7 +39,7 @@ struct mtbl_fileset {
 };
 
 struct fileset_iter {
-	struct mtbl_fileset *source;
+	struct mtbl_fileset *fs;
 	struct mtbl_iter *iter;
 };
 
@@ -64,20 +64,20 @@ fileset_iter_free(void *v)
 {
 	struct fileset_iter *it = (struct fileset_iter *)v;
 	if (it) {
-		it->source->n_iters--;
+		it->fs->n_iters--;
 		mtbl_iter_destroy(&it->iter);
-		mtbl_fileset_reload(it->source);
+		mtbl_fileset_reload(it->fs);
 		free(it);
 	}
 }
 
 static struct mtbl_iter *
-fileset_iter_init(struct mtbl_fileset *fs, struct mtbl_iter *mit)
+fileset_iter_init(struct mtbl_fileset *f, struct mtbl_iter *mit)
 {
 	struct fileset_iter *it = my_calloc(1, sizeof(*it));
-	fs->n_iters++;
+	f->n_iters++;
 	it->iter = mit;
-	it->source = fs;
+	it->fs = f;
 	return mtbl_iter_init(fileset_iter_seek,
 				fileset_iter_next,
 				fileset_iter_free,
