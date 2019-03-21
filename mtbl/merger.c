@@ -103,7 +103,6 @@ mtbl_merger_init(const struct mtbl_merger_options *opt)
 	m = my_calloc(1, sizeof(*m));
 	m->sources = source_vec_init(0);
 	assert(opt != NULL);
-	assert(opt->merge != NULL);
 	memcpy(&m->opt, opt, sizeof(*opt));
 	m->source = mtbl_source_init(merger_iter,
 				     merger_get,
@@ -246,6 +245,9 @@ merger_iter_next(void *v,
 				heap_replace(it->h, e);
 			continue;
 		}
+
+		if (it->m->opt.merge == NULL)
+			break;
 
 		if (bytes_compare(ubuf_data(it->cur_key), ubuf_size(it->cur_key),
 				  ubuf_data(e->key), ubuf_size(e->key)) == 0)
