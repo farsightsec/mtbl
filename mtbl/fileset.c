@@ -25,6 +25,8 @@ struct mtbl_fileset_options {
 	uint32_t			reload_interval;
 	mtbl_merge_func			merge;
 	void				*merge_clos;
+	mtbl_dupsort_func		dupsort;
+	void				*dupsort_clos;
 };
 
 struct mtbl_fileset {
@@ -153,6 +155,14 @@ mtbl_fileset_options_set_merge_func(struct mtbl_fileset_options *opt,
 }
 
 void
+mtbl_fileset_options_set_dupsort_func(struct mtbl_fileset_options *opt,
+				    mtbl_dupsort_func dupsort, void *clos)
+{
+	opt->dupsort = dupsort;
+	opt->dupsort_clos = clos;
+}
+
+void
 mtbl_fileset_options_set_reload_interval(struct mtbl_fileset_options *opt,
 					 uint32_t reload_interval)
 {
@@ -185,6 +195,7 @@ mtbl_fileset_init(const char *fname, const struct mtbl_fileset_options *opt)
 	f->mopt = mtbl_merger_options_init();
 	f->reload_needed = true;
 	mtbl_merger_options_set_merge_func(f->mopt, opt->merge, opt->merge_clos);
+	mtbl_merger_options_set_dupsort_func(f->mopt, opt->dupsort, opt->dupsort_clos);
 	f->merger = mtbl_merger_init(f->mopt);
 	f->fs = my_fileset_init(fname, fs_load, fs_unload, f);
 	assert(f->fs != NULL);
