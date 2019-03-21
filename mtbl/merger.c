@@ -136,7 +136,7 @@ mtbl_merger_add_source(struct mtbl_merger *m, const struct mtbl_source *s)
 }
 
 static int
-_mtbl_merger_compare(const void *va, const void *vb)
+_mtbl_merger_compare(const void *va, const void *vb, void *clos)
 {
 	const struct entry *a = (const struct entry *) va;
 	const struct entry *b = (const struct entry *) vb;
@@ -313,7 +313,7 @@ merger_iter_init(struct mtbl_merger *m)
 {
 	struct merger_iter *it = my_calloc(1, sizeof(*it));
 	it->m = m;
-	it->h = heap_init(_mtbl_merger_compare);
+	it->h = heap_init(_mtbl_merger_compare, NULL);
 	it->entries = entry_vec_init(source_vec_size(m->sources));
 	it->iters = iter_vec_init(source_vec_size(m->sources));
 	it->cur_key = ubuf_init(256);
