@@ -389,6 +389,13 @@ mtbl_fileset_options_set_dupsort_func(
 	void *clos);
 
 void
+
+mtbl_fileset_options_set_filename_filter_func(
+	struct mtbl_fileset_options *,
+	mtbl_filename_filter_func,
+	void *clos);
+
+void
 mtbl_fileset_options_set_reload_interval(
 	struct mtbl_fileset_options *,
 	uint32_t reload_interval);
