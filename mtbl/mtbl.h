@@ -349,6 +349,9 @@ mtbl_merger_options_set_dupsort_func(
 struct mtbl_fileset *
 mtbl_fileset_init(const char *fname, const struct mtbl_fileset_options *);
 
+struct mtbl_fileset *
+mtbl_fileset_dup(struct mtbl_fileset *, const struct mtbl_fileset_options *);
+
 void
 mtbl_fileset_destroy(struct mtbl_fileset **);
 
