@@ -230,6 +230,30 @@ mtbl_fileset_init(const char *fname, const struct mtbl_fileset_options *opt)
 	return (f);
 }
 
+struct mtbl_fileset *
+mtbl_fileset_dup(struct mtbl_fileset *orig, const struct mtbl_fileset_options *opt)
+{
+	assert(opt != NULL);
+	struct mtbl_fileset *f = my_calloc(1, sizeof(*f));
+
+	f->fs = orig->fs;
+	f->fs->n_fs++;
+
+	f->reload_interval = opt->reload_interval;
+	f->mopt = mtbl_merger_options_init();
+	mtbl_merger_options_set_merge_func(f->mopt, opt->merge, opt->merge_clos);
+	mtbl_merger_options_set_dupsort_func(f->mopt, opt->dupsort, opt->dupsort_clos);
+	f->fname_filter = opt->fname_filter;
+	f->fname_filter_clos = opt->fname_filter_clos;
+	f->merger = mtbl_merger_init(f->mopt);
+	f->source = mtbl_source_init(fileset_source_iter,
+				     fileset_source_get,
+				     fileset_source_get_prefix,
+				     fileset_source_get_range,
+				     NULL, f);
+	return (f);
+}
+
 void
 mtbl_fileset_destroy(struct mtbl_fileset **f)
 {
