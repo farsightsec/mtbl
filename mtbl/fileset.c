@@ -27,6 +27,8 @@ struct mtbl_fileset_options {
 	void				*merge_clos;
 	mtbl_dupsort_func		dupsort;
 	void				*dupsort_clos;
+	mtbl_filename_filter_func	fname_filter;
+	void				*fname_filter_clos;
 };
 
 struct mtbl_fileset {
@@ -38,6 +40,8 @@ struct mtbl_fileset {
 	struct mtbl_merger		*merger;
 	struct mtbl_merger_options	*mopt;
 	struct mtbl_source		*source;
+	mtbl_filename_filter_func	fname_filter;
+	void				*fname_filter_clos;
 };
 
 struct fileset_iter {
@@ -163,6 +167,14 @@ mtbl_fileset_options_set_dupsort_func(struct mtbl_fileset_options *opt,
 }
 
 void
+mtbl_fileset_options_set_filename_filter_func(struct mtbl_fileset_options *opt,
+				    mtbl_filename_filter_func fname_filter, void *clos)
+{
+	opt->fname_filter = fname_filter;
+	opt->fname_filter_clos = clos;
+}
+
+void
 mtbl_fileset_options_set_reload_interval(struct mtbl_fileset_options *opt,
 					 uint32_t reload_interval)
 {
@@ -196,6 +208,8 @@ mtbl_fileset_init(const char *fname, const struct mtbl_fileset_options *opt)
 	f->reload_needed = true;
 	mtbl_merger_options_set_merge_func(f->mopt, opt->merge, opt->merge_clos);
 	mtbl_merger_options_set_dupsort_func(f->mopt, opt->dupsort, opt->dupsort_clos);
+	f->fname_filter = opt->fname_filter;
+	f->fname_filter_clos = opt->fname_filter_clos;
 	f->merger = mtbl_merger_init(f->mopt);
 	f->fs = my_fileset_init(fname, fs_load, fs_unload, f);
 	assert(f->fs != NULL);
@@ -241,7 +255,8 @@ fs_reinit_merger(struct mtbl_fileset *f)
 	}
 	assert(f->merger != NULL);
 	while (my_fileset_get(f->fs, i++, &fname, (void **) &reader))
-		if (reader != NULL) {
+		if ((reader != NULL) && ((f->fname_filter == NULL) ||
+					 f->fname_filter(fname, f->fname_filter_clos))) {
 			mtbl_merger_add_source(f->merger, mtbl_reader_source(reader));
 		}
 }
