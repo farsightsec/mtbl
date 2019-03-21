@@ -99,6 +99,12 @@ typedef void
 	const uint8_t *val1, size_t len_val1,
 	uint8_t **merged_val, size_t *len_merged_val);
 
+typedef int
+(*mtbl_dupsort_func)(void *clos,
+	const uint8_t *key, size_t len_key,
+	const uint8_t *val0, size_t len_val0,
+	const uint8_t *val1, size_t len_val1);
+
 typedef void *
 (*mtbl_merge_init_func)(void);
 
@@ -330,6 +336,12 @@ void
 mtbl_merger_options_set_merge_func(
 	struct mtbl_merger_options *,
 	mtbl_merge_func,
+	void *clos);
+
+void
+mtbl_merger_options_set_dupsort_func(
+	struct mtbl_merger_options *,
+	mtbl_dupsort_func,
 	void *clos);
 
 /* fileset */
