@@ -42,6 +42,7 @@ struct _mtbl_fileset {
 struct mtbl_fileset {
 	uint32_t			reload_interval;
 	struct _mtbl_fileset		*fs;
+	struct timespec			fs_last;
 	struct mtbl_merger		*merger;
 	struct mtbl_merger_options	*mopt;
 	struct mtbl_source		*source;
@@ -305,6 +306,13 @@ mtbl_fileset_reload(struct mtbl_fileset *f)
 	assert(f != NULL);
 	struct timespec now;
 
+	/* if our merger is from an out of date fileset, reinitialize it. */
+	if ((f->fs_last.tv_sec != f->fs->last.tv_sec) ||
+	    (f->fs_last.tv_nsec != f->fs->last.tv_nsec)) {
+		fs_reinit_merger(f);
+		f->fs_last = f->fs->last;
+	}
+
 	/* if we loaded at least once and we are configured to *not* reload then do not reload */
 	if (!f->fs->reload_needed && f->reload_interval == MTBL_FILESET_RELOAD_INTERVAL_NEVER)
 		return;
@@ -328,6 +336,7 @@ mtbl_fileset_reload(struct mtbl_fileset *f)
 		if (f->fs->n_loaded > 0 || f->fs->n_unloaded > 0)
 			fs_reinit_merger(f);
 		f->fs->last = now;
+		f->fs_last = now;
 		f->fs->reload_needed = false;
 	}
 }
@@ -362,6 +371,7 @@ mtbl_fileset_reload_now(struct mtbl_fileset *f)
 	if (f->fs->n_loaded > 0 || f->fs->n_unloaded > 0)
 		fs_reinit_merger(f);
 	f->fs->last = now;
+	f->fs_last = now;
 	f->fs->reload_needed = false;
 }
 
