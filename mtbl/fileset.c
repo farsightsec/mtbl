@@ -204,10 +204,28 @@ fs_unload(struct my_fileset *fs, const char *fname, void *ptr)
 	mtbl_reader_destroy(&r);
 }
 
+static void
+mtbl_fileset_set_options(struct mtbl_fileset *f, const struct mtbl_fileset_options *opt)
+{
+	assert(opt != NULL);
+
+	f->reload_interval = opt->reload_interval;
+	f->mopt = mtbl_merger_options_init();
+	mtbl_merger_options_set_merge_func(f->mopt, opt->merge, opt->merge_clos);
+	mtbl_merger_options_set_dupsort_func(f->mopt, opt->dupsort, opt->dupsort_clos);
+	f->fname_filter = opt->fname_filter;
+	f->fname_filter_clos = opt->fname_filter_clos;
+	f->merger = mtbl_merger_init(f->mopt);
+	f->source = mtbl_source_init(fileset_source_iter,
+				     fileset_source_get,
+				     fileset_source_get_prefix,
+				     fileset_source_get_range,
+				     NULL, f);
+}
+
 struct mtbl_fileset *
 mtbl_fileset_init(const char *fname, const struct mtbl_fileset_options *opt)
 {
-	assert(opt != NULL);
 	struct mtbl_fileset *f = my_calloc(1, sizeof(*f));
 
 	f->shared_fs = my_calloc(1, sizeof(*(f->shared_fs)));
@@ -216,42 +234,21 @@ mtbl_fileset_init(const char *fname, const struct mtbl_fileset_options *opt)
 	f->shared_fs->my_fs = my_fileset_init(fname, fs_load, fs_unload, f->shared_fs);
 	assert(f->shared_fs->my_fs != NULL);
 
-	f->reload_interval = opt->reload_interval;
-	f->mopt = mtbl_merger_options_init();
-	mtbl_merger_options_set_merge_func(f->mopt, opt->merge, opt->merge_clos);
-	mtbl_merger_options_set_dupsort_func(f->mopt, opt->dupsort, opt->dupsort_clos);
-	f->fname_filter = opt->fname_filter;
-	f->fname_filter_clos = opt->fname_filter_clos;
-	f->merger = mtbl_merger_init(f->mopt);
-	f->source = mtbl_source_init(fileset_source_iter,
-				     fileset_source_get,
-				     fileset_source_get_prefix,
-				     fileset_source_get_range,
-				     NULL, f);
+	mtbl_fileset_set_options(f, opt);
+
 	return (f);
 }
 
 struct mtbl_fileset *
 mtbl_fileset_dup(struct mtbl_fileset *orig, const struct mtbl_fileset_options *opt)
 {
-	assert(opt != NULL);
 	struct mtbl_fileset *f = my_calloc(1, sizeof(*f));
 
 	f->shared_fs = orig->shared_fs;
 	f->shared_fs->n_fs++;
 
-	f->reload_interval = opt->reload_interval;
-	f->mopt = mtbl_merger_options_init();
-	mtbl_merger_options_set_merge_func(f->mopt, opt->merge, opt->merge_clos);
-	mtbl_merger_options_set_dupsort_func(f->mopt, opt->dupsort, opt->dupsort_clos);
-	f->fname_filter = opt->fname_filter;
-	f->fname_filter_clos = opt->fname_filter_clos;
-	f->merger = mtbl_merger_init(f->mopt);
-	f->source = mtbl_source_init(fileset_source_iter,
-				     fileset_source_get,
-				     fileset_source_get_prefix,
-				     fileset_source_get_range,
-				     NULL, f);
+	mtbl_fileset_set_options(f, opt);
+
 	return (f);
 }
 
