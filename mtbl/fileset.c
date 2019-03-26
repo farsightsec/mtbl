@@ -31,17 +31,17 @@ struct mtbl_fileset_options {
 	void				*fname_filter_clos;
 };
 
-struct _mtbl_fileset {
+struct shared_fileset {
 	size_t 				n_loaded, n_unloaded, n_fs, n_iters;
 	bool				reload_needed;
-	struct timespec			last;
-	struct my_fileset		*_fs;
+	struct timespec			fs_last;
+	struct my_fileset		*my_fs;
 };
 
 
 struct mtbl_fileset {
 	uint32_t			reload_interval;
-	struct _mtbl_fileset		*fs;
+	struct shared_fileset		*shared_fs;
 	struct timespec			fs_last;
 	struct mtbl_merger		*merger;
 	struct mtbl_merger_options	*mopt;
@@ -76,7 +76,7 @@ fileset_iter_free(void *v)
 {
 	struct fileset_iter *it = (struct fileset_iter *)v;
 	if (it) {
-		it->fs->fs->n_iters--;
+		it->fs->shared_fs->n_iters--;
 		mtbl_iter_destroy(&it->iter);
 		mtbl_fileset_reload(it->fs);
 		free(it);
@@ -87,7 +87,7 @@ static struct mtbl_iter *
 fileset_iter_init(struct mtbl_fileset *f, struct mtbl_iter *mit)
 {
 	struct fileset_iter *it = my_calloc(1, sizeof(*it));
-	f->fs->n_iters++;
+	f->shared_fs->n_iters++;
 	it->iter = mit;
 	it->fs = f;
 	return mtbl_iter_init(fileset_iter_seek,
@@ -190,7 +190,7 @@ mtbl_fileset_options_set_reload_interval(struct mtbl_fileset_options *opt,
 static void *
 fs_load(struct my_fileset *fs, const char *fname)
 {
-	struct _mtbl_fileset *f = (struct _mtbl_fileset *) my_fileset_user(fs);
+	struct shared_fileset *f = (struct shared_fileset *) my_fileset_user(fs);
 	f->n_loaded++;
 	return (mtbl_reader_init(fname, NULL));
 }
@@ -198,7 +198,7 @@ fs_load(struct my_fileset *fs, const char *fname)
 static void
 fs_unload(struct my_fileset *fs, const char *fname, void *ptr)
 {
-	struct _mtbl_fileset *f = (struct _mtbl_fileset *) my_fileset_user(fs);
+	struct shared_fileset *f = (struct shared_fileset *) my_fileset_user(fs);
 	struct mtbl_reader *r = (struct mtbl_reader *) ptr;
 	f->n_unloaded++;
 	mtbl_reader_destroy(&r);
@@ -210,11 +210,11 @@ mtbl_fileset_init(const char *fname, const struct mtbl_fileset_options *opt)
 	assert(opt != NULL);
 	struct mtbl_fileset *f = my_calloc(1, sizeof(*f));
 
-	f->fs = my_calloc(1, sizeof(*(f->fs)));
-	f->fs->n_fs = 1;
-	f->fs->reload_needed = true;
-	f->fs->_fs = my_fileset_init(fname, fs_load, fs_unload, f->fs);
-	assert(f->fs->_fs != NULL);
+	f->shared_fs = my_calloc(1, sizeof(*(f->shared_fs)));
+	f->shared_fs->n_fs = 1;
+	f->shared_fs->reload_needed = true;
+	f->shared_fs->my_fs = my_fileset_init(fname, fs_load, fs_unload, f->shared_fs);
+	assert(f->shared_fs->my_fs != NULL);
 
 	f->reload_interval = opt->reload_interval;
 	f->mopt = mtbl_merger_options_init();
@@ -237,8 +237,8 @@ mtbl_fileset_dup(struct mtbl_fileset *orig, const struct mtbl_fileset_options *o
 	assert(opt != NULL);
 	struct mtbl_fileset *f = my_calloc(1, sizeof(*f));
 
-	f->fs = orig->fs;
-	f->fs->n_fs++;
+	f->shared_fs = orig->shared_fs;
+	f->shared_fs->n_fs++;
 
 	f->reload_interval = opt->reload_interval;
 	f->mopt = mtbl_merger_options_init();
@@ -259,9 +259,9 @@ void
 mtbl_fileset_destroy(struct mtbl_fileset **f)
 {
 	if (*f) {
-		if (--((*f)->fs->n_fs) <= 0) {
-			my_fileset_destroy(&(*f)->fs->_fs);
-			free((*f)->fs);
+		if (--((*f)->shared_fs->n_fs) <= 0) {
+			my_fileset_destroy(&(*f)->shared_fs->my_fs);
+			free((*f)->shared_fs);
 		}
 
 		mtbl_merger_destroy(&(*f)->merger);
@@ -293,7 +293,7 @@ fs_reinit_merger(struct mtbl_fileset *f)
 		f->merger = mtbl_merger_init(f->mopt);
 	}
 	assert(f->merger != NULL);
-	while (my_fileset_get(f->fs->_fs, i++, &fname, (void **) &reader))
+	while (my_fileset_get(f->shared_fs->my_fs, i++, &fname, (void **) &reader))
 		if ((reader != NULL) && ((f->fname_filter == NULL) ||
 					 f->fname_filter(fname, f->fname_filter_clos))) {
 			mtbl_merger_add_source(f->merger, mtbl_reader_source(reader));
@@ -307,18 +307,18 @@ mtbl_fileset_reload(struct mtbl_fileset *f)
 	struct timespec now;
 
 	/* if our merger is from an out of date fileset, reinitialize it. */
-	if ((f->fs_last.tv_sec != f->fs->last.tv_sec) ||
-	    (f->fs_last.tv_nsec != f->fs->last.tv_nsec)) {
+	if ((f->fs_last.tv_sec != f->shared_fs->fs_last.tv_sec) ||
+	    (f->fs_last.tv_nsec != f->shared_fs->fs_last.tv_nsec)) {
 		fs_reinit_merger(f);
-		f->fs_last = f->fs->last;
+		f->fs_last = f->shared_fs->fs_last;
 	}
 
 	/* if we loaded at least once and we are configured to *not* reload then do not reload */
-	if (!f->fs->reload_needed && f->reload_interval == MTBL_FILESET_RELOAD_INTERVAL_NEVER)
+	if (!f->shared_fs->reload_needed && f->reload_interval == MTBL_FILESET_RELOAD_INTERVAL_NEVER)
 		return;
 
 	/* if there are any open iterators under this fileset, do not reload now */
-	if (f->fs->n_iters > 0)
+	if (f->shared_fs->n_iters > 0)
 		return;
 
 #if HAVE_CLOCK_GETTIME
@@ -328,16 +328,16 @@ mtbl_fileset_reload(struct mtbl_fileset *f)
 #endif
 	my_gettime(clock, &now);
 
-	if (f->fs->reload_needed || (now.tv_sec - f->fs->last.tv_sec > f->reload_interval)) {
-		f->fs->n_loaded = 0;
-		f->fs->n_unloaded = 0;
-		assert(f->fs->_fs != NULL);
-		my_fileset_reload(f->fs->_fs);
-		if (f->fs->n_loaded > 0 || f->fs->n_unloaded > 0)
+	if (f->shared_fs->reload_needed || (now.tv_sec - f->shared_fs->fs_last.tv_sec > f->reload_interval)) {
+		f->shared_fs->n_loaded = 0;
+		f->shared_fs->n_unloaded = 0;
+		assert(f->shared_fs->my_fs != NULL);
+		my_fileset_reload(f->shared_fs->my_fs);
+		if (f->shared_fs->n_loaded > 0 || f->shared_fs->n_unloaded > 0)
 			fs_reinit_merger(f);
-		f->fs->last = now;
+		f->shared_fs->fs_last = now;
 		f->fs_last = now;
-		f->fs->reload_needed = false;
+		f->shared_fs->reload_needed = false;
 	}
 }
 
@@ -352,8 +352,8 @@ mtbl_fileset_reload_now(struct mtbl_fileset *f)
 	 * if there are any open iterators under this fileset,
 	 * do not reload now
 	 */
-	if (f->fs->n_iters > 0) {
-		f->fs->reload_needed = true;
+	if (f->shared_fs->n_iters > 0) {
+		f->shared_fs->reload_needed = true;
 		return;
 	}
 
@@ -364,15 +364,15 @@ mtbl_fileset_reload_now(struct mtbl_fileset *f)
 #endif
 	my_gettime(clock, &now);
 
-	f->fs->n_loaded = 0;
-	f->fs->n_unloaded = 0;
-	assert(f->fs->_fs != NULL);
-	my_fileset_reload(f->fs->_fs);
-	if (f->fs->n_loaded > 0 || f->fs->n_unloaded > 0)
+	f->shared_fs->n_loaded = 0;
+	f->shared_fs->n_unloaded = 0;
+	assert(f->shared_fs->my_fs != NULL);
+	my_fileset_reload(f->shared_fs->my_fs);
+	if (f->shared_fs->n_loaded > 0 || f->shared_fs->n_unloaded > 0)
 		fs_reinit_merger(f);
-	f->fs->last = now;
+	f->shared_fs->fs_last = now;
 	f->fs_last = now;
-	f->fs->reload_needed = false;
+	f->shared_fs->reload_needed = false;
 }
 
 void
@@ -391,7 +391,7 @@ mtbl_fileset_partition(struct mtbl_fileset *f,
 	*m1 = mtbl_merger_init(f->mopt);
 	*m2 = mtbl_merger_init(f->mopt);
 
-	while (my_fileset_get(f->fs->_fs, i++, &fname, (void**) &reader)) {
+	while (my_fileset_get(f->shared_fs->my_fs, i++, &fname, (void**) &reader)) {
 		if (cb(fname, clos))
 			mtbl_merger_add_source(*m1, mtbl_reader_source(reader));
 		else
