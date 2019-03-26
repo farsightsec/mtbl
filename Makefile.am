@@ -23,7 +23,7 @@ AM_LDFLAGS =
 ##
 #
 
-LIBMTBL_VERSION_INFO=1:2:0
+LIBMTBL_VERSION_INFO=1:3:0
 
 include_HEADERS = mtbl/mtbl.h
 lib_LTLIBRARIES = mtbl/libmtbl.la

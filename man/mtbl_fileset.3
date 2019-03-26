@@ -41,6 +41,11 @@ mtbl_fileset_init(const char *\fR\fB\fIfname\fR\fR\fB, const struct mtbl_fileset
 .fi
 .sp
 .nf
+\fBstruct mtbl_fileset *
+mtbl_fileset_dup(struct mtbl_fileset *\fR\fB\fIorig\fR\fR\fB, const struct mtbl_fileset_options *\fR\fB\fIfopt\fR\fR\fB);\fR
+.fi
+.sp
+.nf
 \fBvoid
 mtbl_fileset_destroy(struct mtbl_fileset **\fR\fB\fIf\fR\fR\fB);\fR
 .fi
@@ -91,6 +96,22 @@ mtbl_fileset_options_set_merge_func(
 .sp
 .nf
 \fBvoid
+mtbl_fileset_options_set_dupsort_func(
+        struct mtbl_fileset_options *\fR\fB\fIfopt\fR\fR\fB,
+        mtbl_dupsort_func \fR\fB\fIfp\fR\fR\fB,
+        void *\fR\fB\fIclos\fR\fR\fB);\fR
+.fi
+.sp
+.nf
+\fBvoid
+mtbl_fileset_options_set_filename_filter_func(
+        struct mtbl_fileset_options *\fR\fB\fIfopt\fR\fR\fB,
+        mtbl_filename_filter_func \fR\fB\fIfp\fR\fR\fB,
+        void *\fR\fB\fIclos\fR\fR\fB);\fR
+.fi
+.sp
+.nf
+\fBvoid
 mtbl_fileset_options_set_reload_interval(
         struct mtbl_fileset_options *\fR\fB\fIfopt\fR\fR\fB,
         uint32_t \fR\fB\fIreload_interval\fR\fR\fB);\fR
@@ -107,6 +128,8 @@ Because the MTBL format does not allow duplicate keys, the caller must provide a
 .sp
 \fBmtbl_fileset\fR objects are created with the \fBmtbl_fileset_init\fR() function, which requires the path to a "setfile", \fIfname\fR, and a non\-NULL \fIfopt\fR argument which has been configured with a merge function \fIfp\fR\&. \fBmtbl_fileset_source\fR() should then be called in order to consume output via the \fBmtbl_source\fR(3) interface\&.
 .sp
+The \fBmtbl_fileset_dup\fR() function, which requires a \fBmtbl_fileset\fR object and a non\-NULL \fIfopt\fR argument, creates a duplicate \fBmtbl_fileset\fR object that shares the underlying fileset, but with different fileset options, as specified.
+.sp
 Accesses via the \fBmtbl_source\fR(3) interface will implicitly check for updates to the setfile\&. However, it may be necessary to explicitly call the \fBmtbl_fileset_reload\fR() function in order to check for updates, especially if files are being removed from the setfile and the \fBmtbl_source\fR is infrequently accessed\&.
 .sp
 The \fBmtbl_fileset_reload\fR() function avoids checking for updates more frequently than every \fIreload_interval\fR seconds\&. If \fBreload_interval\fR is set to \fBMTBL_FILESET_RELOAD_INTERVAL_NEVER\fR, then \fBmtbl_fileset_reload\fR() function will only load the fileset once\&. The \fBmtbl_fileset_reload_now\fR() function can be called to bypass the \fIreload_interval\fR check\&.
@@ -119,10 +142,32 @@ The \fBmtbl_fileset_partition\fR() function yields two \fBstruct mtbl_merger\fR 
 .nr an-break-flag 1
 .br
 .ps +1
-\fBmerge_func\fR
+\fBmerge\fR
 .RS 4
 .sp
 See \fBmtbl_merger\fR(3)\&. An \fBmtbl_merger\fR object is used internally for the external sort\&.
+.RE
+.sp
+.it 1 an-trap
+.nr an-no-space-flag 1
+.nr an-break-flag 1
+.br
+.ps +1
+\fBdupsort\fR
+.RS 4
+.sp
+See \fBmtbl_merger\fR(3)\&. Used to sort the entries with duplicate keys during the merge process based on their data. The dnstable data is a triplet of variable-length integers, so (in theory) the byte comparison used for keys would not suffice.  This is mostly of interest with a NULL merge function, although it could be used to enforce some order of merges with a non-NULL merge function\&.
+.RE
+.sp
+.it 1 an-trap
+.nr an-no-space-flag 1
+.nr an-break-flag 1
+.br
+.ps +1
+\fBfname_filter\fR
+.RS 4
+.sp
+Used to filter specific files by name from a fileset.  If it returns 0 then the file should be \fBnot\fR not be in the resulting fileset\&.
 .RE
 .sp
 .it 1 an-trap

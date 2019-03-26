@@ -25,19 +25,21 @@ VECTOR_GENERATE(ptrvec, void *);
 struct heap {
 	ptrvec			*vec;
 	heap_compare_func	cmp;
+	void			*clos;
 };
 
 static inline int
-cmp_wrapper(heap_compare_func cmp, const void *a, const void *b)
+cmp_wrapper(heap_compare_func cmp, const void *a, const void *b, void *clos)
 {
-	return ((cmp(a, b) < 0) ? 1 : 0);
+	return ((cmp(a, b, clos) < 0) ? 1 : 0);
 }
 
 struct heap *
-heap_init(heap_compare_func cmp)
+heap_init(heap_compare_func cmp, void *clos)
 {
 	struct heap *h = my_calloc(1, sizeof(*h));
 	h->cmp = cmp;
+	h->clos = clos;
 	h->vec = ptrvec_init(1);
 	return (h);
 }
@@ -70,7 +72,7 @@ siftdown(struct heap *h, size_t startpos, size_t pos)
 	while (pos > startpos) {
 		size_t parentpos = (pos - 1) >> 1;
 		void *parent = ptrvec_value(h->vec, parentpos);
-		int cmp = cmp_wrapper(h->cmp, newitem, parent);
+		int cmp = cmp_wrapper(h->cmp, newitem, parent, h->clos);
 		if (cmp == -1)
 			return (-1);
 		if (cmp == 0)
@@ -95,7 +97,8 @@ siftup(struct heap *h, size_t pos)
 		if (rightpos < endpos) {
 			int cmp = cmp_wrapper(h->cmp,
 					      ptrvec_value(h->vec, childpos),
-					      ptrvec_value(h->vec, rightpos));
+					      ptrvec_value(h->vec, rightpos),
+					      h->clos);
 			if (cmp == -1)
 				return (-1);
 			if (cmp == 0)
