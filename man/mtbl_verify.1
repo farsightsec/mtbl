@@ -1,13 +1,13 @@
 '\" t
 .\"     Title: mtbl_verify
 .\"    Author: [FIXME: author] [see http://docbook.sf.net/el/author]
-.\" Generator: DocBook XSL Stylesheets v1.78.1 <http://docbook.sf.net/>
-.\"      Date: 02/04/2015
+.\" Generator: DocBook XSL Stylesheets v1.79.1 <http://docbook.sf.net/>
+.\"      Date: 04/01/2019
 .\"    Manual: \ \&
 .\"    Source: \ \&
 .\"  Language: English
 .\"
-.TH "MTBL_VERIFY" "1" "02/04/2015" "\ \&" "\ \&"
+.TH "MTBL_VERIFY" "1" "04/01/2019" "\ \&" "\ \&"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -38,4 +38,4 @@ mtbl_verify \- verify integrity of an MTBL file\*(Aqs data and index blocks
 .sp
 Each filename specified on the command line will be verified, and a message indicating whether each file passed or failed will be printed to stdout\&. If a file fails, additional information about the failure will be printed to stderr\&.
 .sp
-If stdout is a terminal, periodic progress indications will be printed\&.
+If stdout is a terminal or the \fB\-p\fR option is provided, periodic progress indications will be printed\&.
