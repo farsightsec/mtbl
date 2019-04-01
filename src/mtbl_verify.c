@@ -30,6 +30,7 @@
 #include <mtbl.h>
 
 static const int block_progress_interval = 10000;
+static int do_progress = 0;
 
 static void
 clear_line_stdout(void)
@@ -124,13 +125,14 @@ verify_data_blocks(
 
 		/* Progress report. */
 		if ((block % block_progress_interval) == 0) {
-			if (isatty(STDOUT_FILENO)) {
+			if (isatty(STDOUT_FILENO) || do_progress) {
 				clear_line_stdout();
-				printf("%s: %'" PRIu64 " out of %'" PRIu64 " blocks (%.2f%%) OK",
+				printf("%s: %'" PRIu64 " out of %'" PRIu64 " blocks (%.2f%%) OK%s",
 				       prefix,
 				       block,
 				       count_data_blocks,
-				       100.0 * (block + 0.0) / (count_data_blocks + 0.0));
+				       100.0 * (block + 0.0) / (count_data_blocks + 0.0),
+				       isatty(STDOUT_FILENO)?"":"\n");
 				fflush(stdout);
 			}
 		}
@@ -193,15 +195,32 @@ int
 main(int argc, char **argv)
 {
 	int n_failed = 0;
+	char *progname = argv[0];
+	int c;
 
 	setlocale(LC_ALL, "");
 
-	if (argc < 2) {
-		fprintf(stderr, "Usage: %s <MTBL FILE> [<MTBL FILE>...]\n", argv[0]);
+	while ((c = getopt(argc, argv, "p")) != -1) {
+		switch(c) {
+		case 'p':
+			do_progress = 1;
+			break;
+		case '?':
+		default:
+			fprintf(stderr, "Usage: %s [-p] <MTBL FILE> [<MTBL FILE>...]\n", progname);
+			exit(EXIT_FAILURE);
+		}
+	}
+
+	argc -= optind;
+	argv += optind;
+
+	if (argc < 1) {
+		fprintf(stderr, "Usage: %s [-p] <MTBL FILE> [<MTBL FILE>...]\n", progname);
 		exit(EXIT_FAILURE);
 	}
 
-	for (int i = 1; i < argc; i++) {
+	for (int i = 0; i < argc; i++) {
 		if (!verify_file(argv[i]))
 			n_failed += 1;
 	}
