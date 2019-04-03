@@ -46,6 +46,24 @@ clear_line_stdout(void)
 	}
 }
 
+static void
+block_progress(
+	const char *prefix,
+	const uint64_t block,
+	const uint64_t count_data_blocks)
+{
+	if (isatty(STDOUT_FILENO) || do_progress) {
+		clear_line_stdout();
+		printf("%s: %'" PRIu64 " out of %'" PRIu64 " blocks (%.2f%%) OK%s",
+		       prefix,
+		       block,
+		       count_data_blocks,
+		       100.0 * (block + 0.0) / (count_data_blocks + 0.0),
+		       isatty(STDOUT_FILENO)?"":"\n");
+		fflush(stdout);
+	}
+}
+
 static bool
 verify_data_blocks(
 	int fd,
@@ -76,7 +94,7 @@ verify_data_blocks(
 	data = mmap_data + file_offset;
 
 	/* Verify each data block. */
-	for (uint64_t block = 0; block < count_data_blocks; block++) {
+	for (uint64_t block = 1; block <= count_data_blocks; block++) {
 		uint32_t block_crc, calc_crc;
 		size_t raw_contents_size, raw_contents_size_len;
 		uint8_t *raw_contents;
@@ -124,17 +142,9 @@ verify_data_blocks(
 		}
 
 		/* Progress report. */
-		if ((block % block_progress_interval) == 0) {
-			if (isatty(STDOUT_FILENO) || do_progress) {
-				clear_line_stdout();
-				printf("%s: %'" PRIu64 " out of %'" PRIu64 " blocks (%.2f%%) OK%s",
-				       prefix,
-				       block,
-				       count_data_blocks,
-				       100.0 * (block + 0.0) / (count_data_blocks + 0.0),
-				       isatty(STDOUT_FILENO)?"":"\n");
-				fflush(stdout);
-			}
+		if ((block && (block % block_progress_interval) == 0) ||
+		   (block == count_data_blocks)) {
+			block_progress(prefix, block, count_data_blocks);
 		}
 
 		/* Update 'offset' to the next data block. */
