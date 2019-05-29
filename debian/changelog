@@ -1,16 +1,3 @@
-mtbl (1.3.0-1) UNRELEASED; urgency=medium
-
-  * Fix mtbl_reload_now() on filesets with open iterators.
-  * Add support for absolute pathnames in filesets
-  * Make merge function an optional parameter for mergers and filesets to
-    enable unmerged results.
-  * Add dupsort function to sort unmerged results based on data.
-  * Add filename filter option to filesets. This provides functionality similar
-    to mtbl_fileset_partition() but resilient against fileset reloads.
-  * Add mtbl_fileset_dup() to open an existing fileset with different options.
-
- -- Farsight Security, Inc. <software@farsightsecurity.com>  Tue, 28 May 2019 11:04:57 -0400
-
 mtbl (1.2.1-1) debian-fsi; urgency=medium
 
   * Fix libtool version number.
