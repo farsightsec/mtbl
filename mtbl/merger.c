@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2016 by Farsight Security, Inc.
+ * Copyright (c) 2012-2016, 2019 by Farsight Security, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -46,6 +46,8 @@ struct merger_iter {
 struct mtbl_merger_options {
 	mtbl_merge_func			merge;
 	void				*merge_clos;
+	mtbl_dupsort_func		dupsort;
+	void				*dupsort_clos;
 };
 
 struct mtbl_merger {
@@ -95,6 +97,14 @@ mtbl_merger_options_set_merge_func(struct mtbl_merger_options *opt,
 	opt->merge_clos = clos;
 }
 
+void
+mtbl_merger_options_set_dupsort_func(struct mtbl_merger_options *opt,
+				   mtbl_dupsort_func dupsort, void *clos)
+{
+	opt->dupsort = dupsort;
+	opt->dupsort_clos = clos;
+}
+
 struct mtbl_merger *
 mtbl_merger_init(const struct mtbl_merger_options *opt)
 {
@@ -103,7 +113,6 @@ mtbl_merger_init(const struct mtbl_merger_options *opt)
 	m = my_calloc(1, sizeof(*m));
 	m->sources = source_vec_init(0);
 	assert(opt != NULL);
-	assert(opt->merge != NULL);
 	memcpy(&m->opt, opt, sizeof(*opt));
 	m->source = mtbl_source_init(merger_iter,
 				     merger_get,
@@ -137,10 +146,12 @@ mtbl_merger_add_source(struct mtbl_merger *m, const struct mtbl_source *s)
 }
 
 static int
-_mtbl_merger_compare(const void *va, const void *vb)
+_mtbl_merger_compare(const void *va, const void *vb, void *clos)
 {
 	const struct entry *a = (const struct entry *) va;
 	const struct entry *b = (const struct entry *) vb;
+	const struct mtbl_merger *m = (const struct mtbl_merger *)clos;
+	int res;
 
 	if (a->key == NULL && b->key == NULL)
 		return (0);
@@ -149,8 +160,16 @@ _mtbl_merger_compare(const void *va, const void *vb)
 	if (b->key == NULL)
 		return (-1);
 
-	return (bytes_compare(ubuf_data(a->key), ubuf_size(a->key),
-			      ubuf_data(b->key), ubuf_size(b->key)));
+	res = bytes_compare(ubuf_data(a->key), ubuf_size(a->key),
+			    ubuf_data(b->key), ubuf_size(b->key));
+
+	if ((res == 0) && (m->opt.dupsort != NULL))
+		res = m->opt.dupsort(m->opt.dupsort_clos,
+				     ubuf_data(a->key), ubuf_size(a->key),
+				     ubuf_data(a->val), ubuf_size(a->val),
+				     ubuf_data(b->val), ubuf_size(b->val));
+
+	return res;
 }
 
 static mtbl_res
@@ -247,6 +266,9 @@ merger_iter_next(void *v,
 			continue;
 		}
 
+		if (it->m->opt.merge == NULL)
+			break;
+
 		if (bytes_compare(ubuf_data(it->cur_key), ubuf_size(it->cur_key),
 				  ubuf_data(e->key), ubuf_size(e->key)) == 0)
 		{
@@ -311,7 +333,7 @@ merger_iter_init(struct mtbl_merger *m)
 {
 	struct merger_iter *it = my_calloc(1, sizeof(*it));
 	it->m = m;
-	it->h = heap_init(_mtbl_merger_compare);
+	it->h = heap_init(_mtbl_merger_compare, m);
 	it->entries = entry_vec_init(source_vec_size(m->sources));
 	it->iters = iter_vec_init(source_vec_size(m->sources));
 	it->cur_key = ubuf_init(256);

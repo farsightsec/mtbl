@@ -21,7 +21,7 @@ mtbl_iter_destroy(struct mtbl_iter **'it');^
 [verse]
 ^mtbl_res
 mtbl_iter_seek(struct mtbl_iter *'it',
-        const uint8_t **'key', size_t *'len_key');^
+        const uint8_t *'key', size_t 'len_key');^
 
 == DESCRIPTION ==
 

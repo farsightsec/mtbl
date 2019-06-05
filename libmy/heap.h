@@ -3,9 +3,9 @@
 
 struct heap;
 
-typedef int (*heap_compare_func)(const void *a, const void *b);
+typedef int (*heap_compare_func)(const void *a, const void *b, void *clos);
 
-struct heap *heap_init(heap_compare_func);
+struct heap *heap_init(heap_compare_func, void *);
 void heap_destroy(struct heap **);
 void heap_reset(struct heap *);
 void heap_clip(struct heap *, size_t);
