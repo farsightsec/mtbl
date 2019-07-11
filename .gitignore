@@ -1,5 +1,7 @@
 *~
 .*swp
+*.gcda
+*.gcno
 *.la
 *.lo
 *.log
@@ -14,6 +16,8 @@
 /build-aux
 /config.*
 /configure
+/coverage.info
+/coveragereport
 /libtool
 /stamp-h1
 Makefile

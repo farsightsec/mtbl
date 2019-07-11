@@ -84,6 +84,9 @@ fi
 
 gl_LD_VERSION_SCRIPT
 
+m4_include([libmy/m4/my_code_coverage.m4])
+MY_CODE_COVERAGE
+
 AC_OUTPUT
 AC_MSG_RESULT([
     $PACKAGE $VERSION
@@ -102,4 +105,5 @@ AC_MSG_RESULT([
         bigendian:              ${ac_cv_c_bigendian}
 
         building manpage docs:  ${DOC_MAN_MSG}
+        code coverage enabled:  ${CODE_COVERAGE_ENABLED}
 ])
