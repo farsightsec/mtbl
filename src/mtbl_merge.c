@@ -183,6 +183,14 @@ init_dso(void)
 		exit(EXIT_FAILURE);
 	}
 
+	/*
+	 * Note: the code below uses ubufs in a subtle way, three times.
+	 * The first ubuf_append() with strlen() does not append a NUL.
+	 * The second ubuf_append() with sizeof() does append a NUL.
+	 * The ubuf_data() call accesses the underlying data as a
+	 * NUL-terminated C string.
+	 */
+
 	/* merge func */
 	ubuf *func_name = ubuf_init(0);
 	ubuf_append(func_name,
