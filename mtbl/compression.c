@@ -246,10 +246,10 @@ _mtbl_compress_zstd(
 	if (input_size > INT_MAX)
 		return (mtbl_res_failure);
 
-	if (compression_level < 1)
-		compression_level = 1;
-	else if (compression_level > 22 /* ZSTD_MAX_CLEVEL */)
-		compression_level = 22;
+	if (compression_level < ZSTD_minCLevel())
+		compression_level = ZSTD_minCLevel();
+	else if (compression_level > ZSTD_maxCLevel())
+		compression_level = ZSTD_maxCLevel();
 
 	zstd_size = ZSTD_compressBound(input_size);
 	if (zstd_size < INT_MAX/2) {
