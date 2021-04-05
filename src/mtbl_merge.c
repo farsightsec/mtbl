@@ -35,6 +35,7 @@
 #include "libmy/ubuf.h"
 
 #define DEFAULT_BLOCK_SIZE	8192
+#define DEFAULT_COMPRESS_LEVEL	-1000
 #define STATS_INTERVAL		1000000
 
 static const char		*program_name;
@@ -42,6 +43,7 @@ static const char		*program_name;
 static const char		*mtbl_output_fname;
 
 static mtbl_compression_type	opt_compression_type	= MTBL_COMPRESSION_ZLIB;
+static int			opt_compression_level	= DEFAULT_COMPRESS_LEVEL;
 static size_t			opt_block_size		= DEFAULT_BLOCK_SIZE;
 
 static const char		*merge_dso_path;
@@ -63,7 +65,7 @@ static void
 usage(void)
 {
 	fprintf(stderr,
-		"Usage: %s [-b <SIZE>] [-c <COMPRESSION>] <INPUT> [<INPUT>...] <OUTPUT>\n"
+		"Usage: %s [-b <SIZE>] [-c <COMPRESSION>] [-l <LEVEL>] <INPUT> [<INPUT>...] <OUTPUT>\n"
 		"\n"
 		"Merges one or more MTBL input files into a single output file.\n"
 		"Requires a merge function provided by the user at runtime via a DSO.\n"
@@ -75,6 +77,8 @@ usage(void)
 		"<COMPRESSION> is one of none, snappy, zlib, lz4, lz4hc, or zstd.\n"
 		"The default compression type if unspecified is zlib.\n"
 		"\n"
+		"<LEVEL> is the numeric compression level passed to the compression algorithm.\n"
+		"The default and valid range depend on the <COMPRESSION> parameter.\n"
 		,
 		program_name
 	);
@@ -251,6 +255,8 @@ init_mtbl(void)
 
 	mtbl_merger_options_set_merge_func(mopt, merge_func, user_clos);
 	mtbl_writer_options_set_compression(wopt, opt_compression_type);
+	if (opt_compression_level != DEFAULT_COMPRESS_LEVEL)
+		mtbl_writer_options_set_compression_level(wopt, opt_compression_level);
 	mtbl_writer_options_set_block_size(wopt, opt_block_size);
 
 	merger = mtbl_merger_init(mopt);
@@ -315,6 +321,14 @@ parse_arg_compression(const char *arg)
 	return res == mtbl_res_success;
 }
 
+static bool
+parse_arg_compression_level(const char *arg)
+{
+	char *endp;
+	opt_compression_level = strtol(arg, &endp, 10);
+	return *endp == '\0';
+}
+
 int
 main(int argc, char **argv)
 {
@@ -324,7 +338,7 @@ main(int argc, char **argv)
 	opt_block_size = get_block_size();
 
 	int c;
-	while ((c = getopt(argc, argv, "b:c:")) != -1) {
+	while ((c = getopt(argc, argv, "b:c:l:")) != -1) {
 		switch (c) {
 		case 'b':
 			if (!parse_arg_block_size(optarg))
@@ -332,6 +346,10 @@ main(int argc, char **argv)
 			break;
 		case 'c':
 			if (!parse_arg_compression(optarg))
+				usage();
+			break;
+		case 'l':
+			if (!parse_arg_compression_level(optarg))
 				usage();
 			break;
 		default:
