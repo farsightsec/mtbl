@@ -242,12 +242,18 @@ _mtbl_compress_zstd(
 {
 	size_t zstd_size;
 	char *zstd_bytes;
+	int minlevel;
+#if ZSTD_VERSION_NUMBER >= 10400
+	minlevel = ZSTD_minCLevel();
+#else
+	minlevel = 1;
+#endif
 
 	if (input_size > INT_MAX)
 		return (mtbl_res_failure);
 
-	if (compression_level < ZSTD_minCLevel())
-		compression_level = ZSTD_minCLevel();
+	if (compression_level < minlevel)
+		compression_level = minlevel;
 	else if (compression_level > ZSTD_maxCLevel())
 		compression_level = ZSTD_maxCLevel();
 
