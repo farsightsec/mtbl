@@ -44,12 +44,26 @@ mtbl_merger_options_set_merge_func(
         void *'clos');^
 
 [verse]
+^void
+mtbl_merger_options_set_dupsort_func(
+        struct mtbl_merger_options *'mopt',
+        mtbl_dupsort_func 'fp',
+        void *'clos');^
+
+[verse]
 ^typedef void
 (*mtbl_merge_func)(void *'clos',
         const uint8_t *'key', size_t 'len_key',
         const uint8_t *'val0', size_t 'len_val0',
         const uint8_t *'val1', size_t 'len_val1',
         uint8_t **'merged_val', size_t *'len_merged_val');^
+
+[verse]
+^typedef int
+(*mtbl_dupsort_func)(void *'clos',
+	const uint8_t *'key', size_t 'len_key',
+	const uint8_t *'val0', size_t 'len_val0',
+	const uint8_t *'val1', size_t 'len_val1);^
 
 == DESCRIPTION ==
 
@@ -111,6 +125,13 @@ The callee may provide an empty value as the merged value, in which case
 
 The callee may indicate an error by returning NULL in the 'merged_val' argument,
 which will abort iteration over the ^mtbl_merger^ object.
+
+==== ^dupsort_func^ ====
+
+This option provides a comparison function for multiple data with the same key.
+It will be used to sort the data during the merge process. If the ^merge_func^
+option is set to or left NULL, the ^dupsort_func^ will order the results returned
+by the merge process for data with identical keys.
 
 == RETURN VALUE ==
 

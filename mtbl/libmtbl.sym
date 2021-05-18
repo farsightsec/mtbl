@@ -90,3 +90,11 @@ LIBMTBL_1.1.0 {
 global:
         mtbl_fileset_partition;
 } LIBMTBL_1.0.0;
+
+LIBMTBL_1.2.0 {
+global:
+        mtbl_merger_options_set_dupsort_func;
+        mtbl_fileset_options_set_filename_filter_func;
+        mtbl_fileset_options_set_dupsort_func;
+        mtbl_fileset_dup;
+} LIBMTBL_1.1.0;

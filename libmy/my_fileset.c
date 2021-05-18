@@ -175,8 +175,10 @@ my_fileset_reload(struct my_fileset *fs)
 
 	while (getline(&line, &len, fp) != -1) {
 		ubuf_clip(u, 0);
-		ubuf_add_cstr(u, fs->setdir);
-		ubuf_add(u, '/');
+                if (line[0] != '/') { /* if not absolute path, prepend fileset file's path */
+                        ubuf_add_cstr(u, fs->setdir);
+                        ubuf_add(u, '/');
+                }
 		ubuf_add_cstr(u, line);
 		ubuf_rstrip(u, '\n');
 		fname = ubuf_cstr(u);

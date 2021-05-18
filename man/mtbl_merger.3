@@ -1,13 +1,13 @@
 '\" t
 .\"     Title: mtbl_merger
 .\"    Author: [FIXME: author] [see http://docbook.sf.net/el/author]
-.\" Generator: DocBook XSL Stylesheets v1.78.1 <http://docbook.sf.net/>
-.\"      Date: 01/31/2014
+.\" Generator: DocBook XSL Stylesheets v1.79.1 <http://docbook.sf.net/>
+.\"      Date: 03/28/2019
 .\"    Manual: \ \&
 .\"    Source: \ \&
 .\"  Language: English
 .\"
-.TH "MTBL_MERGER" "3" "01/31/2014" "\ \&" "\ \&"
+.TH "MTBL_MERGER" "3" "03/28/2019" "\ \&" "\ \&"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -76,12 +76,28 @@ mtbl_merger_options_set_merge_func(
 .fi
 .sp
 .nf
+\fBvoid
+mtbl_merger_options_set_dupsort_func(
+        struct mtbl_merger_options *\fR\fB\fImopt\fR\fR\fB,
+        mtbl_dupsort_func \fR\fB\fIfp\fR\fR\fB,
+        void *\fR\fB\fIclos\fR\fR\fB);\fR
+.fi
+.sp
+.nf
 \fBtypedef void
 (*mtbl_merge_func)(void *\fR\fB\fIclos\fR\fR\fB,
         const uint8_t *\fR\fB\fIkey\fR\fR\fB, size_t \fR\fB\fIlen_key\fR\fR\fB,
         const uint8_t *\fR\fB\fIval0\fR\fR\fB, size_t \fR\fB\fIlen_val0\fR\fR\fB,
         const uint8_t *\fR\fB\fIval1\fR\fR\fB, size_t \fR\fB\fIlen_val1\fR\fR\fB,
         uint8_t **\fR\fB\fImerged_val\fR\fR\fB, size_t *\fR\fB\fIlen_merged_val\fR\fR\fB);\fR
+.fi
+.sp
+.nf
+\fBtypedef int
+(*mtbl_dupsort_func)(void *\fR\fB\fIclos\fR\fR\fB,
+        const uint8_t *\fR\fB\fIkey\fR\fR\fB, size_t \fR\fB\fIlen_key\fR\fR\fB,
+        const uint8_t *\fR\fB\fIval0\fR\fR\fB, size_t \fR\fB\fIlen_val0\fR\fR\fB,
+        const uint8_t *\fR\fB\fIval1\fR\fR\fB, size_t \*(Aqlen_val1);\fR
 .fi
 .SH "DESCRIPTION"
 .sp
@@ -127,6 +143,17 @@ The remaining arguments to the merge function are:
 The callee may provide an empty value as the merged value, in which case \fImerged_val\fR must still contain an allocated, non\-NULL value and \fIlen_merged_val\fR must contain the value 0\&.
 .sp
 The callee may indicate an error by returning NULL in the \fImerged_val\fR argument, which will abort iteration over the \fBmtbl_merger\fR object\&.
+.RE
+.sp
+.it 1 an-trap
+.nr an-no-space-flag 1
+.nr an-break-flag 1
+.br
+.ps +1
+\fBdupsort_func\fR
+.RS 4
+.sp
+This option provides a comparison function for multiple data with the same key\&. It will be used to sort the data during the merge process\&. If the \fBmerge_func\fR option is set to or left NULL, the \fBdupsort_func\fR will order the results returned by the merge process for data with identical keys\&.
 .RE
 .SH "RETURN VALUE"
 .sp

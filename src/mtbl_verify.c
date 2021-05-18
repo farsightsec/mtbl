@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 by Farsight Security, Inc.
+ * Copyright (c) 2015, 2019 by Farsight Security, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,6 +30,7 @@
 #include <mtbl.h>
 
 static const int block_progress_interval = 10000;
+static int do_progress = 0;
 
 static void
 clear_line_stdout(void)
@@ -41,6 +42,24 @@ clear_line_stdout(void)
 
 	if (isatty(STDOUT_FILENO)) {
 		fputs(clear_line_sequence, stdout);
+		fflush(stdout);
+	}
+}
+
+static void
+block_progress(
+	const char *prefix,
+	const uint64_t block,
+	const uint64_t count_data_blocks)
+{
+	if (isatty(STDOUT_FILENO) || do_progress) {
+		clear_line_stdout();
+		printf("%s: %'" PRIu64 " out of %'" PRIu64 " blocks (%.2f%%) OK%s",
+		       prefix,
+		       block,
+		       count_data_blocks,
+		       100.0 * (block + 0.0) / (count_data_blocks + 0.0),
+		       isatty(STDOUT_FILENO)?"":"\n");
 		fflush(stdout);
 	}
 }
@@ -75,7 +94,7 @@ verify_data_blocks(
 	data = mmap_data + file_offset;
 
 	/* Verify each data block. */
-	for (uint64_t block = 0; block < count_data_blocks; block++) {
+	for (uint64_t block = 1; block <= count_data_blocks; block++) {
 		uint32_t block_crc, calc_crc;
 		size_t raw_contents_size, raw_contents_size_len;
 		uint8_t *raw_contents;
@@ -123,16 +142,9 @@ verify_data_blocks(
 		}
 
 		/* Progress report. */
-		if ((block % block_progress_interval) == 0) {
-			if (isatty(STDOUT_FILENO)) {
-				clear_line_stdout();
-				printf("%s: %'" PRIu64 " out of %'" PRIu64 " blocks (%.2f%%) OK",
-				       prefix,
-				       block,
-				       count_data_blocks,
-				       100.0 * (block + 0.0) / (count_data_blocks + 0.0));
-				fflush(stdout);
-			}
+		if ((block && (block % block_progress_interval) == 0) ||
+		   (block == count_data_blocks)) {
+			block_progress(prefix, block, count_data_blocks);
 		}
 
 		/* Update 'offset' to the next data block. */
@@ -193,15 +205,32 @@ int
 main(int argc, char **argv)
 {
 	int n_failed = 0;
+	char *progname = argv[0];
+	int c;
 
 	setlocale(LC_ALL, "");
 
-	if (argc < 2) {
-		fprintf(stderr, "Usage: %s <MTBL FILE> [<MTBL FILE>...]\n", argv[0]);
+	while ((c = getopt(argc, argv, "p")) != -1) {
+		switch(c) {
+		case 'p':
+			do_progress = 1;
+			break;
+		case '?':
+		default:
+			fprintf(stderr, "Usage: %s [-p] <MTBL FILE> [<MTBL FILE>...]\n", progname);
+			exit(EXIT_FAILURE);
+		}
+	}
+
+	argc -= optind;
+	argv += optind;
+
+	if (argc < 1) {
+		fprintf(stderr, "Usage: %s [-p] <MTBL FILE> [<MTBL FILE>...]\n", progname);
 		exit(EXIT_FAILURE);
 	}
 
-	for (int i = 1; i < argc; i++) {
+	for (int i = 0; i < argc; i++) {
 		if (!verify_file(argv[i]))
 			n_failed += 1;
 	}
