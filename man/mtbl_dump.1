@@ -2,12 +2,12 @@
 .\"     Title: mtbl_dump
 .\"    Author: [FIXME: author] [see http://docbook.sf.net/el/author]
 .\" Generator: DocBook XSL Stylesheets v1.79.1 <http://docbook.sf.net/>
-.\"      Date: 04/01/2019
+.\"      Date: 06/04/2021
 .\"    Manual: \ \&
 .\"    Source: \ \&
 .\"  Language: English
 .\"
-.TH "MTBL_DUMP" "1" "04/01/2019" "\ \&" "\ \&"
+.TH "MTBL_DUMP" "1" "06/04/2021" "\ \&" "\ \&"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -31,13 +31,33 @@
 mtbl_dump \- print key\-value entries from an MTBL file
 .SH "SYNOPSIS"
 .sp
-\fBmtbl_dump\fR [\fI\-s\fR] \fIFILE\fR
+\fBmtbl_dump\fR [\fI\-s\fR] [\fI\-x\fR] \fIFILE\fR
 .SH "DESCRIPTION"
 .sp
-\fBmtbl_dump\fR(1) prints all key\-value entries from an MTBL file to stdout, in file order\&. Each entry is printed on its own line, with double quotes surrounding the key and the value, with a single space character separating the two\&. Unprintable characters and embedded double quote characters are escaped using the Python string literal syntax\&.
+\fBmtbl_dump\fR(1) prints all key\-value entries from an MTBL file to stdout, in file order\&.
+.sp
+By default, each entry is printed on its own line, with double quotes surrounding the key and the value, with a single space character separating the two\&. Unprintable characters and embedded double quote characters are escaped using the Python string literal syntax\&.
+.sp
+With the \fB\-x\fR option, each entry is printed on its own line, formatted as an 8 digit hex length, colon, the hex digit pairs separated by a dash, for each of the key and value\&. Examples:
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+\fB0000006:00\-02\-61\-63\-08\-64 00000003:f2\-e9\-e4\fR
+\fB00000004:03\-01\-2d\-00 00000000:\fR
+.fi
+.if n \{\
+.RE
+.\}
 .SH "OPTIONS"
 .PP
 \fB\-s\fR
 .RS 4
 Silent mode (don\(cqt output anything)\&. Useful for benchmarking\&.
+.RE
+.PP
+\fB\-x\fR
+.RS 4
+Use hex mode output, described above\&.
 .RE

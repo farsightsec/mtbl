@@ -6,17 +6,32 @@ mtbl_dump - print key-value entries from an MTBL file
 
 == SYNOPSIS ==
 
-^mtbl_dump^ ['-s'] 'FILE'
+^mtbl_dump^ ['-s'] ['-x'] 'FILE'
 
 == DESCRIPTION ==
 
 ^mtbl_dump^(1) prints all key-value entries from an MTBL file to stdout, in
-file order. Each entry is printed on its own line, with double quotes
+file order.
+
+By default, each entry is printed on its own line, with double quotes
 surrounding the key and the value, with a single space character separating
 the two. Unprintable characters and embedded double quote characters are
 escaped using the Python string literal syntax.
+
+With the ^-x^ option, each entry is printed on its own line, formatted
+as an 8 digit hex length, colon, the hex digit pairs separated by a
+dash, for each of the key and value.  Examples:
+
+[verse]
+^0000006:00-02-61-63-08-64 00000003:f2-e9-e4^
+^00000004:03-01-2d-00 00000000:^
+
+
 
 == OPTIONS ==
 
 ^-s^::
     Silent mode (don't output anything). Useful for benchmarking.
+
+^-x^::
+    Use hex mode output, described above.
