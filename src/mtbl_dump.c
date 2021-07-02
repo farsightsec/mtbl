@@ -22,6 +22,7 @@
 #include <mtbl.h>
 
 #include "libmy/print_string.h"
+#include "libmy/hex_decode.h"
 
 static void print_hex_string(const void *data, size_t len, FILE *out);
 
@@ -29,19 +30,21 @@ static void print_hex_string(const void *data, size_t len, FILE *out);
 static void print_hex_string(const void *data, size_t len, FILE *out)
 {
 	uint8_t *str = (uint8_t *) data;
-        assert(len < 4294967295);
-        fprintf(out, "%08x:", (unsigned int)len);
+	assert(len < 4294967295);
+	fprintf(out, "%08x:", (unsigned int)len);
 	while (len-- != 0) {
 		unsigned c = *(str++);
-                fprintf(out, "%02x", c);
-                if (len > 0)
-                        fputc('-', stdout);
+		fprintf(out, "%02x", c);
+		if (len > 0)
+			fputc('-', stdout);
 	}
 }
 
 
 static bool
-dump(const char *fname, const bool silent, bool hex)
+dump(const char *fname, const bool silent, bool hex,
+     const uint8_t *key_prefix, size_t key_prefix_len,
+     const uint8_t *val_prefix, size_t val_prefix_len)
 {
 	const uint8_t *key, *val;
 	size_t len_key, len_val;
@@ -56,19 +59,27 @@ dump(const char *fname, const bool silent, bool hex)
 
 	it = mtbl_source_iter(mtbl_reader_source(r));
 	while (mtbl_iter_next(it, &key, &len_key, &val, &len_val)) {
+		if (key_prefix != 0
+		    && (len_key < key_prefix_len
+			|| 0 != bcmp(key, key_prefix, key_prefix_len)))
+			continue;
+		if (val_prefix != 0
+		    && (len_val < val_prefix_len
+			|| 0 != bcmp(val, val_prefix, val_prefix_len)))
+			continue;
 		if (silent)
 			continue;
-                if (hex) {
-                        print_hex_string(key, len_key, stdout);
-                        fputc(' ', stdout);
-                        print_hex_string(val, len_val, stdout);
-                        fputc('\n', stdout);
-                } else {
-                        print_string(key, len_key, stdout);
-                        fputc(' ', stdout);
-                        print_string(val, len_val, stdout);
-                        fputc('\n', stdout);
-                }
+		if (hex) {
+			print_hex_string(key, len_key, stdout);
+			fputc(' ', stdout);
+			print_hex_string(val, len_val, stdout);
+			fputc('\n', stdout);
+		} else {
+			print_string(key, len_key, stdout);
+			fputc(' ', stdout);
+			print_string(val, len_val, stdout);
+			fputc('\n', stdout);
+		}
 	}
 	
 	mtbl_iter_destroy(&it);
@@ -80,7 +91,7 @@ dump(const char *fname, const bool silent, bool hex)
 static void
 usage(void)
 {
-	fprintf(stderr, "Usage: mtbl_dump [-s] <MTBL FILE>\n");
+	fprintf(stderr, "Usage: mtbl_dump [-s] [-x] [-k ABCD...] [-v ABCD...] <MTBL FILE>\n");
 	exit(EXIT_FAILURE);
 }
 
@@ -89,10 +100,15 @@ main(int argc, char **argv)
 {
 	char *fname;
 	bool silent = false;
-        bool hex = false;
+	bool hex = false;
+	uint8_t *key_prefix = NULL;
+	size_t key_prefix_len = 0;
+	uint8_t *val_prefix = NULL;
+	size_t val_prefix_len = 0;
 
 	int c;
-	while ((c = getopt(argc, argv, "sx")) != -1) {
+
+	while ((c = getopt(argc, argv, "sxk:v:")) != -1) {
 		switch (c) {
 		case 's':
 			silent = true;
@@ -100,15 +116,36 @@ main(int argc, char **argv)
 		case 'x':
 			hex = true;
 			break;
+		case 'k':
+			if (strlen(optarg) == 0) {
+				fprintf(stderr, "Need a non-empty argument to -k\n");
+				return (EXIT_FAILURE);
+			}
+			if (hex_decode(optarg, &key_prefix, &key_prefix_len) == false) {
+				fprintf(stderr, "hex decoding of %s failed\n", optarg);
+				return (EXIT_FAILURE);
+			}
+			break;
+		case 'v':
+			if (strlen(optarg) == 0) {
+				fprintf(stderr, "Need a non-empty argument to -v\n");
+				return (EXIT_FAILURE);
+			}
+			if (hex_decode(optarg, &val_prefix, &val_prefix_len) == false) {
+				fprintf(stderr, "hex decoding of %s failed\n", optarg);
+				return (EXIT_FAILURE);
+			}
+			break;
 		default:
 			usage();
 		}
 	}
+
 	if (optind >= argc)
 		usage();
 	fname = argv[optind];
 
-	if (!dump(fname, silent, hex))
+	if (!dump(fname, silent, hex, key_prefix, key_prefix_len, val_prefix, val_prefix_len))
 		return (EXIT_FAILURE);
 	return (EXIT_SUCCESS);
 }
