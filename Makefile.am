@@ -78,7 +78,7 @@ CLEANFILES += mtbl/libmtbl.pc
 #
 
 bin_PROGRAMS += src/mtbl_dump
-src_mtbl_dump_SOURCES = src/mtbl_dump.c libmy/print_string.h
+src_mtbl_dump_SOURCES = src/mtbl_dump.c libmy/print_string.h libmy/hex_decode.h
 src_mtbl_dump_LDADD = mtbl/libmtbl.la
 
 bin_PROGRAMS += src/mtbl_info

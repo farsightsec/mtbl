@@ -6,7 +6,7 @@ mtbl_dump - print key-value entries from an MTBL file
 
 == SYNOPSIS ==
 
-^mtbl_dump^ ['-s'] ['-x'] 'FILE'
+^mtbl_dump^ ['-s'] ['-x'] ['-k ABCD'] ['-v ABCD'] 'FILE'
 
 == DESCRIPTION ==
 
@@ -26,7 +26,12 @@ dash, for each of the key and value.  Examples:
 ^0000006:00-02-61-63-08-64 00000003:f2-e9-e4^
 ^00000004:03-01-2d-00 00000000:^
 
-
+The '-k' and '-v' options take as arguments a prefix as a hex-string
+with no embedded punctuation.  For example, ^-k "00ab"^ is legal, ^-v
+"00-ab"^ is illegal.  With the ^-k^ option, only entries whose key
+matches the prefix will be printed.  With the ^-v^ option, only
+entries whose value matches the prefix will be printed.  Both '-k^ and '-v'
+can be specified, and only entries that match both prefixes will be printed.
 
 == OPTIONS ==
 
@@ -35,3 +40,9 @@ dash, for each of the key and value.  Examples:
 
 ^-x^::
     Use hex mode output, described above.
+
+^-k^::
+    Match on a key prefix, described above.
+
+^-v^::
+    Match on a value prefix, described above.

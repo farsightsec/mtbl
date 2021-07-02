@@ -2,12 +2,12 @@
 .\"     Title: mtbl_dump
 .\"    Author: [FIXME: author] [see http://docbook.sf.net/el/author]
 .\" Generator: DocBook XSL Stylesheets v1.79.1 <http://docbook.sf.net/>
-.\"      Date: 06/04/2021
+.\"      Date: 07/02/2021
 .\"    Manual: \ \&
 .\"    Source: \ \&
 .\"  Language: English
 .\"
-.TH "MTBL_DUMP" "1" "06/04/2021" "\ \&" "\ \&"
+.TH "MTBL_DUMP" "1" "07/02/2021" "\ \&" "\ \&"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -31,7 +31,7 @@
 mtbl_dump \- print key\-value entries from an MTBL file
 .SH "SYNOPSIS"
 .sp
-\fBmtbl_dump\fR [\fI\-s\fR] [\fI\-x\fR] \fIFILE\fR
+\fBmtbl_dump\fR [\fI\-s\fR] [\fI\-x\fR] [\fI\-k ABCD\fR] [\fI\-v ABCD\fR] \fIFILE\fR
 .SH "DESCRIPTION"
 .sp
 \fBmtbl_dump\fR(1) prints all key\-value entries from an MTBL file to stdout, in file order\&.
@@ -50,6 +50,8 @@ With the \fB\-x\fR option, each entry is printed on its own line, formatted as a
 .if n \{\
 .RE
 .\}
+.sp
+The \fI\-k\fR and \fI\-v\fR options take as arguments a prefix as a hex\-string with no embedded punctuation\&. For example, \fB\-k "00ab"\fR is legal, \fB\-v "00\-ab"\fR is illegal\&. With the \fB\-k\fR option, only entries whose key matches the prefix will be printed\&. With the \fB\-v\fR option, only entries whose value matches the prefix will be printed\&. Both \fI\-k^ and \*(Aq\-v\fR can be specified, and only entries that match both prefixes will be printed\&.
 .SH "OPTIONS"
 .PP
 \fB\-s\fR
@@ -60,4 +62,14 @@ Silent mode (don\(cqt output anything)\&. Useful for benchmarking\&.
 \fB\-x\fR
 .RS 4
 Use hex mode output, described above\&.
+.RE
+.PP
+\fB\-k\fR
+.RS 4
+Match on a key prefix, described above\&.
+.RE
+.PP
+\fB\-v\fR
+.RS 4
+Match on a value prefix, described above\&.
 .RE
