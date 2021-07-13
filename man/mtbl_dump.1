@@ -2,12 +2,12 @@
 .\"     Title: mtbl_dump
 .\"    Author: [FIXME: author] [see http://docbook.sf.net/el/author]
 .\" Generator: DocBook XSL Stylesheets v1.79.1 <http://docbook.sf.net/>
-.\"      Date: 04/01/2019
+.\"      Date: 07/13/2021
 .\"    Manual: \ \&
 .\"    Source: \ \&
 .\"  Language: English
 .\"
-.TH "MTBL_DUMP" "1" "04/01/2019" "\ \&" "\ \&"
+.TH "MTBL_DUMP" "1" "07/13/2021" "\ \&" "\ \&"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -31,13 +31,59 @@
 mtbl_dump \- print key\-value entries from an MTBL file
 .SH "SYNOPSIS"
 .sp
-\fBmtbl_dump\fR [\fI\-s\fR] \fIFILE\fR
+\fBmtbl_dump\fR [\fI\-s\fR] [\fI\-x\fR] [\fI\-k ABCD\fR] [\fI\-v ABCD\fR] [\fI\-K #\fR] [\fI\-V #\fR] \fIFILE\fR
 .SH "DESCRIPTION"
 .sp
-\fBmtbl_dump\fR(1) prints all key\-value entries from an MTBL file to stdout, in file order\&. Each entry is printed on its own line, with double quotes surrounding the key and the value, with a single space character separating the two\&. Unprintable characters and embedded double quote characters are escaped using the Python string literal syntax\&.
+\fBmtbl_dump\fR(1) prints all key\-value entries from an MTBL file to stdout, in file order\&.
+.sp
+By default, each entry is printed on its own line, with double quotes surrounding the key and the value, with a single space character separating the two\&. Unprintable characters and embedded double quote characters are escaped using the Python string literal syntax\&.
+.sp
+With the \fB\-x\fR option, each entry is printed on its own line, formatted as an 8 digit hex length, colon, the hex digit pairs separated by a dash, for each of the key and value\&. Examples:
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+\fB0000006:00\-02\-61\-63\-08\-64 00000003:f2\-e9\-e4\fR
+\fB00000004:03\-01\-2d\-00 00000000:\fR
+.fi
+.if n \{\
+.RE
+.\}
+.sp
+The \fI\-k\fR and \fI\-v\fR options take as arguments a prefix as a hex\-string with no embedded punctuation\&. For example, \fB\-k "00ab"\fR is legal, \fB\-v "00\-ab"\fR is illegal\&. With the \fB\-k\fR option, only entries whose key matches the prefix will be printed\&. With the \fB\-v\fR option, only entries whose value matches the prefix will be printed\&.
+.sp
+The \fI\-K\fR AND \fI\-V\fR options take as arguments a positive integer which specifies the minimum length of the key or value, respectfully\&.
+.sp
+\fI\-k\fR, \fI\-v\fR, \fI\-K\fR, and \fI\-V\fR can all be specified, and only entries that match all will be printed\&.
 .SH "OPTIONS"
 .PP
 \fB\-s\fR
 .RS 4
 Silent mode (don\(cqt output anything)\&. Useful for benchmarking\&.
+.RE
+.PP
+\fB\-x\fR
+.RS 4
+Use hex mode output, described above\&.
+.RE
+.PP
+\fB\-k\fR
+.RS 4
+Match on a key prefix, described above\&.
+.RE
+.PP
+\fB\-v\fR
+.RS 4
+Match on a value prefix, described above\&.
+.RE
+.PP
+\fB\-K\fR
+.RS 4
+Match on a key prefix by minimal length, described above\&.
+.RE
+.PP
+\fB\-V\fR
+.RS 4
+Match on a value prefix by minimal length, described above\&.
 .RE
