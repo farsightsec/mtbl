@@ -94,7 +94,7 @@ dump(const char *fname, const bool silent, bool hex,
 static void
 usage(void)
 {
-	fprintf(stderr, "Usage: mtbl_dump [-s] [-x] [-k ABCD...] [-v ABCD...] <MTBL FILE>\n");
+	fprintf(stderr, "Usage: mtbl_dump [-s] [-x] [-k ABCD...] [-v ABCD...] [-K #] [-V #] <MTBL FILE>\n");
 	exit(EXIT_FAILURE);
 }
 
