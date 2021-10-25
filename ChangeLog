@@ -1,3 +1,17 @@
+mtbl (1.4.0)
+
+ * Add -l option to specify compression level for mtbl_merge.
+ * Add -x option to mtbl_dump to print data for the key and value each formatted
+   with the length (8 digit hexadecimal), a colon, and then hex digit pairs
+   separated by a dash.
+ * Minimum and maximum Zstd compression levels changed from hardcoded 1 and 22,
+   respectively, to values defined by Zstd.
+ * Add -k and -v options to mtbl_dump to print only entries for which the key or
+   value, respectively, matches the given prefix.
+ * Add -K and -V options to mbtl_dump to print only entries for which the length
+   of the key or value, respectively, is greater than or equal to the given
+   integer.
+
 mtbl (1.3.0)
 
  * Fix mtbl_reload_now() on filesets with open iterators.
