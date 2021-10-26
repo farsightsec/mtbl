@@ -1,13 +1,13 @@
 '\" t
 .\"     Title: mtbl_merge
 .\"    Author: [FIXME: author] [see http://docbook.sf.net/el/author]
-.\" Generator: DocBook XSL Stylesheets v1.78.1 <http://docbook.sf.net/>
-.\"      Date: 11/21/2016
+.\" Generator: DocBook XSL Stylesheets v1.79.1 <http://docbook.sf.net/>
+.\"      Date: 10/21/2021
 .\"    Manual: \ \&
 .\"    Source: \ \&
 .\"  Language: English
 .\"
-.TH "MTBL_MERGE" "1" "11/21/2016" "\ \&" "\ \&"
+.TH "MTBL_MERGE" "1" "10/21/2021" "\ \&" "\ \&"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -57,7 +57,7 @@ Command line tool:
 .nf
 \fBexport MTBL_MERGE_DSO="\fR\fB\fIlibexample\&.so\&.0\fR\fR\fB"\fR
 \fBexport MTBL_MERGE_FUNC_PREFIX="\fR\fB\fIexample_merge\fR\fR\fB"\fR
-\fBmtbl_merge\fR [\fB\-b\fR \fISIZE\fR] [\fB\-c\fR \fICOMPRESSION\fR] \fIINPUT\fR [\fIINPUT\fR]\&... \fIOUTPUT\fR
+\fBmtbl_merge\fR [\fB\-b\fR \fISIZE\fR] [\fB\-c\fR \fICOMPRESSION\fR] [\fB\-l\fR \fILEVEL\fR] \fIINPUT\fR [\fIINPUT\fR]\&... \fIOUTPUT\fR
 .fi
 .SH "DESCRIPTION"
 .sp
@@ -80,6 +80,11 @@ The uncompressed data block size hint for the output file, in bytes\&. The defau
 The compression algorithm to use for data blocks in the output file\&. The default value if unspecified is
 \fBzlib\fR\&. See the
 \fBmtbl_info\fR(1) manpage for the list of possible compression algorithms\&.
+.RE
+.PP
+\fB\-l\fR \fILEVEL\fR
+.RS 4
+The numeric compression level passed to the compression algorithm\&. The default value and valid range depend on the chosen compression algorithm\&.
 .RE
 .SH "SEE ALSO"
 .sp
