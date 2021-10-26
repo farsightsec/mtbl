@@ -1,6 +1,7 @@
 libmtbl.so.1 libmtbl1 #MINVER#
  LIBMTBL_1.0.0@LIBMTBL_1.0.0 1.0.0
  LIBMTBL_1.1.0@LIBMTBL_1.1.0 1.1.0
+ LIBMTBL_1.2.0@LIBMTBL_1.2.0 1.3.0
  mtbl_compress@LIBMTBL_1.0.0 1.0.0
  mtbl_compress_level@LIBMTBL_1.0.0 1.0.0
  mtbl_compression_type_from_str@LIBMTBL_1.0.0 1.0.0
@@ -8,9 +9,12 @@ libmtbl.so.1 libmtbl1 #MINVER#
  mtbl_crc32c@LIBMTBL_1.0.0 1.0.0
  mtbl_decompress@LIBMTBL_1.0.0 1.0.0
  mtbl_fileset_destroy@LIBMTBL_1.0.0 1.0.0
+ mtbl_fileset_dup@LIBMTBL_1.2.0 1.3.0
  mtbl_fileset_init@LIBMTBL_1.0.0 1.0.0
  mtbl_fileset_options_destroy@LIBMTBL_1.0.0 1.0.0
  mtbl_fileset_options_init@LIBMTBL_1.0.0 1.0.0
+ mtbl_fileset_options_set_dupsort_func@LIBMTBL_1.2.0 1.3.0
+ mtbl_fileset_options_set_filename_filter_func@LIBMTBL_1.2.0 1.3.0
  mtbl_fileset_options_set_merge_func@LIBMTBL_1.0.0 1.0.0
  mtbl_fileset_options_set_reload_interval@LIBMTBL_1.0.0 1.0.0
  mtbl_fileset_partition@LIBMTBL_1.1.0 1.1.0
@@ -30,6 +34,7 @@ libmtbl.so.1 libmtbl1 #MINVER#
  mtbl_merger_init@LIBMTBL_1.0.0 1.0.0
  mtbl_merger_options_destroy@LIBMTBL_1.0.0 1.0.0
  mtbl_merger_options_init@LIBMTBL_1.0.0 1.0.0
+ mtbl_merger_options_set_dupsort_func@LIBMTBL_1.2.0 1.3.0
  mtbl_merger_options_set_merge_func@LIBMTBL_1.0.0 1.0.0
  mtbl_merger_source@LIBMTBL_1.0.0 1.0.0
  mtbl_metadata_bytes_data_blocks@LIBMTBL_1.0.0 1.0.0
