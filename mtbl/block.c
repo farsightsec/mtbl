@@ -275,7 +275,7 @@ block_iter_seek(struct block_iter *bi, const uint8_t *target, size_t target_len)
 			left = mid;
 		} else {
 			/* key at "mid" is larger than "target", therefore all
-			 * keys at or before "mid" are uninteresting
+			 * keys at or after "mid" are uninteresting
 			 */
 			right = mid - 1;
 		}
