@@ -98,3 +98,8 @@ global:
         mtbl_fileset_options_set_dupsort_func;
         mtbl_fileset_dup;
 } LIBMTBL_1.1.0;
+
+LIBMTBL_1.4.0 {
+global:
+        mtbl_fileset_options_set_reader_filter_func;
+} LIBMTBL_1.2.0;
