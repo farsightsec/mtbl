@@ -21,13 +21,15 @@ struct mtbl_iter {
 	mtbl_iter_next_func	iter_next;
 	mtbl_iter_free_func	iter_free;
 	void			*clos;
+	bool			use_gallop;
 };
 
 struct mtbl_iter *
 mtbl_iter_init(mtbl_iter_seek_func iter_seek,
 	       mtbl_iter_next_func iter_next,
 	       mtbl_iter_free_func iter_free,
-	       void *clos)
+	       void *clos,
+		   bool use_gallop)
 {
 	assert(iter_seek != NULL);
 	assert(iter_next != NULL);
@@ -36,6 +38,7 @@ mtbl_iter_init(mtbl_iter_seek_func iter_seek,
 	it->iter_next = iter_next;
 	it->iter_free = iter_free;
 	it->clos = clos;
+	it->use_gallop = use_gallop;
 	return (it);
 }
 
@@ -56,7 +59,7 @@ mtbl_iter_seek(struct mtbl_iter *it,
 {
 	if (it == NULL)
 		return (mtbl_res_failure);
-	return (it->iter_seek(it->clos, key, len_key));
+	return (it->iter_seek(it->clos, key, len_key, it->use_gallop));
 }
 
 mtbl_res

@@ -40,6 +40,7 @@ struct reader_iter {
 struct mtbl_reader_options {
 	bool				verify_checksums;
 	bool				madvise_random;
+	bool				use_gallop;
 };
 
 struct mtbl_reader {
@@ -55,7 +56,7 @@ static void
 reader_init_madvise(struct mtbl_reader *);
 
 static mtbl_res
-reader_iter_seek(void *, const uint8_t *, size_t);
+reader_iter_seek(void *, const uint8_t *, size_t, bool);
 
 static mtbl_res
 reader_iter_next(void *, const uint8_t **, size_t *, const uint8_t **, size_t *);
@@ -102,6 +103,13 @@ mtbl_reader_options_set_verify_checksums(struct mtbl_reader_options *opt,
 					 bool verify_checksums)
 {
 	opt->verify_checksums = verify_checksums;
+}
+
+void
+mtbl_reader_options_set_block_search(struct mtbl_reader_options *opt,
+					 bool use_gallop)
+{
+	opt->use_gallop = use_gallop;
 }
 
 const struct mtbl_metadata *
@@ -330,7 +338,7 @@ reader_iter(void *clos)
 	it->first = true;
 	it->valid = true;
 	it->it_type = READER_ITER_TYPE_ITER;
-	return (mtbl_iter_init(reader_iter_seek, reader_iter_next, reader_iter_free, it));
+	return (mtbl_iter_init(reader_iter_seek, reader_iter_next, reader_iter_free, it, r->opt.use_gallop));
 }
 
 static struct reader_iter *
@@ -341,7 +349,12 @@ reader_iter_init(struct mtbl_reader *r, const uint8_t *key, size_t len_key)
 	it->r = r;
 	it->index_iter = block_iter_init(r->index);
 
-	block_iter_seek(it->index_iter, key, len_key);
+	if (r->opt.use_gallop) {
+		block_iter_seek_gallop(it->index_iter, key, len_key);
+	} else {
+		block_iter_seek(it->index_iter, key, len_key);
+	}
+	
 	it->b = get_block_at_index(r, it->index_iter);
 	if (it->b == NULL) {
 		block_iter_destroy(&it->index_iter);
@@ -351,7 +364,11 @@ reader_iter_init(struct mtbl_reader *r, const uint8_t *key, size_t len_key)
 	}
 
 	it->bi = block_iter_init(it->b);
-	block_iter_seek(it->bi, key, len_key);
+	if (r->opt.use_gallop) {
+		block_iter_seek_gallop(it->bi, key, len_key);
+	} else {
+		block_iter_seek(it->bi, key, len_key);
+	}
 
 	it->first = true;
 	it->valid = true;
@@ -368,7 +385,7 @@ reader_get(void *clos, const uint8_t *key, size_t len_key)
 	it->k = ubuf_init(len_key);
 	ubuf_append(it->k, key, len_key);
 	it->it_type = READER_ITER_TYPE_GET;
-	return (mtbl_iter_init(reader_iter_seek, reader_iter_next, reader_iter_free, it));
+	return (mtbl_iter_init(reader_iter_seek, reader_iter_next, reader_iter_free, it, r->opt.use_gallop));
 }
 
 static struct mtbl_iter *
@@ -381,7 +398,7 @@ reader_get_prefix(void *clos, const uint8_t *key, size_t len_key)
 	it->k = ubuf_init(len_key);
 	ubuf_append(it->k, key, len_key);
 	it->it_type = READER_ITER_TYPE_GET_PREFIX;
-	return (mtbl_iter_init(reader_iter_seek, reader_iter_next, reader_iter_free, it));
+	return (mtbl_iter_init(reader_iter_seek, reader_iter_next, reader_iter_free, it, r->opt.use_gallop));
 }
 
 static struct mtbl_iter *
@@ -396,7 +413,7 @@ reader_get_range(void *clos,
 	it->k = ubuf_init(len_key1);
 	ubuf_append(it->k, key1, len_key1);
 	it->it_type = READER_ITER_TYPE_GET_RANGE;
-	return (mtbl_iter_init(reader_iter_seek, reader_iter_next, reader_iter_free, it));
+	return (mtbl_iter_init(reader_iter_seek, reader_iter_next, reader_iter_free, it, r->opt.use_gallop));
 }
 
 static void
@@ -414,7 +431,7 @@ reader_iter_free(void *v)
 
 static mtbl_res
 reader_iter_seek(void *v,
-	       const uint8_t *key, size_t len_key)
+	       const uint8_t *key, size_t len_key, bool use_gallop)
 {
 	struct reader_iter *it = (struct reader_iter *) v;
 	
@@ -422,7 +439,12 @@ reader_iter_seek(void *v,
 	size_t len_ikey, len_ival;
 	uint64_t new_offset;
 
-	block_iter_seek(it->index_iter, key, len_key);
+	if (use_gallop) {
+		block_iter_seek_gallop(it->index_iter, key, len_key);
+	} else {
+		block_iter_seek(it->index_iter, key, len_key);
+	}
+	
 
 	if (!block_iter_get(it->index_iter, &ikey, &len_ikey, &ival, &len_ival)) {
 		/* This seek puts us after the last key, so we mark the
@@ -449,7 +471,11 @@ reader_iter_seek(void *v,
 		it->bi = block_iter_init(it->b);
 	}
 
-	block_iter_seek(it->bi, key, len_key);
+	if (use_gallop) {
+		block_iter_seek_gallop(it->bi, key, len_key);
+	} else {
+		block_iter_seek(it->bi, key, len_key);
+	}
 
 	it->first = true;
 	it->valid = true;

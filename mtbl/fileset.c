@@ -60,7 +60,7 @@ struct fileset_iter {
 };
 
 static mtbl_res
-fileset_iter_seek(void *v, const uint8_t *key, size_t len)
+fileset_iter_seek(void *v, const uint8_t *key, size_t len, bool use_gallop)
 {
 	struct fileset_iter *it = (struct fileset_iter *)v;
 	return mtbl_iter_seek(it->iter, key, len);
@@ -97,7 +97,7 @@ fileset_iter_init(struct mtbl_fileset *f, struct mtbl_iter *mit)
 	return mtbl_iter_init(fileset_iter_seek,
 				fileset_iter_next,
 				fileset_iter_free,
-				it);
+				it, false);
 }
 
 

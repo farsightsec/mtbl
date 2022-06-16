@@ -249,15 +249,106 @@ block_iter_seek_to_last(struct block_iter *bi)
 	}
 }
 
+static bool
+check_next(struct block_iter *bi, const uint32_t i, const uint8_t *target, size_t target_len) {
+	uint32_t shared, non_shared, value_length;
+	uint64_t region_offset = get_restart_point(bi, i);
+	const uint8_t *key_ptr = decode_entry(bi->data + region_offset,
+						      bi->data + bi->restarts,
+						      &shared, &non_shared, &value_length);
+	assert(key_ptr != NULL && shared == 0);
+	return (bytes_compare(key_ptr, non_shared, target, target_len) < 0);
+}
+
+
+void 
+block_iter_seek_gallop(struct block_iter *bi, const uint8_t *target, size_t target_len)
+{
+	printf("With gallop block iter seek\n");
+	uint32_t shared, non_shared, value_length;
+	uint64_t region_offset;
+	uint8_t *key_ptr;
+
+	uint32_t i = 0;
+	region_offset = get_restart_point(bi, i);
+	key_ptr = decode_entry(bi->data + region_offset,
+						      bi->data + bi->restarts,
+						      &shared, &non_shared, &value_length);
+	if (key_ptr == NULL || (shared != 0)) {
+		/* corruption */
+		return;
+	}
+	if (bytes_compare((const uint8_t *)key_ptr, non_shared,
+				       target, target_len) == 0)
+	{
+		seek_to_restart_point(bi, i);
+		parse_next_key(bi);
+		return;
+	}
+
+	i = 1;
+	while(i < bi->num_restarts && check_next(bi, i, target, target_len)) {
+		i *= 2;
+	}
+
+	/* binary search in restart array to find the first restart point
+	 * with a key >= target
+	 */
+	uint32_t left = i/2;
+	uint32_t right = (i < bi->num_restarts - 1 ? i: bi->num_restarts - 1);
+	printf("Left is %d | Right is %d\n", left, right);
+	int counter = 0;
+	while (left < right) {
+		counter++;
+		uint32_t mid = (left + right + 1) / 2;
+		region_offset = get_restart_point(bi, mid);
+		key_ptr = decode_entry(bi->data + region_offset,
+						      bi->data + bi->restarts,
+						      &shared, &non_shared, &value_length);
+		if (key_ptr == NULL || (shared != 0)) {
+			/* corruption */
+			return;
+		}
+		if (bytes_compare((const uint8_t *)key_ptr, non_shared, target, target_len) < 0) {
+			/* key at "mid" is smaller than "target", therefore all
+			 * keys before "mid" are uninteresting
+			 */
+			left = mid;
+		} else {
+			/* key at "mid" is larger than "target", therefore all
+			 * keys at or after "mid" are uninteresting
+			 */
+			right = mid - 1;
+		}
+	}
+	printf("Number of binary search loops: %d. Left is: %d\n", counter, left);
+
+	/* linear search within restart block for first key >= target */
+	seek_to_restart_point(bi, left);
+	for (;;) {
+		if (!parse_next_key(bi))
+			return;
+		if (bytes_compare(ubuf_data(bi->key), ubuf_size(bi->key),
+				       target, target_len) >= 0)
+		{
+			return;
+		}
+	}
+}
+
 void 
 block_iter_seek(struct block_iter *bi, const uint8_t *target, size_t target_len)
 {
+	printf("block iter seek\n");
 	/* binary search in restart array to find the first restart point
 	 * with a key >= target
 	 */
 	uint32_t left = 0;
 	uint32_t right = bi->num_restarts - 1;
+	printf("Left is %d | Right is %d\n", left, right);
+	int counter = 0;
 	while (left < right) {
+		counter++;
 		uint32_t mid = (left + right + 1) / 2;
 		uint64_t region_offset = get_restart_point(bi, mid);
 		uint32_t shared, non_shared, value_length;
@@ -280,6 +371,7 @@ block_iter_seek(struct block_iter *bi, const uint8_t *target, size_t target_len)
 			right = mid - 1;
 		}
 	}
+	printf("Number of binary search loops: %d. Left is: %d\n", counter, left);
 
 	/* linear search within restart block for first key >= target */
 	seek_to_restart_point(bi, left);

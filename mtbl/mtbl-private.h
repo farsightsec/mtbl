@@ -73,6 +73,7 @@ void block_iter_destroy(struct block_iter **);
 bool block_iter_valid(const struct block_iter *);
 void block_iter_seek_to_first(struct block_iter *);
 void block_iter_seek_to_last(struct block_iter *);
+void block_iter_seek_gallop(struct block_iter *, const uint8_t *key, size_t key_len);
 void block_iter_seek(struct block_iter *, const uint8_t *key, size_t key_len);
 bool block_iter_next(struct block_iter *);
 void block_iter_prev(struct block_iter *);
@@ -109,7 +110,7 @@ mtbl_res _mtbl_decompress_zstd	(const uint8_t *, const size_t, uint8_t **, size_
 /* iter */
 
 struct mtbl_iter *
-mtbl_iter_init(mtbl_iter_seek_func, mtbl_iter_next_func, mtbl_iter_free_func, void *clos);
+mtbl_iter_init(mtbl_iter_seek_func, mtbl_iter_next_func, mtbl_iter_free_func, void *clos, bool);
 
 /* metadata */
 

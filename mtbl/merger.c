@@ -194,7 +194,7 @@ entry_fill(struct entry *ent)
 
 static mtbl_res
 merger_iter_seek(void *v,
-		 const uint8_t *key, size_t len_key)
+		 const uint8_t *key, size_t len_key, bool use_gallop)
 {
 	struct merger_iter *it = (struct merger_iter *) v;
 	mtbl_res res;
@@ -371,7 +371,7 @@ merger_iter(void *clos)
 		iter_vec_add(it->iters, s_it);
 		merger_iter_add_entry(it, s_it);
 	}
-	return (mtbl_iter_init(merger_iter_seek, merger_iter_next, merger_iter_free, it));
+	return (mtbl_iter_init(merger_iter_seek, merger_iter_next, merger_iter_free, it, false));
 }
 
 static struct mtbl_iter *
@@ -391,7 +391,7 @@ merger_get(void *clos, const uint8_t *key, size_t len_key)
 		merger_iter_free(it);
 		return (NULL);
 	}
-	return (mtbl_iter_init(merger_iter_seek, merger_iter_next, merger_iter_free, it));
+	return (mtbl_iter_init(merger_iter_seek, merger_iter_next, merger_iter_free, it, false));
 }
 
 static struct mtbl_iter *
@@ -413,7 +413,7 @@ merger_get_range(void *clos,
 		merger_iter_free(it);
 		return (NULL);
 	}
-	return (mtbl_iter_init(merger_iter_seek, merger_iter_next, merger_iter_free, it));
+	return (mtbl_iter_init(merger_iter_seek, merger_iter_next, merger_iter_free, it, false));
 }
 
 static struct mtbl_iter *
@@ -434,5 +434,5 @@ merger_get_prefix(void *clos,
 		merger_iter_free(it);
 		return (NULL);
 	}
-	return (mtbl_iter_init(merger_iter_seek, merger_iter_next, merger_iter_free, it));
+	return (mtbl_iter_init(merger_iter_seek, merger_iter_next, merger_iter_free, it, false));
 }
