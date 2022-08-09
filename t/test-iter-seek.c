@@ -137,6 +137,43 @@ test2(FILE *tmp, int32_t num_keys, int32_t jump) {
 	return 0;
 }
 
+
+static int
+test3(FILE *tmp, int32_t num_keys) {
+	struct mtbl_reader_options *reader_options = mtbl_reader_options_init();
+	mtbl_reader_options_set_block_search(reader_options, true);
+
+	struct mtbl_reader *reader = mtbl_reader_init_fd(dup(fileno(tmp)),
+		reader_options);
+	mtbl_reader_options_destroy(&reader_options);
+
+	const struct mtbl_source *source = mtbl_reader_source(reader);
+
+	struct mtbl_iter *iter = mtbl_source_iter(source);
+
+	int32_t last_number = num_keys - 1;
+
+	for (int32_t i = 0; i < num_keys; i++) {
+		/* Test by seeking to the ith number and then the very end of the
+		 * data */
+		if(seek_and_check(iter, i, last_number) != 0) {
+			return 1;
+		};
+	}
+
+	for (int32_t i = last_number; i > 0; i--) {
+		/* Test by seeking to the ith number and then the very start of the
+		 * data */
+		if(seek_and_check(iter, i, 0) != 0) {
+			return 1;
+		};
+	}
+
+	mtbl_iter_destroy(&iter);
+	mtbl_reader_destroy(&reader);
+	return 0;
+}
+
 static int
 check(int ret, const char *s)
 {
@@ -163,7 +200,7 @@ int main(int argc, char ** argv) {
 	fclose(tmp);
 	fclose(tmp2);
 
-	/* Make a larget tmp mtbl so we have larger restart arrays */
+	/* Make a larger tmp mtbl so we have larger restart arrays */
 	int32_t test_2_num_keys = NUM_KEYS * 100;
 	FILE *tmp3 = tmpfile();
 	assert(tmp3 != NULL);
@@ -189,8 +226,15 @@ int main(int argc, char ** argv) {
 	snprintf(test2_label, TEST2_LABEL_LEN, TEST2_LABEL_FMT, RESTART_INTERVAL * 3);
 	ret |= check(test2(tmp3, test_2_num_keys, RESTART_INTERVAL * 3),
 		test2_label);
-
 	fclose(tmp3);
+
+	FILE *tmp4 = tmpfile();
+	assert(tmp4 != NULL);
+	/* Make a mtbl with a restart interval of 1 so that every key will be in
+	 *the restart array */
+	init_mtbl(dup(fileno(tmp4)), NUM_KEYS, DEFAULT_BLOCK_SIZE, 1);
+	ret |= check(test3(tmp4, NUM_KEYS), "test 3");
+	fclose(tmp4);
 
 	if (ret)
 		return (EXIT_FAILURE);
