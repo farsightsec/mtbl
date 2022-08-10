@@ -26,7 +26,7 @@ init_mtbl(int fd, uint32_t num_keys, size_t block_size,
 static int
 seek_and_check(struct mtbl_iter *, int32_t initial, int32_t target);
 
-static void
+static int
 test_iter(struct mtbl_iter *);
 
 static void
@@ -36,7 +36,7 @@ my_merge_func(void *clos,
         const uint8_t *val1, size_t len_val1,
         uint8_t **merged_val, size_t *len_merged_val);
 
-static void
+static int
 test1(FILE *tmp, FILE *tmp2) {
 	struct mtbl_reader_options *reader_options = mtbl_reader_options_init();
 	assert(reader_options != NULL);
@@ -51,7 +51,9 @@ test1(FILE *tmp, FILE *tmp2) {
 	struct mtbl_iter *iter = mtbl_source_iter(source);
 	assert(iter != NULL);
 
-	test_iter(iter);
+	if (test_iter(iter) != 0) {
+		return 1;
+	}
 	fprintf(stderr, NAME ": PASS: iter run successful\n");
 
 	mtbl_iter_destroy(&iter);
@@ -72,7 +74,9 @@ test1(FILE *tmp, FILE *tmp2) {
 	struct mtbl_iter *merger_iter = mtbl_source_iter(merger_source);
 	assert(merger_iter != NULL);
 
-	test_iter(merger_iter);
+	if(test_iter(merger_iter) != 0) {
+		return 1;
+	}
 	fprintf(stderr, NAME ": PASS: merger run 1 successful\n");
 
 	mtbl_iter_destroy(&merger_iter);
@@ -85,7 +89,9 @@ test1(FILE *tmp, FILE *tmp2) {
 	merger_iter = mtbl_source_iter(merger_source);
 	assert(merger_iter != NULL);
 
-	test_iter(merger_iter);
+	if(test_iter(merger_iter) != 0) {
+		return 1;
+	}
 	fprintf(stderr, NAME ": PASS: merger run 2 successful\n");
 
 	mtbl_iter_destroy(&merger_iter);
@@ -95,6 +101,7 @@ test1(FILE *tmp, FILE *tmp2) {
 	mtbl_reader_destroy(&reader);
 	mtbl_reader_destroy(&reader2);
 	mtbl_reader_options_destroy(&reader_options);
+	return 0;
 }
 
 static int
@@ -196,7 +203,7 @@ int main(int argc, char ** argv) {
 	init_mtbl(dup(fileno(tmp2)), NUM_KEYS, 1024, 
 		DEFAULT_BLOCK_RESTART_INTERVAL);
 
-	test1(tmp, tmp2);
+	ret |= check(test1(tmp, tmp2), "test 1");
 	fclose(tmp);
 	fclose(tmp2);
 
@@ -279,7 +286,7 @@ seek_and_check(struct mtbl_iter *iter, int32_t initial, int32_t target) {
 	return 0;
 }
 
-static void
+static int
 test_iter(struct mtbl_iter *iter)
 {
 	/* Iterate completely through the mtbl */
@@ -290,9 +297,13 @@ test_iter(struct mtbl_iter *iter)
 		const uint8_t *key, *value;
 		size_t len_key, len_value;
 
-		assert(mtbl_iter_next(iter, &key, &len_key, &value, &len_value) == mtbl_res_success);
+		if(mtbl_iter_next(iter, &key, &len_key, &value, &len_value) != mtbl_res_success) {
+			return 1;
+		}
 		
-		assert(bytes_compare(ubuf_data(expected_key), ubuf_size(expected_key), key, len_key) == 0);
+		if(bytes_compare(ubuf_data(expected_key), ubuf_size(expected_key), key, len_key) != 0) {
+			return 1;
+		}
 
 		ubuf_destroy(&expected_key);
 	}
@@ -302,7 +313,9 @@ test_iter(struct mtbl_iter *iter)
 		const uint8_t *key, *value;
 		size_t len_key, len_value;
 
-		assert(mtbl_iter_next(iter, &key, &len_key, &value, &len_value) == mtbl_res_failure);
+		if(mtbl_iter_next(iter, &key, &len_key, &value, &len_value) != mtbl_res_failure) {
+			return 1;
+		}
 	}
 
 	/* Seek to a key, ensure that we get the one we want and that we go
@@ -314,20 +327,28 @@ test_iter(struct mtbl_iter *iter)
 		const uint8_t *key, *value;
 		size_t len_key, len_value;
 
-		assert(mtbl_iter_seek(iter, ubuf_data(seek_key), ubuf_size(seek_key)) == mtbl_res_success);
+		if(mtbl_iter_seek(iter, ubuf_data(seek_key), ubuf_size(seek_key)) != mtbl_res_success) {
+			return 1;
+		}
 		
 		for (uint32_t j = i; j < NUM_KEYS; j++) {
 			ubuf *expected_key = ubuf_init(1);
 			ubuf_add_fmt(expected_key, KEY_FMT, j);
 
-			assert(mtbl_iter_next(iter, &key, &len_key, &value, &len_value) == mtbl_res_success);
+			if(mtbl_iter_next(iter, &key, &len_key, &value, &len_value) != mtbl_res_success) {
+				return 1;
+			}
 			
-			assert(bytes_compare(ubuf_data(expected_key), ubuf_size(expected_key), key, len_key) == 0);
+			if(bytes_compare(ubuf_data(expected_key), ubuf_size(expected_key), key, len_key) != 0) {
+				return 1;
+			}
 
 			ubuf_destroy(&expected_key);
 		}
 
-		assert(mtbl_iter_next(iter, &key, &len_key, &value, &len_value) == mtbl_res_failure);
+		if(mtbl_iter_next(iter, &key, &len_key, &value, &len_value) != mtbl_res_failure) {
+			return 1;
+		}
 
 		ubuf_destroy(&seek_key);
 	}
@@ -338,8 +359,13 @@ test_iter(struct mtbl_iter *iter)
 	size_t len_key, len_value;
 
 	ubuf_add_fmt(seek_key, KEY_FMT, NUM_KEYS + 1);
-	assert(mtbl_iter_seek(iter, ubuf_data(seek_key), ubuf_size(seek_key)) == mtbl_res_success);
-	assert(mtbl_iter_next(iter, &key, &len_key, &value, &len_value) == mtbl_res_failure);
+	if(mtbl_iter_seek(iter, ubuf_data(seek_key), ubuf_size(seek_key)) != mtbl_res_success) {
+		return 1;
+	}
+	if(mtbl_iter_next(iter, &key, &len_key, &value, &len_value) != mtbl_res_failure) {
+		return 1;
+	}
+	return 0;
 }
 
 static void
