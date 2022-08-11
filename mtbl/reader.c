@@ -435,7 +435,7 @@ reader_iter_seek(void *v,
 
 	mtbl_varint_decode64(ival, &new_offset);
 
-	/* Decode a new block if our new key is not within the
+	/* We can skip decoding a new block if our new key is within the
 	 * currently-decoded block. */
 	if (it->b == NULL || it->block_offset != new_offset) {
 		block_destroy(&it->b);
