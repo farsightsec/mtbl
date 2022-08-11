@@ -256,20 +256,29 @@ block_iter_seek(struct block_iter *bi, const uint8_t *target, size_t target_len)
 	uint64_t region_offset;
 	uint8_t *key_ptr;
 
-	/* binary search in restart array to find the first restart point
-	 * with a key >= target
+	/* 
+	 * If the restart_index is not zero and not equal to the number of
+	 * restarts, then begin with galloping search in the restart array to find
+	 * the first restart point with a key >= target, otherwise just do binary
+	 * search
 	 */
 	uint32_t left;
 	bool gallop = false;
 	if (bi->num_restarts != bi->restart_index && bi->restart_index != 0) {
+		/* Start galloping from the current restart index */
 		left = bi->restart_index;
 		gallop = true;
 	} else {
+		/* Start binary search from the start of the restart array */
 		left = 0;
 	}
 	uint32_t right = bi->num_restarts - 1;
 
 	while (left < right || gallop) {
+		/* 
+		 * If we are galloping, check left. Otherwise calculate mid using the
+		 * normal formula for binary search
+		 */
 		uint32_t mid = (gallop ? left : (left + right + 1) / 2);
 
 		region_offset = get_restart_point(bi, mid);
@@ -281,23 +290,45 @@ block_iter_seek(struct block_iter *bi, const uint8_t *target, size_t target_len)
 			return;
 		}
 
-		int cmp = bytes_compare((const uint8_t *)key_ptr, non_shared, target, target_len);
+		int cmp = bytes_compare((const uint8_t *)key_ptr, non_shared, target,
+			target_len);
 		if (cmp < 0) {
 			if (gallop) {
+				/* 
+				 * The key we are looking for is still past the current value
+				 * of left
+				 */
 				if (left * 2 >= right) {
+					/* 
+					 * But doubling left moves us past the end of restart array
+					 * so we stop galloping and just binary search from here
+					 */
 					gallop = false;
 				} else {
+					/* Double the value of left and gallop again */
 					left *= 2;
 				}
 			} else {
 				left = mid;
 			}
 		} else if (cmp == 0) {
+			/* 
+			 * The key at this restart point is what we are looking for so we
+			 * break from the loop 
+			 */
 			left = mid;
 			break;
 		} else {
 			if (gallop) {
+				/* 
+				 * We galloped too far. The key we are looking for is now
+				 * before the current value of left. So we reset left back to
+				 * its value before the last doubling. But check if we
+				 * doubled at least once. If we did not double even once,
+				 * just set left to 0.
+				 */
 				left = (mid >= (bi->restart_index * 2) ? mid/2 : 0);
+				/* Binary search from here */
 				gallop = false;
 			}
 			right = mid - 1;
