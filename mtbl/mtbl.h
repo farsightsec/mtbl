@@ -122,7 +122,7 @@ typedef bool
 typedef mtbl_res
 (*mtbl_iter_seek_func)(
 	void *,
-	const uint8_t *key, size_t len_key, bool use_gallop);
+	const uint8_t *key, size_t len_key);
 
 typedef mtbl_res
 (*mtbl_iter_next_func)(
@@ -275,9 +275,6 @@ mtbl_reader_options_set_madvise_random(struct mtbl_reader_options *, bool);
 
 void
 mtbl_reader_options_set_verify_checksums(struct mtbl_reader_options *, bool);
-
-void
-mtbl_reader_options_set_block_search(struct mtbl_reader_options *, bool);
 
 /* metadata */
 

@@ -93,10 +93,6 @@ bin_PROGRAMS += src/mtbl_merge
 src_mtbl_merge_SOURCES = src/mtbl_merge.c libmy/getenv_int.h
 src_mtbl_merge_LDADD = mtbl/libmtbl.la
 
-bin_PROGRAMS += src/bench_seek
-src_bench_seek_SOURCES = src/bench_seek.c
-src_bench_seek_LDADD = mtbl/libmtbl.la
-
 #
 ##
 ### tests

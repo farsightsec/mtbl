@@ -40,7 +40,6 @@ static int
 test1(FILE *tmp, FILE *tmp2) {
 	struct mtbl_reader_options *reader_options = mtbl_reader_options_init();
 	assert(reader_options != NULL);
-	mtbl_reader_options_set_block_search(reader_options, true);
 
 	struct mtbl_reader *reader = mtbl_reader_init_fd(dup(fileno(tmp)), reader_options);
 	assert(reader != NULL);
@@ -107,7 +106,6 @@ test1(FILE *tmp, FILE *tmp2) {
 static int
 test2(FILE *tmp, int32_t num_keys, int32_t jump) {
 	struct mtbl_reader_options *reader_options = mtbl_reader_options_init();
-	mtbl_reader_options_set_block_search(reader_options, true);
 
 	struct mtbl_reader *reader = mtbl_reader_init_fd(dup(fileno(tmp)),
 		reader_options);
@@ -148,7 +146,6 @@ test2(FILE *tmp, int32_t num_keys, int32_t jump) {
 static int
 test3(FILE *tmp, int32_t num_keys) {
 	struct mtbl_reader_options *reader_options = mtbl_reader_options_init();
-	mtbl_reader_options_set_block_search(reader_options, true);
 
 	struct mtbl_reader *reader = mtbl_reader_init_fd(dup(fileno(tmp)),
 		reader_options);

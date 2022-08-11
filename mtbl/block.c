@@ -250,7 +250,7 @@ block_iter_seek_to_last(struct block_iter *bi)
 }
 
 void
-block_iter_seek_gallop(struct block_iter *bi, const uint8_t *target, size_t target_len)
+block_iter_seek(struct block_iter *bi, const uint8_t *target, size_t target_len)
 {
 	uint32_t shared, non_shared, value_length;
 	uint64_t region_offset;
@@ -300,51 +300,6 @@ block_iter_seek_gallop(struct block_iter *bi, const uint8_t *target, size_t targ
 				left = (mid >= (bi->restart_index * 2) ? mid/2 : 0);
 				gallop = false;
 			}
-			right = mid - 1;
-		}
-	}
-
-	/* linear search within restart block for first key >= target */
-	seek_to_restart_point(bi, left);
-	for (;;) {
-		if (!parse_next_key(bi))
-			return;
-		if (bytes_compare(ubuf_data(bi->key), ubuf_size(bi->key),
-				       target, target_len) >= 0)
-		{
-			return;
-		}
-	}
-}
-
-void
-block_iter_seek(struct block_iter *bi, const uint8_t *target, size_t target_len)
-{
-	/* binary search in restart array to find the first restart point
-	 * with a key >= target
-	 */
-	uint32_t left = 0;
-	uint32_t right = bi->num_restarts - 1;
-	while (left < right) {
-		uint32_t mid = (left + right + 1) / 2;
-		uint64_t region_offset = get_restart_point(bi, mid);
-		uint32_t shared, non_shared, value_length;
-		const uint8_t *key_ptr = decode_entry(bi->data + region_offset,
-						      bi->data + bi->restarts,
-						      &shared, &non_shared, &value_length);
-		if (key_ptr == NULL || (shared != 0)) {
-			/* corruption */
-			return;
-		}
-		if (bytes_compare(key_ptr, non_shared, target, target_len) < 0) {
-			/* key at "mid" is smaller than "target", therefore all
-			 * keys before "mid" are uninteresting
-			 */
-			left = mid;
-		} else {
-			/* key at "mid" is larger than "target", therefore all
-			 * keys at or after "mid" are uninteresting
-			 */
 			right = mid - 1;
 		}
 	}
