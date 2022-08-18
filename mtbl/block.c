@@ -260,17 +260,14 @@ block_iter_seek(struct block_iter *bi, const uint8_t *target, size_t target_len)
 	 * If the restart_index is not zero and not equal to the number of
 	 * restarts, then begin with galloping search in the restart array to find
 	 * the first restart point with a key >= target, otherwise just do binary
-	 * search
+	 * search from the start of the restart array
 	 */
-	uint32_t left;
+	uint32_t left = 0;
 	bool gallop = false;
 	if (bi->num_restarts != bi->restart_index && bi->restart_index != 0) {
 		/* Start galloping from the current restart index */
 		left = bi->restart_index;
 		gallop = true;
-	} else {
-		/* Start binary search from the start of the restart array */
-		left = 0;
 	}
 	uint32_t right = bi->num_restarts - 1;
 
@@ -305,7 +302,7 @@ block_iter_seek(struct block_iter *bi, const uint8_t *target, size_t target_len)
 					 */
 					gallop = false;
 				} else {
-					/* Double the value of left and gallop again */
+					/* Gallop again */
 					left *= 2;
 				}
 			} else {
@@ -314,7 +311,7 @@ block_iter_seek(struct block_iter *bi, const uint8_t *target, size_t target_len)
 		} else if (cmp == 0) {
 			/* 
 			 * The key at this restart point is what we are looking for so we
-			 * break from the loop 
+			 * break from the loop
 			 */
 			left = mid;
 			break;
@@ -327,7 +324,11 @@ block_iter_seek(struct block_iter *bi, const uint8_t *target, size_t target_len)
 				 * doubled at least once. If we did not double even once,
 				 * just set left to 0.
 				 */
-				left = (mid >= (bi->restart_index * 2) ? mid/2 : 0);
+				if (mid >= (bi->restart_index * 2)) {
+					left = mid/2;
+				} else {
+					left = 0;
+				}
 				/* Binary search from here */
 				gallop = false;
 			}
