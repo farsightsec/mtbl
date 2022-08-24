@@ -249,89 +249,63 @@ block_iter_seek_to_last(struct block_iter *bi)
 	}
 }
 
+static int
+compare_restart_point(struct block_iter *bi, const uint32_t i, const uint8_t *target, size_t target_len) {
+	uint32_t shared, non_shared, value_length;
+	uint64_t region_offset = get_restart_point(bi, i);
+	const uint8_t *key_ptr = decode_entry(bi->data + region_offset,
+						      bi->data + bi->restarts,
+						      &shared, &non_shared, &value_length);
+	/* check for corruption */
+	assert(key_ptr != NULL && shared == 0);
+	return bytes_compare(key_ptr, non_shared, target, target_len);
+}
+
 void
 block_iter_seek(struct block_iter *bi, const uint8_t *target, size_t target_len)
 {
-	uint32_t shared, non_shared, value_length;
-	uint64_t region_offset;
-	uint8_t *key_ptr;
-
 	/* 
 	 * If the restart_index is not zero and not equal to the number of
 	 * restarts, then begin with galloping search in the restart array to find
 	 * the first restart point with a key >= target, otherwise just do binary
 	 * search from the start of the restart array
 	 */
+	uint32_t i = 0;
 	uint32_t left = 0;
-	bool gallop = false;
+	uint32_t right = bi->num_restarts - 1;
 	if (bi->num_restarts != bi->restart_index && bi->restart_index != 0) {
 		/* Start galloping from the current restart index */
-		left = bi->restart_index;
-		gallop = true;
-	}
-	uint32_t right = bi->num_restarts - 1;
-
-	while (left < right || gallop) {
-		/* 
-		 * If we are galloping, check left. Otherwise calculate mid using the
-		 * normal formula for binary search
-		 */
-		uint32_t mid = (gallop ? left : (left + right + 1) / 2);
-
-		region_offset = get_restart_point(bi, mid);
-		key_ptr = decode_entry(bi->data + region_offset,
-						      bi->data + bi->restarts,
-						      &shared, &non_shared, &value_length);
-		if (key_ptr == NULL || (shared != 0)) {
-			/* corruption */
-			return;
+		i = bi->restart_index;
+		while (i < bi->num_restarts && (compare_restart_point(bi, i, target, target_len) < 0)) {
+			i *= 2;
 		}
 
-		int cmp = bytes_compare((const uint8_t *)key_ptr, non_shared, target,
-			target_len);
-		if (cmp < 0) {
-			if (gallop) {
-				/* 
-				 * The key we are looking for is still past the current value
-				 * of left
-				 */
-				if (left * 2 >= right) {
-					/* 
-					 * But doubling left moves us past the end of restart array
-					 * so we stop galloping and just binary search from here
-					 */
-					gallop = false;
-				} else {
-					/* Gallop again */
-					left *= 2;
-				}
-			} else {
-				left = mid;
-			}
-		} else if (cmp == 0) {
-			/* 
-			 * The key at this restart point is what we are looking for so we
-			 * break from the loop
+		/*
+		 * If we doubled at least once, reset left back to its value before the
+		 * last doubling. If we did not double even once, then left will
+		 * remain at 0.
+		 */
+		if (i >= (bi->restart_index * 2)) {
+			left = i/2;
+		}
+
+		if (i < right ) {
+			right = i;
+		}
+	}
+
+	/* binary search */
+	while (left < right) {
+		uint32_t mid = (left + right + 1) / 2;
+		if (compare_restart_point(bi, mid, target, target_len) < 0) {
+			/* key at "mid" is smaller than "target", therefore all
+			 * keys before "mid" are uninteresting
 			 */
 			left = mid;
-			break;
 		} else {
-			if (gallop) {
-				/* 
-				 * We galloped too far. The key we are looking for is now
-				 * before the current value of left. So we reset left back to
-				 * its value before the last doubling. But check if we
-				 * doubled at least once. If we did not double even once,
-				 * just set left to 0.
-				 */
-				if (mid >= (bi->restart_index * 2)) {
-					left = mid/2;
-				} else {
-					left = 0;
-				}
-				/* Binary search from here */
-				gallop = false;
-			}
+			/* key at "mid" is larger than "target", therefore all
+			 * keys at or after "mid" are uninteresting
+			 */
 			right = mid - 1;
 		}
 	}
