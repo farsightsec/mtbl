@@ -158,19 +158,23 @@ test3(FILE *tmp, int32_t num_keys) {
 	int32_t last_number = num_keys - 1;
 
 	for (int32_t i = 0; i < num_keys; i++) {
-		/* Test by seeking to the ith number and then the very end of the
-		 * data */
-		if (seek_and_check(iter, i, last_number) != 0) {
-			return 1;
-		};
+		/* Test by seeking to the ith number and then to each key ahead
+		 * of it until the very end of the data */
+		for (int32_t j = i; j < num_keys; j++) {
+			if (seek_and_check(iter, i, j) != 0) {
+				return 1;
+			};
+		}
 	}
 
 	for (int32_t i = last_number; i > 0; i--) {
-		/* Test by seeking to the ith number and then the very start of the
-		 * data */
-		if (seek_and_check(iter, i, 0) != 0) {
-			return 1;
-		};
+		/* Test by seeking to the ith number and then to each key before it
+		 * until the very start of the data */
+		for (int32_t j = i; j >= 0; j--) {
+			if (seek_and_check(iter, i, j) != 0) {
+				return 1;
+			};
+		}
 	}
 
 	mtbl_iter_destroy(&iter);
@@ -362,6 +366,7 @@ test_iter(struct mtbl_iter *iter)
 	if (mtbl_iter_next(iter, &key, &len_key, &value, &len_value) != mtbl_res_failure) {
 		return 1;
 	}
+	ubuf_destroy(&seek_key);
 	return 0;
 }
 
