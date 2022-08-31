@@ -270,27 +270,23 @@ block_iter_seek(struct block_iter *bi, const uint8_t *target, size_t target_len)
 	 * the first restart point with a key >= target, otherwise just do binary
 	 * search from the start of the restart array
 	 */
-	uint32_t i = 0;
 	uint32_t left = 0;
 	uint32_t right = bi->num_restarts - 1;
 	if (bi->num_restarts != bi->restart_index && bi->restart_index != 0) {
 		/* Start galloping from the current restart index */
-		i = bi->restart_index;
-		while (i < bi->num_restarts && (compare_restart_point(bi, i, target, target_len) < 0)) {
-			i *= 2;
-		}
-
-		/*
-		 * If we doubled at least once, reset left back to its value before the
-		 * last doubling. If we did not double even once, then left will
-		 * remain at 0.
-		 */
-		if (i >= (bi->restart_index * 2)) {
-			left = i/2;
-		}
-
-		if (i < right ) {
+		uint32_t i = bi->restart_index;
+		right = i;
+		uint32_t incr = 1;
+		while (compare_restart_point(bi, i, target, target_len) < 0) {
+			left = i;
+			i += incr;
+			/* Stop galloping if i is past the end of the restart array */
+			if (i > bi->num_restarts - 1) {
+				right = bi->num_restarts - 1;
+				break;
+			}
 			right = i;
+			incr *= 2;
 		}
 	}
 
