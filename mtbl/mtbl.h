@@ -115,7 +115,7 @@ typedef bool
 (*mtbl_filename_filter_func)(const char *fname, void *clos);
 
 typedef bool
-(*mtbl_reader_filter_func)(const struct mtbl_reader *reader, void *clos);
+(*mtbl_reader_filter_func)(struct mtbl_reader *reader, void *clos);
 
 /* iter */
 
