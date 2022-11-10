@@ -143,7 +143,6 @@ mtbl_reader_init_fd(int fd, const struct mtbl_reader_options *opt)
 	size_t metadata_offset;
 
 	size_t index_len, index_len_len;
-	uint32_t index_crc;
 	uint8_t *index_data;
 
 	int ret = fstat(fd, &ss);
@@ -195,9 +194,13 @@ mtbl_reader_init_fd(int fd, const struct mtbl_reader_options *opt)
 			return NULL;
 		}
 	}
-	index_crc = mtbl_fixed_decode32(r->data + r->m.index_block_offset + index_len_len);
 	index_data = r->data + r->m.index_block_offset + index_len_len + sizeof(uint32_t);
-	assert(index_crc == mtbl_crc32c(index_data, index_len));
+	if (r->opt.verify_checksums) {
+		uint32_t index_crc, calc_crc;
+		index_crc = mtbl_fixed_decode32(r->data + r->m.index_block_offset + index_len_len);
+		calc_crc = mtbl_crc32c(index_data, index_len);
+		assert(index_crc == calc_crc);
+	}
 	r->index = block_init(index_data, index_len, false);
 	r->source = mtbl_source_init(reader_iter,
 				     reader_get,
