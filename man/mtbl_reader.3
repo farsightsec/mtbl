@@ -2,12 +2,12 @@
 .\"     Title: mtbl_reader
 .\"    Author: [FIXME: author] [see http://docbook.sf.net/el/author]
 .\" Generator: DocBook XSL Stylesheets v1.79.1 <http://docbook.sf.net/>
-.\"      Date: 11/10/2022
+.\"      Date: 11/14/2022
 .\"    Manual: \ \&
 .\"    Source: \ \&
 .\"  Language: English
 .\"
-.TH "MTBL_READER" "3" "11/10/2022" "\ \&" "\ \&"
+.TH "MTBL_READER" "3" "11/14/2022" "\ \&" "\ \&"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -104,7 +104,7 @@ File\-level metadata may be accessed using the \fBmtbl_metadata\fR(3) interface,
 \fBverify_checksums\fR
 .RS 4
 .sp
-Specifies whether or not the CRC32C checksum on the index block and each data block should be verified or not\&. If \fIverify_checksums\fR is enabled, a checksum mismatch will cause a runtime error\&. The default is to not verify index or data block checksums\&.
+Specifies whether or not the CRC32C checksum on the index block and each data block should be verified or not\&. If \fIverify_checksums\fR is enabled, a checksum mismatch will cause a fatal runtime error\&. The default is to not verify index or data block checksums\&.
 .RE
 .sp
 .it 1 an-trap

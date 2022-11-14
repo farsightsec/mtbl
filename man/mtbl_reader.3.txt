@@ -78,7 +78,7 @@ metadata object is valid only as long as the reader object exists.
 
 Specifies whether or not the CRC32C checksum on the index block and each
 data block should be verified or not. If _verify_checksums_ is enabled, a
-checksum mismatch will cause a runtime error. The default is to not verify
+checksum mismatch will cause a fatal runtime error. The default is to not verify
 index or data block checksums.
 
 ==== madvise_random ====
