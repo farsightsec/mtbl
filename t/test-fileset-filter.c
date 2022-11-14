@@ -17,7 +17,7 @@ filename_filter(const char *fn, void *clos) {
 }
 
 static bool
-reader_filter(const struct mtbl_reader *r, void *clos) {
+reader_filter(struct mtbl_reader *r, void *clos) {
 	const struct mtbl_source *s;
 	struct mtbl_iter *it;
 	const uint8_t *key, *val;
