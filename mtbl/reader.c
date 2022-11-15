@@ -168,14 +168,20 @@ mtbl_reader_init_fd(int fd, const struct mtbl_reader_options *opt)
 	}
 
 	/**
-	 * Sanitize the index block offset.
-	 * We calculate the maximum possible index block offset for this file to
-	 * be the total size of the file (r->len_data) minus the length of the
-	 * metadata block (MTBL_METADATA_SIZE) minus the length of the minimum
-	 * sized block, which requires 4 fixed-length 32-bit integers (16 bytes).
+	 * Verify that the index block offset leaves room for the metadata block
+	 * and a block of the minimum length, which differs between the mtbl format
+	 * V1 and V2. A minimal V2 block requires three fixed-length 32-bit integers
+	 * and a varint length (1 byte) for a size of 13 bytes. V1 used a fixed-length
+	 * 32-bit integer length, making the minimum length 16.
 	 */
-	const uint64_t max_index_block_offset = r->len_data - MTBL_METADATA_SIZE - 16;
-	if (r->m.index_block_offset > max_index_block_offset) {
+	uint64_t end, min_block_length = 13;
+
+	if (r->m.file_version == MTBL_FORMAT_V1)
+		min_block_length = 16;
+
+	end = r->m.index_block_offset + MTBL_METADATA_SIZE + min_block_length;
+	if ((end > r->len_data) ||		/* offset too large */
+	    (end < r->m.index_block_offset)) {  /* offset causes overflow */
 		mtbl_reader_destroy(&r);
 		return (NULL);
 	}
