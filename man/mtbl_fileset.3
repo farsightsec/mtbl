@@ -2,12 +2,12 @@
 .\"     Title: mtbl_fileset
 .\"    Author: [FIXME: author] [see http://docbook.sf.net/el/author]
 .\" Generator: DocBook XSL Stylesheets v1.79.1 <http://docbook.sf.net/>
-.\"      Date: 03/27/2019
+.\"      Date: 11/28/2022
 .\"    Manual: \ \&
 .\"    Source: \ \&
 .\"  Language: English
 .\"
-.TH "MTBL_FILESET" "3" "03/27/2019" "\ \&" "\ \&"
+.TH "MTBL_FILESET" "3" "11/28/2022" "\ \&" "\ \&"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -112,6 +112,14 @@ mtbl_fileset_options_set_filename_filter_func(
 .sp
 .nf
 \fBvoid
+mtbl_fileset_options_set_reader_filter_func(
+        struct mtbl_fileset_options *\fR\fB\fIfopt\fR\fR\fB,
+        mtbl_reader_filter_func \fR\fB\fIfp\fR\fR\fB,
+        void *\fR\fB\fIclos\fR\fR\fB);\fR
+.fi
+.sp
+.nf
+\fBvoid
 mtbl_fileset_options_set_reload_interval(
         struct mtbl_fileset_options *\fR\fB\fIfopt\fR\fR\fB,
         uint32_t \fR\fB\fIreload_interval\fR\fR\fB);\fR
@@ -168,6 +176,17 @@ See \fBmtbl_merger\fR(3)\&. Used to sort the entries with duplicate keys during 
 .RS 4
 .sp
 Used to filter specific files by name from a fileset\&. If the function returns \fBfalse\fR, the file\(cqs data will not be included in the results returned by any iterators on the fileset\&.
+.RE
+.sp
+.it 1 an-trap
+.nr an-no-space-flag 1
+.nr an-break-flag 1
+.br
+.ps +1
+\fBreader_filter_func\fR
+.RS 4
+.sp
+Used to filter specific readers from a fileset\&. If the function returns \fBfalse\fR, the reader\(cqs data will not be included in the results returned by any iterators on the fileset\&.
 .RE
 .sp
 .it 1 an-trap

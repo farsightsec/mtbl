@@ -75,6 +75,13 @@ mtbl_fileset_options_set_filename_filter_func(
 
 [verse]
 ^void
+mtbl_fileset_options_set_reader_filter_func(
+        struct mtbl_fileset_options *'fopt',
+        mtbl_reader_filter_func 'fp',
+        void *'clos');^
+
+[verse]
+^void
 mtbl_fileset_options_set_reload_interval(
         struct mtbl_fileset_options *'fopt',
         uint32_t 'reload_interval');^
@@ -148,6 +155,10 @@ See ^mtbl_merger^(3). Used to sort the entries with duplicate keys during the me
 
 ==== fname_filter_func ====
 Used to filter specific files by name from a fileset. If the function returns ^false^, the file's data
+will not be included in the results returned by any iterators on the fileset.
+
+==== reader_filter_func ====
+Used to filter specific readers from a fileset. If the function returns ^false^, the reader's data
 will not be included in the results returned by any iterators on the fileset.
 
 ==== reload_interval ====
