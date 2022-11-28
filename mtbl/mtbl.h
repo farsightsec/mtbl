@@ -367,6 +367,7 @@ mtbl_fileset_reload_now(struct mtbl_fileset *);
 const struct mtbl_source *
 mtbl_fileset_source(struct mtbl_fileset *);
 
+/* Deprecated: use mtbl_fileset_dup instead. */
 void
 mtbl_fileset_partition(struct mtbl_fileset *,
 		mtbl_filename_filter_func,
