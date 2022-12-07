@@ -1,3 +1,13 @@
+mtbl (1.5.0)
+
+ * Add reader filter function option to mtbl_fileset.
+ * Use "galloping search" instead of full binary search for mtbl_iter_seek().
+ * Make index block verification optional for more efficient reader
+   initialization.
+ * Fix underflow errors triggered by short keys and empty mtbl files.
+ * mtbl_fileset_partition() use is deprecated in favor of
+   mtbl_fileset_dup() with the fname_filter_func option set.
+
 mtbl (1.4.0)
 
  * Add -l option to specify compression level for mtbl_merge.
