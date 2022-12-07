@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, 2014-2015 by Farsight Security, Inc.
+ * Copyright (c) 2012, 2014-2017, 2021 by Farsight Security, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -242,14 +242,20 @@ _mtbl_compress_zstd(
 {
 	size_t zstd_size;
 	char *zstd_bytes;
+	int minlevel;
+#if ZSTD_VERSION_NUMBER >= 10400
+	minlevel = ZSTD_minCLevel();
+#else
+	minlevel = 1;
+#endif
 
 	if (input_size > INT_MAX)
 		return (mtbl_res_failure);
 
-	if (compression_level < 1)
-		compression_level = 1;
-	else if (compression_level > 22 /* ZSTD_MAX_CLEVEL */)
-		compression_level = 22;
+	if (compression_level < minlevel)
+		compression_level = minlevel;
+	else if (compression_level > ZSTD_maxCLevel())
+		compression_level = ZSTD_maxCLevel();
 
 	zstd_size = ZSTD_compressBound(input_size);
 	if (zstd_size < INT_MAX/2) {

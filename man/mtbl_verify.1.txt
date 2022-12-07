@@ -18,4 +18,5 @@ indicating whether each file passed or failed will be printed to stdout. If
 a file fails, additional information about the failure will be printed to
 stderr.
 
-If stdout is a terminal, periodic progress indications will be printed.
+If stdout is a terminal or the ^-p^ option is provided, periodic progress
+indications will be printed.

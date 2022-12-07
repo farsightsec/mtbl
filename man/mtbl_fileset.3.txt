@@ -15,6 +15,10 @@ Fileset objects:
 mtbl_fileset_init(const char *'fname', const struct mtbl_fileset_options *'fopt');^
 
 [verse]
+^struct mtbl_fileset *
+mtbl_fileset_dup(struct mtbl_fileset *'orig', const struct mtbl_fileset_options *'fopt');^
+
+[verse]
 ^void
 mtbl_fileset_destroy(struct mtbl_fileset **'f');^
 
@@ -57,6 +61,20 @@ mtbl_fileset_options_set_merge_func(
 
 [verse]
 ^void
+mtbl_fileset_options_set_dupsort_func(
+        struct mtbl_fileset_options *'fopt',
+        mtbl_dupsort_func 'fp',
+        void *'clos');^
+
+[verse]
+^void
+mtbl_fileset_options_set_filename_filter_func(
+        struct mtbl_fileset_options *'fopt',
+        mtbl_filename_filter_func 'fp',
+        void *'clos');^
+
+[verse]
+^void
 mtbl_fileset_options_set_reload_interval(
         struct mtbl_fileset_options *'fopt',
         uint32_t 'reload_interval');^
@@ -67,12 +85,22 @@ The ^mtbl_fileset^ is a convenience interface for automatically maintaining a
 merged view of a set of MTBL data files. The merged entries may be consumed via
 the ^mtbl_source^(3) and ^mtbl_iter^(3) interfaces.
 
-^mtbl_fileset^ objects are initialized from a "setfile", which specifies a list
-of filenames of MTBL data files, one per line. Internally, an ^mtbl_reader^
-object is initialized from each filename and added to an ^mtbl_merger^ object.
-The setfile is watched for changes and the addition or removal of filenames
-from the setfile will result in the corresponding addition or removal of
-^mtbl_reader^ objects.
+^mtbl_fileset^ objects are initialized from a "setfile", which
+specifies a list of filenames of MTBL data files, one per line.  For
+each filename, if it is not an absolute path, then the directory name
+of the fileset file's pathname is prepended to it.  Examples: If the
+setfile path is "/export/dnstable/mtbl/dns.fileset", and a line in it
+is of the form "dns.2017.Y.mtbl" then ^dnstable^ will try to open
+"/export/dnstable/mtbl/dns.2017.Y.mtbl".  If the setfile path is
+"/export/dnstable/mtbl/dns.fileset", and a line in it is of the form
+"/tmp/dns.2017.Y.mtbl" then ^dnstable^ will try to open
+"/tmp/dns.2017.Y.mtbl".
+
+Internally, an ^mtbl_reader^ object is initialized from each filename
+and added to an ^mtbl_merger^ object.  The setfile is watched for
+changes and the addition or removal of filenames from the setfile will
+result in the corresponding addition or removal of ^mtbl_reader^
+objects.
 
 Because the MTBL format does not allow duplicate keys, the caller must provide a
 function which will accept a key and two conflicting values for that key and
@@ -85,6 +113,10 @@ which requires the path to a "setfile", _fname_, and a non-NULL _fopt_ argument
 which has been configured with a merge function _fp_. ^mtbl_fileset_source^()
 should then be called in order to consume output via the ^mtbl_source^(3)
 interface.
+
+The ^mtbl_fileset_dup^() function, which requires a ^mtbl_fileset^ object
+and a non-NULL ^opt^ argument, creates a duplicate ^mtbl_fileset^ object
+that shares the underlying fileset, but with different fileset options, as specified.
 
 Accesses via the ^mtbl_source^(3) interface will implicitly check for updates
 to the setfile. However, it may be necessary to explicitly call the
@@ -110,6 +142,13 @@ mergers in an inconsistent state.
 ==== merge_func ====
 See ^mtbl_merger^(3). An ^mtbl_merger^ object is used internally for the
 external sort.
+
+==== dupsort_func ====
+See ^mtbl_merger^(3). Used to sort the entries with duplicate keys during the merge process based on their data.
+
+==== fname_filter_func ====
+Used to filter specific files by name from a fileset. If the function returns ^false^, the file's data
+will not be included in the results returned by any iterators on the fileset.
 
 ==== reload_interval ====
 Specifies the interval between checks for updates to the setfile, in seconds.

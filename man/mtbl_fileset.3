@@ -2,12 +2,12 @@
 .\"     Title: mtbl_fileset
 .\"    Author: [FIXME: author] [see http://docbook.sf.net/el/author]
 .\" Generator: DocBook XSL Stylesheets v1.79.1 <http://docbook.sf.net/>
-.\"      Date: 05/22/2018
+.\"      Date: 03/27/2019
 .\"    Manual: \ \&
 .\"    Source: \ \&
 .\"  Language: English
 .\"
-.TH "MTBL_FILESET" "3" "05/22/2018" "\ \&" "\ \&"
+.TH "MTBL_FILESET" "3" "03/27/2019" "\ \&" "\ \&"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -38,6 +38,11 @@ Fileset objects:
 .nf
 \fBstruct mtbl_fileset *
 mtbl_fileset_init(const char *\fR\fB\fIfname\fR\fR\fB, const struct mtbl_fileset_options *\fR\fB\fIfopt\fR\fR\fB);\fR
+.fi
+.sp
+.nf
+\fBstruct mtbl_fileset *
+mtbl_fileset_dup(struct mtbl_fileset *\fR\fB\fIorig\fR\fR\fB, const struct mtbl_fileset_options *\fR\fB\fIfopt\fR\fR\fB);\fR
 .fi
 .sp
 .nf
@@ -91,6 +96,22 @@ mtbl_fileset_options_set_merge_func(
 .sp
 .nf
 \fBvoid
+mtbl_fileset_options_set_dupsort_func(
+        struct mtbl_fileset_options *\fR\fB\fIfopt\fR\fR\fB,
+        mtbl_dupsort_func \fR\fB\fIfp\fR\fR\fB,
+        void *\fR\fB\fIclos\fR\fR\fB);\fR
+.fi
+.sp
+.nf
+\fBvoid
+mtbl_fileset_options_set_filename_filter_func(
+        struct mtbl_fileset_options *\fR\fB\fIfopt\fR\fR\fB,
+        mtbl_filename_filter_func \fR\fB\fIfp\fR\fR\fB,
+        void *\fR\fB\fIclos\fR\fR\fB);\fR
+.fi
+.sp
+.nf
+\fBvoid
 mtbl_fileset_options_set_reload_interval(
         struct mtbl_fileset_options *\fR\fB\fIfopt\fR\fR\fB,
         uint32_t \fR\fB\fIreload_interval\fR\fR\fB);\fR
@@ -99,11 +120,15 @@ mtbl_fileset_options_set_reload_interval(
 .sp
 The \fBmtbl_fileset\fR is a convenience interface for automatically maintaining a merged view of a set of MTBL data files\&. The merged entries may be consumed via the \fBmtbl_source\fR(3) and \fBmtbl_iter\fR(3) interfaces\&.
 .sp
-\fBmtbl_fileset\fR objects are initialized from a "setfile", which specifies a list of filenames of MTBL data files, one per line\&. Internally, an \fBmtbl_reader\fR object is initialized from each filename and added to an \fBmtbl_merger\fR object\&. The setfile is watched for changes and the addition or removal of filenames from the setfile will result in the corresponding addition or removal of \fBmtbl_reader\fR objects\&.
+\fBmtbl_fileset\fR objects are initialized from a "setfile", which specifies a list of filenames of MTBL data files, one per line\&. For each filename, if it is not an absolute path, then the directory name of the fileset file\(cqs pathname is prepended to it\&. Examples: If the setfile path is "/export/dnstable/mtbl/dns\&.fileset", and a line in it is of the form "dns\&.2017\&.Y\&.mtbl" then \fBdnstable\fR will try to open "/export/dnstable/mtbl/dns\&.2017\&.Y\&.mtbl"\&. If the setfile path is "/export/dnstable/mtbl/dns\&.fileset", and a line in it is of the form "/tmp/dns\&.2017\&.Y\&.mtbl" then \fBdnstable\fR will try to open "/tmp/dns\&.2017\&.Y\&.mtbl"\&.
+.sp
+Internally, an \fBmtbl_reader\fR object is initialized from each filename and added to an \fBmtbl_merger\fR object\&. The setfile is watched for changes and the addition or removal of filenames from the setfile will result in the corresponding addition or removal of \fBmtbl_reader\fR objects\&.
 .sp
 Because the MTBL format does not allow duplicate keys, the caller must provide a function which will accept a key and two conflicting values for that key and return a replacement value\&. This function may be called multiple times for the same key if the same key is inserted more than twice\&. See \fBmtbl_merger\fR(3) for further details about the merge function\&.
 .sp
 \fBmtbl_fileset\fR objects are created with the \fBmtbl_fileset_init\fR() function, which requires the path to a "setfile", \fIfname\fR, and a non\-NULL \fIfopt\fR argument which has been configured with a merge function \fIfp\fR\&. \fBmtbl_fileset_source\fR() should then be called in order to consume output via the \fBmtbl_source\fR(3) interface\&.
+.sp
+The \fBmtbl_fileset_dup\fR() function, which requires a \fBmtbl_fileset\fR object and a non\-NULL \fBopt\fR argument, creates a duplicate \fBmtbl_fileset\fR object that shares the underlying fileset, but with different fileset options, as specified\&.
 .sp
 Accesses via the \fBmtbl_source\fR(3) interface will implicitly check for updates to the setfile\&. However, it may be necessary to explicitly call the \fBmtbl_fileset_reload\fR() function in order to check for updates, especially if files are being removed from the setfile and the \fBmtbl_source\fR is infrequently accessed\&.
 .sp
@@ -121,6 +146,28 @@ The \fBmtbl_fileset_partition\fR() function yields two \fBstruct mtbl_merger\fR 
 .RS 4
 .sp
 See \fBmtbl_merger\fR(3)\&. An \fBmtbl_merger\fR object is used internally for the external sort\&.
+.RE
+.sp
+.it 1 an-trap
+.nr an-no-space-flag 1
+.nr an-break-flag 1
+.br
+.ps +1
+\fBdupsort_func\fR
+.RS 4
+.sp
+See \fBmtbl_merger\fR(3)\&. Used to sort the entries with duplicate keys during the merge process based on their data\&.
+.RE
+.sp
+.it 1 an-trap
+.nr an-no-space-flag 1
+.nr an-break-flag 1
+.br
+.ps +1
+\fBfname_filter_func\fR
+.RS 4
+.sp
+Used to filter specific files by name from a fileset\&. If the function returns \fBfalse\fR, the file\(cqs data will not be included in the results returned by any iterators on the fileset\&.
 .RE
 .sp
 .it 1 an-trap

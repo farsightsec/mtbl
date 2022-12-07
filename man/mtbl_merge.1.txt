@@ -29,7 +29,7 @@ Command line tool:
 [verse]
 ^export MTBL_MERGE_DSO="'libexample.so.0'"^
 ^export MTBL_MERGE_FUNC_PREFIX="'example_merge'"^
-^mtbl_merge^ [^-b^ 'SIZE'] [^-c^ 'COMPRESSION'] 'INPUT' ['INPUT']... 'OUTPUT'
+^mtbl_merge^ [^-b^ 'SIZE'] [^-c^ 'COMPRESSION'] [^-l^ 'LEVEL'] 'INPUT' ['INPUT']... 'OUTPUT'
 
 == DESCRIPTION ==
 
@@ -66,6 +66,10 @@ to configure the MTBL block size (in bytes) of the output file.
     The compression algorithm to use for data blocks in the output file. The
     default value if unspecified is ^zlib^. See the ^mtbl_info^(1) manpage for
     the list of possible compression algorithms.
+
+^-l^ 'LEVEL'::
+    The numeric compression level passed to the compression algorithm. The
+    default value and valid range depend on the chosen compression algorithm.
 
 == SEE ALSO ==
 
