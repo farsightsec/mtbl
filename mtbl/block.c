@@ -249,33 +249,58 @@ block_iter_seek_to_last(struct block_iter *bi)
 	}
 }
 
-void 
+static int
+compare_restart_point(struct block_iter *bi, const uint32_t i, const uint8_t *target, size_t target_len) {
+	uint32_t shared, non_shared, value_length;
+	uint64_t region_offset = get_restart_point(bi, i);
+	const uint8_t *key_ptr = decode_entry(bi->data + region_offset,
+						      bi->data + bi->restarts,
+						      &shared, &non_shared, &value_length);
+	/* check for corruption */
+	assert(key_ptr != NULL && shared == 0);
+	return bytes_compare(key_ptr, non_shared, target, target_len);
+}
+
+void
 block_iter_seek(struct block_iter *bi, const uint8_t *target, size_t target_len)
 {
-	/* binary search in restart array to find the first restart point
-	 * with a key >= target
+	/* 
+	 * If the restart_index is not zero and not equal to the number of
+	 * restarts, then begin with galloping search in the restart array to find
+	 * the first restart point with a key >= target, otherwise just do binary
+	 * search from the start of the restart array
 	 */
 	uint32_t left = 0;
 	uint32_t right = bi->num_restarts - 1;
+	if (bi->num_restarts != bi->restart_index && bi->restart_index != 0) {
+		/* Start galloping from the current restart index */
+		uint32_t i = bi->restart_index;
+		right = i;
+		uint32_t incr = 1;
+		while (compare_restart_point(bi, i, target, target_len) < 0) {
+			left = i;
+			i += incr;
+			/* Stop galloping if i is past the end of the restart array */
+			if (i > bi->num_restarts - 1) {
+				right = bi->num_restarts - 1;
+				break;
+			}
+			right = i;
+			incr *= 2;
+		}
+	}
+
+	/* binary search */
 	while (left < right) {
 		uint32_t mid = (left + right + 1) / 2;
-		uint64_t region_offset = get_restart_point(bi, mid);
-		uint32_t shared, non_shared, value_length;
-		const uint8_t *key_ptr = decode_entry(bi->data + region_offset,
-						      bi->data + bi->restarts,
-						      &shared, &non_shared, &value_length);
-		if (key_ptr == NULL || (shared != 0)) {
-			/* corruption */
-			return;
-		}
-		if (bytes_compare(key_ptr, non_shared, target, target_len) < 0) {
+		if (compare_restart_point(bi, mid, target, target_len) < 0) {
 			/* key at "mid" is smaller than "target", therefore all
 			 * keys before "mid" are uninteresting
 			 */
 			left = mid;
 		} else {
 			/* key at "mid" is larger than "target", therefore all
-			 * keys at or before "mid" are uninteresting
+			 * keys at or after "mid" are uninteresting
 			 */
 			right = mid - 1;
 		}
