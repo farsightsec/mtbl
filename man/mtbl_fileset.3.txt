@@ -75,6 +75,13 @@ mtbl_fileset_options_set_filename_filter_func(
 
 [verse]
 ^void
+mtbl_fileset_options_set_reader_filter_func(
+        struct mtbl_fileset_options *'fopt',
+        mtbl_reader_filter_func 'fp',
+        void *'clos');^
+
+[verse]
+^void
 mtbl_fileset_options_set_reload_interval(
         struct mtbl_fileset_options *'fopt',
         uint32_t 'reload_interval');^
@@ -134,8 +141,11 @@ The ^mtbl_fileset_partition^() function yields two ^struct mtbl_merger^
 objects that are split based on the output of a callback. The caller is
 responsible for calling ^mtbl_merger_destroy^() on each of these mergers.
 Calls to ^mtbl_source_*^() on the fileset's source object, and calls to
-^mtbl_fileset_reload^() and ^mtbl_fileset_reload_now^() may leave these
-mergers in an inconsistent state.
+^mtbl_fileset_reload^() and ^mtbl_fileset_reload_now^(), including those
+implicitly performed by operations on the fileset source, may leave these
+mergers in an inconsistent state. For this reason, ^mtbl_fileset_partition^()
+use is deprecated in favor of ^mtbl_fileset_dup^() with the ^fname_filter_func^
+option set.
 
 === Fileset options ===
 
@@ -148,6 +158,10 @@ See ^mtbl_merger^(3). Used to sort the entries with duplicate keys during the me
 
 ==== fname_filter_func ====
 Used to filter specific files by name from a fileset. If the function returns ^false^, the file's data
+will not be included in the results returned by any iterators on the fileset.
+
+==== reader_filter_func ====
+Used to filter specific readers from a fileset. If the function returns ^false^, the reader's data
 will not be included in the results returned by any iterators on the fileset.
 
 ==== reload_interval ====

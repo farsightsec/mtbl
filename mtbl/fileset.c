@@ -1,4 +1,5 @@
 /*
+ * Copyright (c) 2022 DomainTools LLC
  * Copyright (c) 2012-2019 by Farsight Security, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -29,6 +30,8 @@ struct mtbl_fileset_options {
 	void				*dupsort_clos;
 	mtbl_filename_filter_func	fname_filter;
 	void				*fname_filter_clos;
+	mtbl_reader_filter_func		reader_filter;
+	void				*reader_filter_clos;
 };
 
 struct shared_fileset {
@@ -48,6 +51,8 @@ struct mtbl_fileset {
 	struct mtbl_source		*source;
 	mtbl_filename_filter_func	fname_filter;
 	void				*fname_filter_clos;
+	mtbl_reader_filter_func		reader_filter;
+	void				*reader_filter_clos;
 };
 
 struct fileset_iter {
@@ -181,6 +186,14 @@ mtbl_fileset_options_set_filename_filter_func(struct mtbl_fileset_options *opt,
 }
 
 void
+mtbl_fileset_options_set_reader_filter_func(struct mtbl_fileset_options *opt,
+					mtbl_reader_filter_func reader_filter, void *clos)
+{
+	opt->reader_filter = reader_filter;
+	opt->reader_filter_clos = clos;
+}
+
+void
 mtbl_fileset_options_set_reload_interval(struct mtbl_fileset_options *opt,
 					 uint32_t reload_interval)
 {
@@ -215,6 +228,8 @@ mtbl_fileset_set_options(struct mtbl_fileset *f, const struct mtbl_fileset_optio
 	mtbl_merger_options_set_dupsort_func(f->mopt, opt->dupsort, opt->dupsort_clos);
 	f->fname_filter = opt->fname_filter;
 	f->fname_filter_clos = opt->fname_filter_clos;
+	f->reader_filter = opt->reader_filter;
+	f->reader_filter_clos = opt->reader_filter_clos;
 	f->merger = mtbl_merger_init(f->mopt);
 	f->source = mtbl_source_init(fileset_source_iter,
 				     fileset_source_get,
@@ -290,11 +305,25 @@ fs_reinit_merger(struct mtbl_fileset *f)
 		f->merger = mtbl_merger_init(f->mopt);
 	}
 	assert(f->merger != NULL);
-	while (my_fileset_get(f->shared_fs->my_fs, i++, &fname, (void **) &reader))
-		if ((reader != NULL) && ((f->fname_filter == NULL) ||
-					 f->fname_filter(fname, f->fname_filter_clos))) {
+	while (my_fileset_get(f->shared_fs->my_fs, i++, &fname, (void **) &reader)) {
+		if (reader == NULL) {
+			continue;
+		}
+
+		/*
+		* Add the reader's source to the merger unless filtered out by the
+		* fname_filter or reader_filter.
+		*/
+		if (
+			(f->fname_filter == NULL
+				|| f->fname_filter(fname, f->fname_filter_clos))
+			&&
+			(f->reader_filter == NULL
+				|| f->reader_filter(reader, f->reader_filter_clos))
+		   ) {
 			mtbl_merger_add_source(f->merger, mtbl_reader_source(reader));
 		}
+	}
 }
 
 void

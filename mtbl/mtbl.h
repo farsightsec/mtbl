@@ -1,4 +1,5 @@
 /*
+ * Copyright (c) 2022 DomainTools LLC
  * Copyright (c) 2012-2019 by Farsight Security, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -113,6 +114,9 @@ typedef void
 
 typedef bool
 (*mtbl_filename_filter_func)(const char *fname, void *clos);
+
+typedef bool
+(*mtbl_reader_filter_func)(struct mtbl_reader *reader, void *clos);
 
 /* iter */
 
@@ -364,6 +368,7 @@ mtbl_fileset_reload_now(struct mtbl_fileset *);
 const struct mtbl_source *
 mtbl_fileset_source(struct mtbl_fileset *);
 
+/* Deprecated: use mtbl_fileset_dup instead. */
 void
 mtbl_fileset_partition(struct mtbl_fileset *,
 		mtbl_filename_filter_func,
@@ -396,6 +401,12 @@ void
 mtbl_fileset_options_set_filename_filter_func(
 	struct mtbl_fileset_options *,
 	mtbl_filename_filter_func,
+	void *clos);
+
+void
+mtbl_fileset_options_set_reader_filter_func(
+	struct mtbl_fileset_options *,
+	mtbl_reader_filter_func,
 	void *clos);
 
 void

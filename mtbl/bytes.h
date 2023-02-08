@@ -22,7 +22,7 @@ bytes_shortest_separator(ubuf *start, const uint8_t *limit, size_t len_limit)
 	if (diff_byte < 0xFF && diff_byte + 1 < limit[diff_index]) {
 		ubuf_data(start)[diff_index]++;
 		ubuf_clip(start, diff_index + 1);
-	} else if (diff_index < min_length - sizeof(uint16_t)) {
+	} else if (diff_index + sizeof(uint16_t) < min_length) {
 		/* awww yeah, big endian arithmetic on strings */
 		uint16_t u_start, u_limit, u_between;
 		memcpy(&u_start, &ubuf_data(start)[diff_index], sizeof(u_start));

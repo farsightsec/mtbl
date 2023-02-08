@@ -23,7 +23,7 @@ AM_LDFLAGS =
 ##
 #
 
-LIBMTBL_VERSION_INFO=2:1:1
+LIBMTBL_VERSION_INFO=3:0:2
 
 include_HEADERS = mtbl/mtbl.h
 lib_LTLIBRARIES = mtbl/libmtbl.la
@@ -122,6 +122,17 @@ check_PROGRAMS += t/test-fileset-partition
 t_test_fileset_partition_SOURCES = t/test-fileset-partition.c
 t_test_fileset_partition_LDADD = mtbl/libmtbl.la
 t/test-fileset-partition.sh: t/test-fileset-partition
+
+TESTS += t/test-fileset-filter.sh
+EXTRA_DIST += t/test-fileset-filter.sh
+EXTRA_DIST += t/fileset-filter-data/animals.fileset
+EXTRA_DIST += t/fileset-filter-data/animals-1.mtbl
+EXTRA_DIST += t/fileset-filter-data/animals-2.mtbl
+EXTRA_DIST += t/fileset-filter-data/animals-3.mtbl
+check_PROGRAMS += t/test-fileset-filter
+t_test_fileset_filter_SOURCES = t/test-fileset-filter.c
+t_test_fileset_filter_LDADD = mtbl/libmtbl.la
+t/test-fileset-filter.sh: t/test-fileset-filter
 
 TESTS += t/test-fixed
 check_PROGRAMS += t/test-fixed

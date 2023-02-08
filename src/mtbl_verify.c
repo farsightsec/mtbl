@@ -1,5 +1,6 @@
 /*
- * Copyright (c) 2015, 2019 by Farsight Security, Inc.
+ * Copyright (c) 2022 DomainTools LLC
+ * Copyright (c) 2015, 2017, 2019 by Farsight Security, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -165,6 +166,7 @@ verify_file(const char *fname)
 	bool res = true;
 	int fd;
 	struct mtbl_reader *r;
+	struct mtbl_reader_options *ropt;
 	const struct mtbl_metadata *m;
 
 	fd = open(fname, O_RDONLY);
@@ -173,7 +175,10 @@ verify_file(const char *fname)
 		return false;
 	}
 
-	r = mtbl_reader_init_fd(fd, NULL);
+	ropt = mtbl_reader_options_init();
+	mtbl_reader_options_set_verify_checksums(ropt, true);
+	r = mtbl_reader_init_fd(fd, ropt);
+	mtbl_reader_options_destroy(&ropt);
 	if (r == NULL) {
 		close(fd);
 		fprintf(stderr, "%s: mtbl_reader_init_fd() failed\n", fname);
