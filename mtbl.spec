@@ -1,5 +1,5 @@
 Name:           mtbl
-Version:        1.3.0
+Version:        1.5.0
 Release:        1%{?dist}
 Summary:	immutable sorted string table utilities
 
@@ -17,7 +17,7 @@ mtbl is a C library implementation of the Sorted String Table (SSTable)
 data structure. mtbl exposes primitives for creating, searching and
 merging SSTable files.
 
-This package contains the shared library for libmbtl and the mtbl
+This package contains the shared library for libmtbl and the mtbl
 command-line tools.
 
 %package devel
