@@ -190,29 +190,56 @@ merger_iter_seek(void *v,
 		 const uint8_t *key, size_t len_key)
 {
 	struct merger_iter *it = (struct merger_iter *) v;
+	struct entry *e;
 	mtbl_res res;
 
-	heap_clip(it->h, 0);
-
-	for (size_t i = 0; i < entry_vec_size(it->entries); i++) {
-		struct entry *ent = entry_vec_value(it->entries, i);
-		ent->key = NULL;
-		ent->val = NULL;
-		free(ent);
-	}
-	entry_vec_clip(it->entries, 0);
-
-	for (size_t i = 0; i < iter_vec_size(it->iters); i++) {
-		struct mtbl_iter *iter = iter_vec_value(it->iters, i);
-		res = mtbl_iter_seek(iter, key, len_key);
-		if (res == mtbl_res_success)
-			merger_iter_add_entry(it, iter);
-	}
-
-	it->pending = false;
 	it->finished = false;
-	ubuf_clip(it->cur_key, 0);
-	ubuf_clip(it->cur_val, 0);
+	it->pending = false;
+
+	e = heap_peek(it->h);
+
+	/*
+	 * If we are seeking backwards from our current key  or the end of
+	 * the iterator (e == NULL), seek all entries to the desired key
+	 * and rebuild the heap.
+	 */
+	if (e == NULL || bytes_compare(key, len_key, e->key, e->len_key) < 0) {
+		heap_clip(it->h, 0);
+		for (size_t i = 0; i < entry_vec_size(it->entries); i++) {
+			struct entry *ent = entry_vec_value(it->entries, i);
+			res = mtbl_iter_seek(ent->it, key, len_key);
+			if (res != mtbl_res_success)
+				continue;
+			res = entry_fill(ent);
+			if (res != mtbl_res_success)
+				continue;
+			ent->finished = false;
+			heap_add(it->h, ent);
+		}
+		heap_heapify(it->h);
+		return (mtbl_res_success);
+	}
+
+	/*
+	 * Otherwise, we are seeking forward from our current key, and only
+	 * need to seek those entries which are behind the desired key.
+	 */
+	while (bytes_compare(key, len_key, e->key, e->len_key) > 0) {
+		res = mtbl_iter_seek(e->it, key, len_key);
+		if (res == mtbl_res_success) {
+			if (entry_fill(e) == mtbl_res_success) {
+				heap_replace(it->h, e);
+				e = heap_peek(it->h);
+				continue;
+			}
+		}
+		heap_pop(it->h);
+		e = heap_peek(it->h);
+		if (e == NULL) {
+			it->finished = true;
+			break;
+		}
+	}
 
 	return (mtbl_res_success);
 }
