@@ -22,8 +22,8 @@
 struct entry {
 	bool                            finished;
 	struct mtbl_iter		*it;
-	ubuf				*key;
-	ubuf				*val;
+	const uint8_t			*key, *val;
+	size_t				len_key, len_val;
 };
 
 VECTOR_GENERATE(entry_vec, struct entry *);
@@ -160,14 +160,14 @@ _mtbl_merger_compare(const void *va, const void *vb, void *clos)
 	if (b->key == NULL)
 		return (-1);
 
-	res = bytes_compare(ubuf_data(a->key), ubuf_size(a->key),
-			    ubuf_data(b->key), ubuf_size(b->key));
+	res = bytes_compare(a->key, a->len_key,
+			    b->key, b->len_key);
 
 	if ((res == 0) && (m->opt.dupsort != NULL))
 		res = m->opt.dupsort(m->opt.dupsort_clos,
-				     ubuf_data(a->key), ubuf_size(a->key),
-				     ubuf_data(a->val), ubuf_size(a->val),
-				     ubuf_data(b->val), ubuf_size(b->val));
+				     a->key, a->len_key,
+				     a->val, a->len_val,
+				     b->val, b->len_val);
 
 	return res;
 }
@@ -175,18 +175,11 @@ _mtbl_merger_compare(const void *va, const void *vb, void *clos)
 static mtbl_res
 entry_fill(struct entry *ent)
 {
-	const uint8_t *key, *val;
-	size_t len_key, len_val;
 	mtbl_res res;
 
-	ubuf_clip(ent->key, 0);
-	ubuf_clip(ent->val, 0);
-	res = mtbl_iter_next(ent->it, &key, &len_key, &val, &len_val);
-	if (res == mtbl_res_success) {
-		ent->finished = false;
-		ubuf_append(ent->key, key, len_key);
-		ubuf_append(ent->val, val, len_val);
-	} else {
+	res = mtbl_iter_next(ent->it, &ent->key, &ent->len_key,
+				      &ent->val, &ent->len_val);
+	if (res != mtbl_res_success) {
 		ent->finished = true;
 	}
 	return (res);
@@ -203,8 +196,8 @@ merger_iter_seek(void *v,
 
 	for (size_t i = 0; i < entry_vec_size(it->entries); i++) {
 		struct entry *ent = entry_vec_value(it->entries, i);
-		ubuf_destroy(&ent->key);
-		ubuf_destroy(&ent->val);
+		ent->key = NULL;
+		ent->val = NULL;
 		free(ent);
 	}
 	entry_vec_clip(it->entries, 0);
@@ -257,8 +250,8 @@ merger_iter_next(void *v,
 
 		if (ubuf_size(it->cur_key) == 0) {
 			ubuf_clip(it->cur_val, 0);
-			ubuf_extend(it->cur_key, e->key);
-			ubuf_extend(it->cur_val, e->val);
+			ubuf_append(it->cur_key, e->key, e->len_key);
+			ubuf_append(it->cur_val, e->val, e->len_val);
 			it->pending = true;
 			res = entry_fill(e);
 			if (res == mtbl_res_success)
@@ -270,15 +263,14 @@ merger_iter_next(void *v,
 			break;
 
 		if (bytes_compare(ubuf_data(it->cur_key), ubuf_size(it->cur_key),
-				  ubuf_data(e->key), ubuf_size(e->key)) == 0)
+				  e->key, e->len_key) == 0)
 		{
 			uint8_t *merged_val = NULL;
 			size_t len_merged_val = 0;
 			it->m->opt.merge(it->m->opt.merge_clos,
 					 ubuf_data(it->cur_key), ubuf_size(it->cur_key),
 					 ubuf_data(it->cur_val), ubuf_size(it->cur_val),
-					 ubuf_data(e->val), ubuf_size(e->val),
-					 &merged_val, &len_merged_val);
+					 e->val, e->len_val, &merged_val, &len_merged_val);
 			if (merged_val == NULL)
 				return (mtbl_res_failure);
 			ubuf_clip(it->cur_val, 0);
@@ -312,8 +304,6 @@ merger_iter_free(void *v)
 		heap_destroy(&it->h);
 		for (size_t i = 0; i < entry_vec_size(it->entries); i++) {
 			struct entry *ent = entry_vec_value(it->entries, i);
-			ubuf_destroy(&ent->key);
-			ubuf_destroy(&ent->val);
 			free(ent);
 		}
 		entry_vec_destroy(&it->entries);
@@ -345,14 +335,10 @@ static void
 merger_iter_add_entry(struct merger_iter *it, struct mtbl_iter *ent_it)
 {
 	struct entry *ent = my_calloc(1, sizeof(*ent));
-	ent->key = ubuf_init(256);
-	ent->val = ubuf_init(256);
 	ent->it = ent_it;
 	ent->finished = false;
 	mtbl_res res = entry_fill(ent);
 	if (res != mtbl_res_success) {
-		ubuf_destroy(&ent->key);
-		ubuf_destroy(&ent->val);
 		free(ent);
 	} else {
 		heap_push(it->h, ent);
