@@ -28,12 +28,6 @@ struct heap {
 	void			*clos;
 };
 
-static inline int
-cmp_wrapper(heap_compare_func cmp, const void *a, const void *b, void *clos)
-{
-	return ((cmp(a, b, clos) < 0) ? 1 : 0);
-}
-
 struct heap *
 heap_init(heap_compare_func cmp, void *clos)
 {
@@ -64,52 +58,47 @@ void heap_clip(struct heap *h, size_t n_elems)
 	ptrvec_clip(h->vec, n_elems);
 }
 
-static int
-siftdown(struct heap *h, size_t startpos, size_t pos)
+static void
+siftdown(struct heap *h)
 {
-	assert(pos < ptrvec_size(h->vec));
+	size_t pos = ptrvec_size(h->vec)-1;
 	void *newitem = ptrvec_value(h->vec, pos);
-	while (pos > startpos) {
+	while (pos > 0) {
 		size_t parentpos = (pos - 1) >> 1;
 		void *parent = ptrvec_value(h->vec, parentpos);
-		int cmp = cmp_wrapper(h->cmp, newitem, parent, h->clos);
-		if (cmp == -1)
-			return (-1);
-		if (cmp == 0)
+		if (h->cmp(parent, newitem, h->clos) <= 0)
 			break;
 		ptrvec_data(h->vec)[pos] = parent;
 		pos = parentpos;
 	}
 	ptrvec_data(h->vec)[pos] = newitem;
-	return (0);
 }
 
-static int
+static void
 siftup(struct heap *h, size_t pos)
 {
 	assert(pos < ptrvec_size(h->vec));
 	void *newitem = ptrvec_value(h->vec, pos);
 	size_t endpos = ptrvec_size(h->vec);
-	size_t startpos = pos;
 	size_t childpos = 2 * pos + 1;
+
 	while (childpos < endpos) {
 		size_t rightpos = childpos + 1;
+		void *childval = ptrvec_value(h->vec, childpos);
 		if (rightpos < endpos) {
-			int cmp = cmp_wrapper(h->cmp,
-					      ptrvec_value(h->vec, childpos),
-					      ptrvec_value(h->vec, rightpos),
-					      h->clos);
-			if (cmp == -1)
-				return (-1);
-			if (cmp == 0)
+			void *rightval = ptrvec_value(h->vec, rightpos);
+			if (h->cmp(rightval, childval, h->clos) <= 0) {
 				childpos = rightpos;
+				childval = rightval;
+			}
 		}
-		ptrvec_data(h->vec)[pos] = ptrvec_value(h->vec, childpos);
+		if (h->cmp(newitem, childval, h->clos) <= 0)
+			break;
+		ptrvec_data(h->vec)[pos] = childval;
 		pos = childpos;
 		childpos = 2 * pos + 1;
 	}
 	ptrvec_data(h->vec)[pos] = newitem;
-	return (siftdown(h, startpos, pos));
 }
 
 void
@@ -130,7 +119,7 @@ void
 heap_push(struct heap *h, void *item)
 {
 	ptrvec_add(h->vec, item);
-	siftdown(h, 0, ptrvec_size(h->vec) - 1);
+	siftdown(h);
 }
 
 void *
