@@ -34,8 +34,9 @@ VECTOR_GENERATE(source_vec, const struct mtbl_source *);
 
 struct merger_iter {
 	struct mtbl_merger		*m;
-	struct heap			*h;
+	struct heap			*h;	/* entries sorted by key/val */
 	entry_vec			*entries;
+	/* iters is maintained solely for resource management purposes */
 	iter_vec                        *iters;
 	ubuf				*cur_key;
 	ubuf				*cur_val;
@@ -179,15 +180,12 @@ entry_fill(struct entry *ent)
 
 	res = mtbl_iter_next(ent->it, &ent->key, &ent->len_key,
 				      &ent->val, &ent->len_val);
-	if (res != mtbl_res_success) {
-		ent->finished = true;
-	}
+	ent->finished = (res != mtbl_res_success);
 	return (res);
 }
 
 static mtbl_res
-merger_iter_seek(void *v,
-		 const uint8_t *key, size_t len_key)
+merger_iter_seek(void *v, const uint8_t *key, size_t len_key)
 {
 	struct merger_iter *it = (struct merger_iter *) v;
 	struct entry *e;
@@ -199,7 +197,7 @@ merger_iter_seek(void *v,
 	e = heap_peek(it->h);
 
 	/*
-	 * If we are seeking backwards from our current key  or the end of
+	 * If we are seeking backwards from our current key or the end of
 	 * the iterator (e == NULL), seek all entries to the desired key
 	 * and rebuild the heap.
 	 */
@@ -213,7 +211,6 @@ merger_iter_seek(void *v,
 			res = entry_fill(ent);
 			if (res != mtbl_res_success)
 				continue;
-			ent->finished = false;
 			heap_add(it->h, ent);
 		}
 		heap_heapify(it->h);
@@ -226,18 +223,16 @@ merger_iter_seek(void *v,
 	 */
 	while (bytes_compare(key, len_key, e->key, e->len_key) > 0) {
 		res = mtbl_iter_seek(e->it, key, len_key);
-		if (res == mtbl_res_success) {
-			if (entry_fill(e) == mtbl_res_success) {
-				heap_replace(it->h, e);
-				e = heap_peek(it->h);
-				continue;
+		if (res == mtbl_res_success && entry_fill(e) == mtbl_res_success) {
+			heap_replace(it->h, e);
+			e = heap_peek(it->h);
+		} else {
+			heap_pop(it->h);
+			e = heap_peek(it->h);
+			if (e == NULL) {
+				it->finished = true;
+				break;
 			}
-		}
-		heap_pop(it->h);
-		e = heap_peek(it->h);
-		if (e == NULL) {
-			it->finished = true;
-			break;
 		}
 	}
 
