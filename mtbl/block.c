@@ -265,6 +265,9 @@ compare_restart_point(struct block_iter *bi, const uint32_t i, const uint8_t *ta
 void
 block_iter_seek(struct block_iter *bi, const uint8_t *target, size_t target_len)
 {
+	uint32_t start_ri = bi->restart_index;	/* Current key is in this restart-block. */
+	bool from_start = true;			/* Search from start of restart-block? */
+
 	/* 
 	 * If the restart_index is not zero and not equal to the number of
 	 * restarts, then begin with galloping search in the restart array to find
@@ -273,6 +276,7 @@ block_iter_seek(struct block_iter *bi, const uint8_t *target, size_t target_len)
 	 */
 	uint32_t left = 0;
 	uint32_t right = bi->num_restarts - 1;
+
 	if (bi->num_restarts != bi->restart_index && bi->restart_index != 0) {
 		/* Start galloping from the current restart index */
 		uint32_t i = bi->restart_index;
@@ -291,24 +295,43 @@ block_iter_seek(struct block_iter *bi, const uint8_t *target, size_t target_len)
 		}
 	}
 
-	/* binary search */
-	while (left < right) {
-		uint32_t mid = (left + right + 1) / 2;
-		if (compare_restart_point(bi, mid, target, target_len) < 0) {
-			/* key at "mid" is smaller than "target", therefore all
-			 * keys before "mid" are uninteresting
-			 */
-			left = mid;
-		} else {
-			/* key at "mid" is larger than "target", therefore all
-			 * keys at or after "mid" are uninteresting
-			 */
-			right = mid - 1;
+	/* binary search, if not already located. */
+	if (left + 1 < right) {
+		while (left < right) {
+			uint32_t mid = (left + right + 1) / 2;
+			if (compare_restart_point(bi, mid, target, target_len) < 0) {
+				/* key at "mid" is smaller than "target", therefore all
+				* keys before "mid" are uninteresting
+				*/
+				left = mid;
+			} else {
+				/* key at "mid" is larger than "target", therefore all
+				* keys at or after "mid" are uninteresting
+				*/
+				right = mid - 1;
+			}
 		}
 	}
 
+	/* Desired entry is in the same restart-block as "current" key. */
+	if (start_ri == left) {
+		/* Check current entry against the target. */
+		int cmp = bytes_compare(ubuf_data(bi->key), ubuf_size(bi->key), target, target_len);
+
+		if (cmp == 0)
+			return;
+		/*
+		 * If the current entry is before desired target, then continue searching
+		 * forward from current position, else begin at start of restart-block.
+		 */
+		if (cmp < 0)
+			from_start = false;
+	}
+
+	if (from_start)		/* Start searching at beginning of restart-block. */
+		seek_to_restart_point(bi, left);
+
 	/* linear search within restart block for first key >= target */
-	seek_to_restart_point(bi, left);
 	for (;;) {
 		if (!parse_next_key(bi))
 			return;
