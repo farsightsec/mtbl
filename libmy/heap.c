@@ -59,7 +59,7 @@ void heap_clip(struct heap *h, size_t n_elems)
 }
 
 static void
-siftdown(struct heap *h)
+siftup(struct heap *h)
 {
 	size_t pos = ptrvec_size(h->vec)-1;
 	void *newitem = ptrvec_value(h->vec, pos);
@@ -75,7 +75,7 @@ siftdown(struct heap *h)
 }
 
 static void
-siftup(struct heap *h, size_t pos)
+siftdown(struct heap *h, size_t pos)
 {
 	assert(pos < ptrvec_size(h->vec));
 	void *newitem = ptrvec_value(h->vec, pos);
@@ -105,7 +105,7 @@ void
 heap_heapify(struct heap *h)
 {
 	for (size_t i = ptrvec_size(h->vec)/2; i-- > 0; ) {
-		siftup(h, i);
+		siftdown(h, i);
 	}
 }
 
@@ -119,7 +119,7 @@ void
 heap_push(struct heap *h, void *item)
 {
 	ptrvec_add(h->vec, item);
-	siftdown(h);
+	siftup(h);
 }
 
 void *
@@ -133,7 +133,7 @@ heap_pop(struct heap *h)
 	if (ptrvec_size(h->vec) > 0) {
 		returnitem = ptrvec_value(h->vec, 0);
 		ptrvec_data(h->vec)[0] = lastelt;
-		siftup(h, 0);
+		siftdown(h, 0);
 	} else {
 		returnitem = lastelt;
 	}
@@ -147,7 +147,7 @@ heap_replace(struct heap *h, void *item)
 		return (NULL);
 	void *returnitem = ptrvec_value(h->vec, 0);
 	ptrvec_data(h->vec)[0] = item;
-	siftup(h, 0);
+	siftdown(h, 0);
 	return (returnitem);
 }
 
