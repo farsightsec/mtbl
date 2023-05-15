@@ -1,3 +1,9 @@
+mtbl (1.5.1)
+
+  * Skip unnecessary seeks when seeking forward on a merger iterator.
+  * Fix inefficiency in heap implementation impacting merger iterator
+    performance.
+
 mtbl (1.5.0)
 
  * Add reader filter function option to mtbl_fileset.
