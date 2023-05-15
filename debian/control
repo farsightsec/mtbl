@@ -1,0 +1,104 @@
+Source: mtbl
+Section: libs
+Priority: optional
+Maintainer: Farsight Security, Inc. <software@farsightsecurity.com>
+Build-Depends:
+ debhelper (>= 9~),
+ dh-autoreconf (>= 5~),
+ dpkg-dev (>= 1.16.0~),
+ lcov,
+ liblz4-dev (>= 0.0~r130),
+ libsnappy-dev,
+ libzstd-dev,
+ pkg-config,
+ zlib1g-dev,
+Standards-Version: 3.9.6
+
+Package: libmtbl-dev
+Section: libdevel
+Architecture: any
+Depends: libmtbl1 (= ${binary:Version}), ${misc:Depends}
+Multi-Arch: same
+Description: immutable sorted string table library (development files)
+ mtbl is a C library implementation of the Sorted String Table (SSTable)
+ data structure, based on the SSTable implementation in the open source
+ Google LevelDB library. An SSTable is a file containing an immutable
+ mapping of keys to values. Keys are stored in sorted order, with an
+ index at the end of the file allowing keys to be located quickly.
+ .
+ mtbl is not a database library. It does not provide an updateable
+ key-value data store, but rather exposes primitives for creating,
+ searching and merging SSTable files. Unlike databases which use
+ the SSTable data structure internally as part of their data store,
+ management of SSTable files -- creation, merging, deletion, combining
+ of search results from multiple SSTables -- is left to the
+ discretion of the mtbl library user.
+ .
+ This package contains the static library, header file, and documentation
+ for libmtbl.
+
+Package: libmtbl1
+Architecture: any
+Depends: ${misc:Depends}, ${shlibs:Depends}
+Pre-Depends: ${misc:Pre-Depends}
+Multi-Arch: same
+Description: immutable sorted string table library
+ mtbl is a C library implementation of the Sorted String Table (SSTable)
+ data structure, based on the SSTable implementation in the open source
+ Google LevelDB library. An SSTable is a file containing an immutable
+ mapping of keys to values. Keys are stored in sorted order, with an
+ index at the end of the file allowing keys to be located quickly.
+ .
+ mtbl is not a database library. It does not provide an updateable
+ key-value data store, but rather exposes primitives for creating,
+ searching and merging SSTable files. Unlike databases which use
+ the SSTable data structure internally as part of their data store,
+ management of SSTable files -- creation, merging, deletion, combining
+ of search results from multiple SSTables -- is left to the
+ discretion of the mtbl library user.
+ .
+ This package contains the shared library for libmtbl.
+
+Package: libmtbl1-dbg
+Section: debug
+Priority: extra
+Architecture: any
+Depends: libmtbl1 (= ${binary:Version}), ${misc:Depends}
+Multi-Arch: same
+Description: immutable sorted string table library (debug symbols)
+ mtbl is a C library implementation of the Sorted String Table (SSTable)
+ data structure, based on the SSTable implementation in the open source
+ Google LevelDB library. An SSTable is a file containing an immutable
+ mapping of keys to values. Keys are stored in sorted order, with an
+ index at the end of the file allowing keys to be located quickly.
+ .
+ mtbl is not a database library. It does not provide an updateable
+ key-value data store, but rather exposes primitives for creating,
+ searching and merging SSTable files. Unlike databases which use
+ the SSTable data structure internally as part of their data store,
+ management of SSTable files -- creation, merging, deletion, combining
+ of search results from multiple SSTables -- is left to the
+ discretion of the mtbl library user.
+ .
+ This package contains detached debugging symbols for libmtbl.
+
+Package: mtbl-bin
+Section: utils
+Architecture: any
+Depends: ${misc:Depends}, ${shlibs:Depends}
+Description: immutable sorted string table library (utilities)
+ mtbl is a C library implementation of the Sorted String Table (SSTable)
+ data structure, based on the SSTable implementation in the open source
+ Google LevelDB library. An SSTable is a file containing an immutable
+ mapping of keys to values. Keys are stored in sorted order, with an
+ index at the end of the file allowing keys to be located quickly.
+ .
+ mtbl is not a database library. It does not provide an updateable
+ key-value data store, but rather exposes primitives for creating,
+ searching and merging SSTable files. Unlike databases which use
+ the SSTable data structure internally as part of their data store,
+ management of SSTable files -- creation, merging, deletion, combining
+ of search results from multiple SSTables -- is left to the
+ discretion of the mtbl library user.
+ .
+ This package contains command line utilities for libmtbl.
