@@ -422,6 +422,32 @@ reader_iter_free(void *v)
 	}
 }
 
+static bool
+needs_index_seek(struct reader_iter *it, const uint8_t *seek_key, size_t len_seek_key)
+{
+	const uint8_t *key, *val;
+	size_t len_key, len_val;
+
+	if (it->first || it->b == NULL)
+		return true;
+
+	if (!block_iter_get(it->bi, &key, &len_key, &val, &len_val))
+		return true;
+
+	/* backward seek */
+	if (bytes_compare(key, len_key, seek_key, len_seek_key) > 0)
+		return true;
+
+	if (!block_iter_get(it->index_iter, &key, &len_key, &val, &len_val))
+		return true;
+
+	/* seek after end of block */
+	if (bytes_compare(key, len_key, seek_key, len_seek_key) < 0)
+		return true;
+
+	return false;
+}
+
 static mtbl_res
 reader_iter_seek(void *v,
 	       const uint8_t *key, size_t len_key)
@@ -432,7 +458,8 @@ reader_iter_seek(void *v,
 	size_t len_ikey, len_ival;
 	uint64_t new_offset;
 
-	block_iter_seek(it->index_iter, key, len_key);
+	if (needs_index_seek(it, key, len_key))
+		block_iter_seek(it->index_iter, key, len_key);
 
 	if (!block_iter_get(it->index_iter, &ikey, &len_ikey, &ival, &len_ival)) {
 		/* This seek puts us after the last key, so we mark the
