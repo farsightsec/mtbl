@@ -202,7 +202,8 @@ merger_iter_seek(void *v, const uint8_t *key, size_t len_key)
 	 * the iterator (e == NULL), seek all entries to the desired key
 	 * and rebuild the heap.
 	 */
-	if (e == NULL || bytes_compare(key, len_key, e->key, e->len_key) < 0) {
+	if (e == NULL || ubuf_size(it->cur_key) == 0 ||
+	    bytes_compare(key, len_key, ubuf_data(it->cur_key), ubuf_size(it->cur_key)) < 0) {
 		heap_clip(it->h, 0);
 		for (size_t i = 0; i < entry_vec_size(it->entries); i++) {
 			struct entry *ent = entry_vec_value(it->entries, i);
