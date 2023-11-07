@@ -190,6 +190,7 @@ merger_iter_seek(void *v, const uint8_t *key, size_t len_key)
 {
 	struct merger_iter *it = (struct merger_iter *) v;
 	struct entry *e;
+	bool changed = false;
 	mtbl_res res;
 
 	it->finished = false;
@@ -224,6 +225,7 @@ merger_iter_seek(void *v, const uint8_t *key, size_t len_key)
 	 * need to seek those entries which are behind the desired key.
 	 */
 	while (bytes_compare(key, len_key, e->key, e->len_key) > 0) {
+		changed = true;
 		res = mtbl_iter_seek(e->it, key, len_key);
 		if (res == mtbl_res_success && entry_fill(e) == mtbl_res_success) {
 			heap_replace(it->h, e);
@@ -236,6 +238,16 @@ merger_iter_seek(void *v, const uint8_t *key, size_t len_key)
 				break;
 			}
 		}
+	}
+
+	/*
+	 * If the seek operation changed the internal state of the iterator,
+	 * record the seek key for the purposes of detecting a backward seek.
+	 */
+	if (changed) {
+		ubuf_clip(it->cur_val, 0);
+		ubuf_clip(it->cur_key, 0);
+		ubuf_append(it->cur_key, key, len_key);
 	}
 
 	return (mtbl_res_success);
