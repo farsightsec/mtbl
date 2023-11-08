@@ -280,19 +280,18 @@ block_iter_seek(struct block_iter *bi, const uint8_t *target, size_t target_len)
 	if (bi->num_restarts != bi->restart_index && bi->restart_index != 0) {
 		/* Start galloping from the current restart index */
 		uint32_t i = bi->restart_index;
-		right = i;
 		uint32_t incr = 1;
 		while (compare_restart_point(bi, i, target, target_len) < 0) {
 			left = i;
 			i += incr;
 			/* Stop galloping if i is past the end of the restart array */
 			if (i > bi->num_restarts - 1) {
-				right = bi->num_restarts - 1;
+				i = bi->num_restarts - 1;
 				break;
 			}
-			right = i;
 			incr *= 2;
 		}
+		right = i;
 	}
 
 	/* binary search, if not already located. */
