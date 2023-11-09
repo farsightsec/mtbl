@@ -106,11 +106,6 @@ mtbl_res _mtbl_decompress_snappy(const uint8_t *, const size_t, uint8_t **, size
 mtbl_res _mtbl_decompress_zlib	(const uint8_t *, const size_t, uint8_t **, size_t *);
 mtbl_res _mtbl_decompress_zstd	(const uint8_t *, const size_t, uint8_t **, size_t *);
 
-/* iter */
-
-struct mtbl_iter *
-mtbl_iter_init(mtbl_iter_seek_func, mtbl_iter_next_func, mtbl_iter_free_func, void *clos);
-
 /* metadata */
 
 struct mtbl_metadata {
