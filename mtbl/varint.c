@@ -133,14 +133,13 @@ mtbl_varint_encode64(uint8_t *src_ptr, uint64_t v)
 size_t
 mtbl_varint_decode32(const uint8_t *data, uint32_t *value)
 {
-	size_t len = 0;
-	uint32_t val = data[len] & 0x7f;
-	size_t ndx = 7;
+	size_t len = 0, shift = 0 ;
+	uint64_t val = 0;
 
-	while(data[len++] & 0x80 && ndx < 29) {
-		val |= ((data[len] & 0x7f) << ndx);
-		ndx += 7;
-	}
+	do {
+		val |= (((uint64_t)(data[len] & 0x7f)) << shift);
+		shift += 7;
+	} while ((data[len++] & 0x80) != 0 && shift < 32);
 
 	*value = val;
 	return len;
@@ -149,14 +148,13 @@ mtbl_varint_decode32(const uint8_t *data, uint32_t *value)
 size_t
 mtbl_varint_decode64(const uint8_t *data, uint64_t *value)
 {
-	size_t len = 0;
-	uint64_t val = data[len] & 0x7f;
-	size_t ndx = 7;
+	size_t len = 0, shift = 0 ;
+	uint64_t val = 0;
 
-	while(data[len++] & 0x80 && ndx < 64) {
-		val |= (((uint64_t)(data[len] & 0x7f)) << ndx);
-		ndx += 7;
-	}
+	do {
+		val |= (((uint64_t)(data[len] & 0x7f)) << shift);
+		shift += 7;
+	} while ((data[len++] & 0x80) != 0 && shift < 64);
 
 	*value = val;
 	return len;
