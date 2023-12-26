@@ -135,18 +135,11 @@ mtbl_varint_decode32(const uint8_t *data, uint32_t *value)
 {
 	size_t len = 0;
 	uint32_t val = data[len] & 0x7f;
+	size_t ndx = 7;
 
-	if (data[len++] & 0x80) {
-		val |= ((data[len] & 0x7f) << 7);
-		if (data[len++] & 0x80) {
-			val |= ((data[len] & 0x7f) << 14);
-			if (data[len++] & 0x80) {
-				val |= ((data[len] & 0x7f) << 21);
-				if (data[len++] & 0x80) {
-					val |= ((data[len++] & 0x7f) << 28);
-				}
-			}
-		}
+	while(data[len++] & 0x80 && ndx < 29) {
+		val |= ((data[len] & 0x7f) << ndx);
+		ndx += 7;
 	}
 
 	*value = val;
@@ -158,33 +151,11 @@ mtbl_varint_decode64(const uint8_t *data, uint64_t *value)
 {
 	size_t len = 0;
 	uint64_t val = data[len] & 0x7f;
+	size_t ndx = 7;
 
-	if (data[len++] & 0x80) {
-		val |= (((uint64_t)(data[len] & 0x7f)) << 7);
-		if (data[len++] & 0x80) {
-			val |= (((uint64_t)(data[len] & 0x7f)) << 14);
-			if (data[len++] & 0x80) {
-				val |= (((uint64_t)(data[len] & 0x7f)) << 21);
-				if (data[len++] & 0x80) {
-					val |= (((uint64_t)(data[len] & 0x7f)) << 28);
-					if (data[len++] & 0x80) {
-						val |= (((uint64_t)(data[len] & 0x7f)) << 35);
-						if (data[len++] & 0x80) {
-							val |= (((uint64_t)(data[len] & 0x7f)) << 42);
-							if (data[len++] & 0x80) {
-								val |= (((uint64_t)(data[len] & 0x7f)) << 49);
-								if (data[len++] & 0x80) {
-									val |= (((uint64_t)(data[len] & 0x7f)) << 56);
-									if (data[len++] & 0x80) {
-										val |= (((uint64_t)(data[len++] & 0x7f)) << 63);
-									}
-								}
-							}
-						}
-					}
-				}
-			}
-		}
+	while(data[len++] & 0x80 && ndx < 64) {
+		val |= (((uint64_t)(data[len] & 0x7f)) << ndx);
+		ndx += 7;
 	}
 
 	*value = val;
