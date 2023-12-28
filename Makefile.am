@@ -57,6 +57,7 @@ mtbl_libmtbl_la_SOURCES = \
 
 mtbl_libmtbl_la_LIBADD = -lsnappy -lz $(liblz4_LIBS) $(libzstd_LIBS)
 mtbl_libmtbl_la_LDFLAGS = $(AM_LDFLAGS) \
+	-no-undefined \
 	-version-info $(LIBMTBL_VERSION_INFO)
 if HAVE_LD_VERSION_SCRIPT
 mtbl_libmtbl_la_LDFLAGS += \
