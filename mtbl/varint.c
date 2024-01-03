@@ -1,4 +1,5 @@
 /*
+ * Copyright (c) 2023 DomainTools LLC
  * Copyright (c) 2012 by Farsight Security, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -130,48 +131,41 @@ mtbl_varint_encode64(uint8_t *src_ptr, uint64_t v)
 	return ((size_t) (ptr - src_ptr));
 }
 
+static inline size_t
+_varint_decode(const uint8_t *data, uint64_t *value, size_t max_shift)
+{
+	size_t len = 0;
+	uint64_t shift, val = 0;
+
+	/* max 5 bytes for 32-bit encoding or 10 bytes for 64-bit varints */
+	for (shift = 0; shift < max_shift; shift += 7) {
+		val |= (uint64_t)(data[len] & 0x7f) << shift;
+
+		/* Instead of calling mtbl_varint_length_packed() up-front. */
+		if ((data[len++] & 0x80) == 0) {
+			*value = val;
+			return len;
+		}
+	}
+
+	/* The extended value bit in the last byte suggests an overflow */
+	*value = 0;
+	return 0;
+}
+
 size_t
 mtbl_varint_decode32(const uint8_t *data, uint32_t *value)
 {
-	unsigned len = mtbl_varint_length_packed(data, 5);
-	uint32_t val = data[0] & 0x7f;
-	if (len > 1) {
-		val |= ((data[1] & 0x7f) << 7);
-		if (len > 2) {
-			val |= ((data[2] & 0x7f) << 14);
-			if (len > 3) {
-				val |= ((data[3] & 0x7f) << 21);
-				if (len > 4)
-					val |= (data[4] << 28);
-			}
-		}
-	}
-	*value = val;
-	return ((size_t) len);
+	uint64_t tmpv;
+	size_t ret;
+
+	ret = _varint_decode(data, &tmpv, 32);
+	*value = (uint32_t)tmpv;
+	return ret;
 }
 
 size_t
 mtbl_varint_decode64(const uint8_t *data, uint64_t *value)
 {
-	unsigned shift, i;
-	unsigned len = mtbl_varint_length_packed(data, 10);
-	uint64_t val;
-	if (len < 5) {
-		size_t tmp_len;
-		uint32_t tmp;
-		tmp_len = mtbl_varint_decode32(data, &tmp);
-		*value = tmp;
-		return (tmp_len);
-	}
-	val = ((data[0] & 0x7f))
-		| ((data[1] & 0x7f) << 7)
-		| ((data[2] & 0x7f) << 14)
-		| ((data[3] & 0x7f) << 21);
-	shift = 28;
-	for (i = 4; i < len; i++) {
-		val |= (((uint64_t)(data[i] & 0x7f)) << shift);
-		shift += 7;
-	}
-	*value = val;
-	return ((size_t) len);
+	return _varint_decode(data, value, 64);
 }
