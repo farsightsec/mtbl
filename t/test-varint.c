@@ -223,7 +223,7 @@ main(int argc, char **argv)
 	ret |= check(test1(), "test1");
 	ret |= check(test2(), "test2");
 	ret |= check(test3(), "test3");
-	ret |= check(test4(), "test3");
+	ret |= check(test4(), "test4");
 
 	if (ret)
 		return (EXIT_FAILURE);
