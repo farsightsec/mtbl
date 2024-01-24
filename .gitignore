@@ -1,5 +1,7 @@
 *~
 .*swp
+*.gcda
+*.gcno
 *.la
 *.lo
 *.log
@@ -16,6 +18,9 @@
 /configure
 /libtool
 /stamp-h1
+all.coverage
+coverage-html
 Makefile
 Makefile.in
+report.coverage
 TAGS

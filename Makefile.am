@@ -19,6 +19,41 @@ AM_LDFLAGS =
 
 #
 ##
+### code coverage
+##
+#
+
+USE_LCOV=@USE_LCOV@
+LCOV=@LCOV@
+GENHTML=@GENHTML@
+
+clean-coverage:
+	@if [ $(USE_LCOV) = yes ] ; then \
+		$(LCOV) --directory . --zerocounters ; \
+		echo "Removing coverage info files and generated $(abs_top_builddir)/coverage-html/ directory" ; \
+		rm -rf all.coverage report.coverage ; \
+		rm -rf $(abs_top_builddir)/coverage-html/ ; \
+	else \
+		echo "Code coverage not enabled at configuration time." ; \
+		echo "Use: ./configure --with-coverage" ; \
+fi
+
+report-coverage:
+	@if [ $(USE_LCOV) = yes ] ; then \
+		$(LCOV) --capture --directory . --output-file all.coverage ; \
+		$(LCOV) --remove all.coverage \
+			$(abs_top_srcdir)/t/\* \
+			/usr/include/\* \
+			--output report.coverage ; \
+		$(GENHTML) --legend -o $(abs_top_builddir)/coverage-html report.coverage ; \
+		echo "Generated Code Coverage report in HTML at $(abs_top_builddir)/coverage-html" ; \
+	else \
+		echo "Code coverage not enabled at configuration time." ; \
+		echo "Use: ./configure --with-coverage" ; \
+fi
+
+#
+##
 ### library
 ##
 #
