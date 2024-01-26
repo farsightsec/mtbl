@@ -1,3 +1,11 @@
+mtbl (1.6.0-1) debian-fsi; urgency=medium
+
+  * Return mtbl_iter_init() to public API
+  * Further optimizations to mtbl_iter_seek() for mtbl_reader and mtbl_merger
+  * Streamline mtbl varint decoding
+
+ -- Farsight Security, Inc. <software@farsightsecurity.com>  Fri, 26 Jan 2024 11:42:43 -0500
+
 mtbl (1.5.1-1) debian-fsi; urgency=medium
 
   * Skip unnecessary seeks when seeking forward on a merger iterator.
