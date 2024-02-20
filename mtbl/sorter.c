@@ -176,7 +176,6 @@ _mtbl_sorter_write_chunk(struct mtbl_sorter *s)
 	struct mtbl_writer *w = mtbl_writer_init_fd(c->fd, wopt);
 	mtbl_writer_options_destroy(&wopt);
 
-	size_t entries_written = 0;
 	struct entry **array = entry_vec_data(s->vec);
 	qsort(array, entry_vec_size(s->vec), sizeof(void *), _mtbl_sorter_compare);
 	for (unsigned i = 0; i < entry_vec_size(s->vec); i++) {
@@ -217,7 +216,6 @@ _mtbl_sorter_write_chunk(struct mtbl_sorter *s)
 				      entry_key(ent), ent->len_key,
 				      entry_val(ent), ent->len_val);
 		free(ent);
-		entries_written += 1;
 		if (res != mtbl_res_success)
 			break;
 	}

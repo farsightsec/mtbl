@@ -8,6 +8,62 @@
 
 #define NAME	"test-varint"
 
+
+/* Test invalid varint encoding. */
+static int
+test4(void)
+{
+	uint64_t val_64;
+	uint32_t val_32;
+	size_t len;
+	int ret = 0;
+
+	/*
+	 * A varint will continue to decode so long as the present byte has the
+	 * 0x80 bit set, or until the maximum encoded length has been reached.
+	 * For a 32bit varint, the max len is 5 bytes, and the 5th byte MUST
+	 * be <= 0x80 in value, or decoding will fail.
+	 */
+	static uint8_t bad_varint_1[5] = "\xab\xc1\x91\x98\x7f";
+
+	len = mtbl_varint_decode32(bad_varint_1, &val_32);
+	if (len != 5 || val_32 != 4077150379)
+		return 1;
+
+	bad_varint_1[4]++;	/* Corrupt the last byte to be >= 0x80 */
+	len = mtbl_varint_decode32(bad_varint_1, &val_32);
+	if (len != 0 || val_32 != 0)
+		return 1;
+
+	/* Set the second to last byte to zero and the length decreases. */
+	bad_varint_1[3] = 0;
+	len = mtbl_varint_decode32(bad_varint_1, &val_32);
+	if (len != 4)
+		return 1;
+
+	/*
+	 * We do essentially the same thing with a 64bit varint, except here the
+	 * maximum encoded length is 10 bytes rather than 5.
+	 */
+	static uint8_t bad_varint_2[10] = "\xff\xc1\x91\x98\x81\xff\xe3\x98\x87\x7f";
+
+	len = mtbl_varint_decode64(bad_varint_2, &val_64);
+	if (len != 10 || val_64 != 9741725764612808959UL)
+		return 1;
+
+	bad_varint_2[9]++;	/* corrupt the last byte to be >= 0x80 */
+	len = mtbl_varint_decode64(bad_varint_2, &val_64);
+	if (len != 0 || val_64 != 0)
+		return 1;
+
+	bad_varint_2[8] = 0;	/* truncate the decoding at 2nd to last byte */
+	len = mtbl_varint_decode64(bad_varint_2, &val_64);
+	if (len != 9)
+		return 1;
+
+	return ret;
+}
+
 static int
 test3(void)
 {
@@ -167,6 +223,7 @@ main(int argc, char **argv)
 	ret |= check(test1(), "test1");
 	ret |= check(test2(), "test2");
 	ret |= check(test3(), "test3");
+	ret |= check(test4(), "test4");
 
 	if (ret)
 		return (EXIT_FAILURE);

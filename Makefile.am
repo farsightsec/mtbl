@@ -23,7 +23,7 @@ AM_LDFLAGS =
 ##
 #
 
-LIBMTBL_VERSION_INFO=3:1:2
+LIBMTBL_VERSION_INFO=3:2:2
 
 include_HEADERS = mtbl/mtbl.h
 lib_LTLIBRARIES = mtbl/libmtbl.la
@@ -57,6 +57,7 @@ mtbl_libmtbl_la_SOURCES = \
 
 mtbl_libmtbl_la_LIBADD = -lsnappy -lz $(liblz4_LIBS) $(libzstd_LIBS)
 mtbl_libmtbl_la_LDFLAGS = $(AM_LDFLAGS) \
+	-no-undefined \
 	-version-info $(LIBMTBL_VERSION_INFO)
 if HAVE_LD_VERSION_SCRIPT
 mtbl_libmtbl_la_LDFLAGS += \

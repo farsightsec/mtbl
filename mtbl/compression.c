@@ -393,8 +393,8 @@ _mtbl_decompress_zstd(
 	if (input_size > INT_MAX)
 		return (mtbl_res_failure);
 
-	*output_size = (size_t) ZSTD_getDecompressedSize(input, input_size);
-	if (*output_size == 0)
+	*output_size = (size_t) ZSTD_getFrameContentSize(input, input_size);
+	if (*output_size <= 0)
 		return (mtbl_res_failure);
 
 	*output = my_malloc(*output_size);
