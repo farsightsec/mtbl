@@ -1,3 +1,11 @@
+mtbl (1.6.0-2) debian-fsi; urgency=medium
+
+  * Updated symbols
+  * Added source format
+  * Updated debhelper compatibility and build dependency versions
+
+ -- Farsight Security Inc <software@farsightsecurity.com>  Thu, 22 Feb 2024 15:20:27 -0500
+
 mtbl (1.6.0-1) debian-fsi; urgency=medium
 
   * Return mtbl_iter_init() to public API
