@@ -2,6 +2,7 @@ libmtbl.so.1 libmtbl1 #MINVER#
  LIBMTBL_1.0.0@LIBMTBL_1.0.0 1.0.0
  LIBMTBL_1.1.0@LIBMTBL_1.1.0 1.1.0
  LIBMTBL_1.2.0@LIBMTBL_1.2.0 1.3.0
+ LIBMTBL_1.4.0@LIBMTBL_1.4.0 1.6.0
  mtbl_compress@LIBMTBL_1.0.0 1.0.0
  mtbl_compress_level@LIBMTBL_1.0.0 1.0.0
  mtbl_compression_type_from_str@LIBMTBL_1.0.0 1.0.0
@@ -16,6 +17,7 @@ libmtbl.so.1 libmtbl1 #MINVER#
  mtbl_fileset_options_set_dupsort_func@LIBMTBL_1.2.0 1.3.0
  mtbl_fileset_options_set_filename_filter_func@LIBMTBL_1.2.0 1.3.0
  mtbl_fileset_options_set_merge_func@LIBMTBL_1.0.0 1.0.0
+ mtbl_fileset_options_set_reader_filter_func@LIBMTBL_1.4.0 1.6.0
  mtbl_fileset_options_set_reload_interval@LIBMTBL_1.0.0 1.0.0
  mtbl_fileset_partition@LIBMTBL_1.1.0 1.1.0
  mtbl_fileset_reload@LIBMTBL_1.0.0 1.0.0
