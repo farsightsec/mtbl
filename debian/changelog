@@ -1,3 +1,9 @@
+mtbl (1.6.1-1) debian-fsi; urgency=medium
+
+  * Added portable coverage instrumentation.
+
+ -- Farsight Security Inc <software@farsightsecurity.com>  Tue, 02 Apr 2024 14:32:27 -0400
+
 mtbl (1.6.0-2) debian-fsi; urgency=medium
 
   * Updated symbols
