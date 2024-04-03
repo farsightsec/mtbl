@@ -1,3 +1,12 @@
+mtbl (1.6.1-1) debian-fsi; urgency=medium
+
+  * Add ./configure --with-coverage option to build with code coverage
+    and make targets: clean-coverage to remove the coverage data and results
+    and report-coverage to generate report (after running the code such as
+    with "make check").
+
+ -- Farsight Security Inc <software@farsightsecurity.com>  Wed, 03 Apr 2024 15:40:01 +0000
+
 mtbl (1.6.0-2) debian-fsi; urgency=medium
 
   * Updated symbols
