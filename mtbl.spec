@@ -1,5 +1,5 @@
 Name:           mtbl
-Version:        1.6.0
+Version:        1.6.1
 Release:        1%{?dist}
 Summary:	immutable sorted string table utilities
 
