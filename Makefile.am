@@ -86,6 +86,8 @@ mtbl_libmtbl_la_SOURCES = \
 	mtbl/reader.c \
 	mtbl/sorter.c \
 	mtbl/source.c \
+	mtbl/threadpool.c \
+	mtbl/threadpool.h \
 	mtbl/metadata.c \
 	mtbl/varint.c \
 	mtbl/writer.c

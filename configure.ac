@@ -74,6 +74,12 @@ AC_SEARCH_LIBS([dlopen], [dl])
 AC_SEARCH_LIBS([clock_gettime], [rt])
 AC_CHECK_FUNCS([clock_gettime])
 
+AX_PTHREAD([
+    LIBS="$PTHREAD_LIBS $LIBS"
+    CFLAGS="$CFLAGS $PTHREAD_CFLAGS"
+    CC="$PTHREAD_CC"
+])
+
 AC_PATH_PROG([ASCIIDOC], [a2x])
 AM_CONDITIONAL([BUILD_MAN], [test -n "$ASCIIDOC"])
 if test -n "$ASCIIDOC"; then
