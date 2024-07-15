@@ -42,6 +42,7 @@ static const char		*program_name;
 
 static const char		*mtbl_output_fname;
 
+static struct mtbl_threadpool	*opt_threadpool		= NULL;
 static mtbl_compression_type	opt_compression_type	= MTBL_COMPRESSION_ZLIB;
 static int			opt_compression_level	= DEFAULT_COMPRESS_LEVEL;
 static size_t			opt_block_size		= DEFAULT_BLOCK_SIZE;
@@ -65,7 +66,7 @@ static void
 usage(void)
 {
 	fprintf(stderr,
-		"Usage: %s [-b <SIZE>] [-c <COMPRESSION>] [-l <LEVEL>] <INPUT> [<INPUT>...] <OUTPUT>\n"
+		"Usage: %s [-b <SIZE>] [-c <COMPRESSION>] [-l <LEVEL>] [-t <THREADS>] <INPUT> [<INPUT>...] <OUTPUT>\n"
 		"\n"
 		"Merges one or more MTBL input files into a single output file.\n"
 		"Requires a merge function provided by the user at runtime via a DSO.\n"
@@ -79,6 +80,9 @@ usage(void)
 		"\n"
 		"<LEVEL> is the numeric compression level passed to the compression algorithm.\n"
 		"The default and valid range depend on the <COMPRESSION> parameter.\n"
+		"\n"
+		"<THREADS> is the number of threads that should be used for file compression.\n"
+		"The default value is 0.\n"
 		,
 		program_name
 	);
@@ -257,8 +261,8 @@ init_mtbl(void)
 	mtbl_writer_options_set_compression(wopt, opt_compression_type);
 	if (opt_compression_level != DEFAULT_COMPRESS_LEVEL)
 		mtbl_writer_options_set_compression_level(wopt, opt_compression_level);
+	mtbl_writer_options_set_threadpool(wopt, opt_threadpool);
 	mtbl_writer_options_set_block_size(wopt, opt_block_size);
-
 	merger = mtbl_merger_init(mopt);
 	assert(merger != NULL);
 
@@ -329,6 +333,17 @@ parse_arg_compression_level(const char *arg)
 	return *endp == '\0';
 }
 
+static bool
+parse_arg_thread_count(const char *arg)
+{
+	char *endp;
+	int thread_count = strtol(arg, &endp, 10);
+	if (thread_count < 0)
+		return false;
+	opt_threadpool = mtbl_threadpool_init(thread_count);
+	return true;
+}
+
 int
 main(int argc, char **argv)
 {
@@ -338,7 +353,7 @@ main(int argc, char **argv)
 	opt_block_size = get_block_size();
 
 	int c;
-	while ((c = getopt(argc, argv, "b:c:l:")) != -1) {
+	while ((c = getopt(argc, argv, "b:c:l:t:")) != -1) {
 		switch (c) {
 		case 'b':
 			if (!parse_arg_block_size(optarg))
@@ -350,6 +365,10 @@ main(int argc, char **argv)
 			break;
 		case 'l':
 			if (!parse_arg_compression_level(optarg))
+				usage();
+			break;
+		case 't':
+			if (!parse_arg_thread_count(optarg))
 				usage();
 			break;
 		default:
@@ -392,6 +411,8 @@ main(int argc, char **argv)
 	/* call user cleanup */
 	if (user_func_free != NULL)
 		user_func_free(user_clos);
+
+	mtbl_threadpool_destroy(&opt_threadpool);
 
 	print_stats();
 
