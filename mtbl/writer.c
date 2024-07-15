@@ -16,14 +16,17 @@
 
 #include "mtbl-private.h"
 #include "bytes.h"
-
+#include "threadpool.h"
 #include "libmy/ubuf.h"
+#include "libmy/my_alloc.h"
+
 
 struct mtbl_writer_options {
 	mtbl_compression_type		compression_type;
 	int				compression_level;
 	size_t				block_size;
 	size_t				block_restart_interval;
+	struct mtbl_threadpool		*pool;
 };
 
 struct mtbl_writer {
@@ -34,21 +37,39 @@ struct mtbl_writer {
 
 	struct mtbl_writer_options	opt;
 
+	struct threadpool		*pool;
+	struct result_handler		*rhandler;
+
 	ubuf				*last_key;
 	uint64_t			last_offset;
 
 	bool				closed;
-	bool				pending_index_entry;
 	uint64_t			pending_offset;
 };
 
+struct data_block {
+	mtbl_compression_type	comp_type;
+	int			comp_level;
+
+	uint8_t*		data;
+	size_t			len_data;
+	uint8_t*		last_key;
+	size_t			len_last_key;
+
+	uint32_t		crc;
+};
+
+
 static void _mtbl_writer_finish(struct mtbl_writer *);
 static void _mtbl_writer_flush(struct mtbl_writer *);
-static void _write_all(int fd, const uint8_t *, size_t);
-static size_t _mtbl_writer_writeblock(
-	struct mtbl_writer *,
-	struct block_builder *,
-	mtbl_compression_type);
+static void _mtbl_writer_compress_block(struct data_block *);
+static size_t _mtbl_writer_write_block(int fd, struct data_block *);
+static void _mtbl_writer_write_data_block(struct mtbl_writer *, struct data_block *);
+static void _write_all(int fd, const uint8_t *buf, size_t size);
+
+static void* _compress_block_wrapper(void *raw_block);
+static void _write_data_block_wrapper(void *comp_block, void *writer);
+
 
 struct mtbl_writer_options *
 mtbl_writer_options_init(void)
@@ -59,16 +80,15 @@ mtbl_writer_options_init(void)
 	opt->compression_level = DEFAULT_COMPRESSION_LEVEL;
 	opt->block_size = DEFAULT_BLOCK_SIZE;
 	opt->block_restart_interval = DEFAULT_BLOCK_RESTART_INTERVAL;
+	opt->pool = NULL;
 	return (opt);
 }
 
 void
 mtbl_writer_options_destroy(struct mtbl_writer_options **opt)
 {
-	if (*opt) {
-		free(*opt);
-		*opt = NULL;
-	}
+	if (*opt)
+		my_free(*opt);
 }
 
 void
@@ -108,6 +128,13 @@ mtbl_writer_options_set_block_restart_interval(struct mtbl_writer_options *opt,
 	opt->block_restart_interval = block_restart_interval;
 }
 
+void
+mtbl_writer_options_set_threadpool(struct mtbl_writer_options *opt,
+				   struct mtbl_threadpool *pool)
+{
+	opt->pool = pool;
+}
+
 struct mtbl_writer *
 mtbl_writer_init_fd(int orig_fd, const struct mtbl_writer_options *opt)
 {
@@ -119,14 +146,18 @@ mtbl_writer_init_fd(int orig_fd, const struct mtbl_writer_options *opt)
 	w = my_calloc(1, sizeof(*w));
 	if (opt == NULL) {
 		w->opt.compression_type = DEFAULT_COMPRESSION_TYPE;
+		w->opt.compression_level = DEFAULT_COMPRESSION_LEVEL;
 		w->opt.block_size = DEFAULT_BLOCK_SIZE;
 		w->opt.block_restart_interval = DEFAULT_BLOCK_RESTART_INTERVAL;
+		w->opt.pool = NULL;
 	} else {
 		memcpy(&w->opt, opt, sizeof(*opt));
 	}
 	w->fd = fd;
-	// Start writing from the current offset. This allows mtbl's callers
-	// to reserve some initial bytes in the file.
+	/*
+	 * Start writing from the current offset. This allows mtbl's callers
+	 * to reserve some initial bytes in the file.
+	 */
 	w->last_offset = lseek(fd, 0, SEEK_CUR);
 	w->pending_offset = w->last_offset;
 	w->last_key = ubuf_init(256);
@@ -135,6 +166,16 @@ mtbl_writer_init_fd(int orig_fd, const struct mtbl_writer_options *opt)
 	w->m.data_block_size = w->opt.block_size;
 	w->data = block_builder_init(w->opt.block_restart_interval);
 	w->index = block_builder_init(w->opt.block_restart_interval);
+
+	/*
+	 * Initialize result handler for receiving completed threadpool jobs'
+	 * work.
+	 */
+	if (w->opt.pool != NULL) {
+		w->pool = w->opt.pool->pool;
+		w->rhandler = result_handler_init(_write_data_block_wrapper, w);
+	}
+
 	return (w);
 }
 
@@ -155,16 +196,17 @@ mtbl_writer_init(const char *fname, const struct mtbl_writer_options *opt)
 void
 mtbl_writer_destroy(struct mtbl_writer **w)
 {
-	if (*w != NULL) {
+	if (*w) {
 		if (!(*w)->closed) {
 			_mtbl_writer_finish(*w);
 			close((*w)->fd);
 		}
+
 		block_builder_destroy(&((*w)->data));
 		block_builder_destroy(&((*w)->index));
 		ubuf_destroy(&(*w)->last_key);
-		free(*w);
-		*w = NULL;
+
+		my_free(*w);
 	}
 }
 
@@ -185,23 +227,9 @@ mtbl_writer_add(struct mtbl_writer *w,
 	size_t estimated_block_size = block_builder_current_size_estimate(w->data);
 	estimated_block_size += 3*5 + len_key + len_val;
 
-	if (estimated_block_size >= w->opt.block_size)
-		_mtbl_writer_flush(w);
-
-	if (w->pending_index_entry) {
-		uint8_t enc[10];
-		size_t len_enc;
-		assert(block_builder_empty(w->data));
+	if (estimated_block_size >= w->opt.block_size) {
 		bytes_shortest_separator(w->last_key, key, len_key);
-		len_enc = mtbl_varint_encode64(enc, w->last_offset);
-		/*
-		fprintf(stderr, "%s: writing index entry, key= '%s' (%zd) val= %" PRIu64 "\n",
-			__func__, ubuf_data(w->last_key), ubuf_size(w->last_key), w->last_offset);
-		*/
-		block_builder_add(w->index,
-				  ubuf_data(w->last_key), ubuf_size(w->last_key),
-				  enc, len_enc);
-		w->pending_index_entry = false;
+		_mtbl_writer_flush(w);
 	}
 
 	ubuf_reset(w->last_key);
@@ -211,107 +239,107 @@ mtbl_writer_add(struct mtbl_writer *w,
 	w->m.bytes_keys += len_key;
 	w->m.bytes_values += len_val;
 	block_builder_add(w->data, key, len_key, val, len_val);
+
 	return (mtbl_res_success);
 }
 
 static void
 _mtbl_writer_finish(struct mtbl_writer *w)
 {
-	uint8_t tbuf[MTBL_METADATA_SIZE];
-
 	_mtbl_writer_flush(w);
+
+	result_handler_destroy(&w->rhandler);
 	assert(!w->closed);
 	w->closed = true;
-	if (w->pending_index_entry) {
-		/* XXX use short successor */
-		uint8_t enc[10];
-		size_t len_enc;
-		len_enc = mtbl_varint_encode64(enc, w->last_offset);
-		/*
-		fprintf(stderr, "%s: writing index entry, key= '%s' (%zd) val= %" PRIu64 "\n",
-			__func__, ubuf_data(w->last_key), ubuf_size(w->last_key), w->last_offset);
-		*/
-		block_builder_add(w->index,
-				  ubuf_data(w->last_key), ubuf_size(w->last_key),
-				  enc, len_enc);
-		w->pending_index_entry = false;
-	}
-	w->m.index_block_offset = w->pending_offset;
-	w->m.bytes_index_block = _mtbl_writer_writeblock(w, w->index, MTBL_COMPRESSION_NONE);
 
+	/* Write the uncompressed index block to disk. */
+	struct data_block index;
+	block_builder_finish(w->index, &index.data, &index.len_data);
+	index.crc = htole32(mtbl_crc32c(index.data, index.len_data));
+	size_t bytes_written = _mtbl_writer_write_block(w->fd, &index);
+
+	/* Write index block metadata. */
+	w->m.index_block_offset = w->pending_offset;
+	w->m.bytes_index_block = bytes_written;
+	w->last_offset = w->pending_offset;
+	w->pending_offset += bytes_written;
+	uint8_t tbuf[MTBL_METADATA_SIZE];
 	metadata_write(&w->m, tbuf);
 	_write_all(w->fd, tbuf, sizeof(tbuf));
+	block_builder_reset(w->index);
+	free(index.data);
 }
 
 static void
 _mtbl_writer_flush(struct mtbl_writer *w)
 {
 	assert(!w->closed);
-	if (block_builder_empty(w->data))
-		return;
-	assert(!w->pending_index_entry);
-	w->m.bytes_data_blocks += _mtbl_writer_writeblock(w, w->data, w->opt.compression_type);
-	w->m.count_data_blocks += 1;
-	w->pending_index_entry = true;
+	assert(w->m.file_version == MTBL_FORMAT_V2);
+	if (block_builder_empty(w->data)) return;
+
+	struct data_block b;
+	b.comp_type = w->opt.compression_type;
+	b.comp_level = w->opt.compression_level;
+	size_t key_bytes = ubuf_bytes(w->last_key);
+	b.last_key = malloc(key_bytes);
+	b.len_last_key = ubuf_size(w->last_key);
+	memcpy(b.last_key, ubuf_data(w->last_key), key_bytes);
+	block_builder_finish(w->data, &b.data, &b.len_data);
+	block_builder_reset(w->data);
+
+	if (w->pool != NULL) {
+
+		struct data_block *bthread = calloc(1, sizeof(*bthread));
+		memcpy(bthread, &b, sizeof(b));
+		threadpool_dispatch(
+			w->pool,
+			w->rhandler,
+			true,
+			_compress_block_wrapper,
+			(void *)bthread
+		);
+	} else {
+		_mtbl_writer_compress_block(&b);
+		_mtbl_writer_write_data_block(w, &b);
+	}
 }
 
-static size_t
-_mtbl_writer_writeblock(struct mtbl_writer *w,
-			struct block_builder *b,
-			mtbl_compression_type compression_type)
+static void
+_mtbl_writer_compress_block(struct data_block *b)
 {
 	mtbl_res res;
-	uint8_t *raw_contents = NULL, *block_contents = NULL;
-	size_t raw_contents_size = 0, block_contents_size = 0;
+	struct data_block tmp;
 
-	block_builder_finish(b, &raw_contents, &raw_contents_size);
+	if (b->comp_type == MTBL_COMPRESSION_NONE) {
+		res = mtbl_res_success;
 
-	if (compression_type == MTBL_COMPRESSION_NONE) {
-		block_contents = raw_contents;
-		block_contents_size = raw_contents_size;
-	} else if (w->opt.compression_level == DEFAULT_COMPRESSION_LEVEL) {
+	} else if (b->comp_level == DEFAULT_COMPRESSION_LEVEL) {
 		res = mtbl_compress(
-			compression_type,
-			raw_contents,
-			raw_contents_size,
-			&block_contents,
-			&block_contents_size
+			b->comp_type,
+			b->data,
+			b->len_data,
+			&tmp.data,
+			&tmp.len_data
 		);
-		assert(res == mtbl_res_success);
 	} else {
 		res = mtbl_compress_level(
-			compression_type,
-			w->opt.compression_level,
-			raw_contents,
-			raw_contents_size,
-			&block_contents,
-			&block_contents_size
+			b->comp_type,
+			b->comp_level,
+			b->data,
+			b->len_data,
+			&tmp.data,
+			&tmp.len_data
 		);
-		assert(res == mtbl_res_success);
 	}
 
-	assert(w->m.file_version == MTBL_FORMAT_V2);
+	if (b->comp_type != MTBL_COMPRESSION_NONE) {
+		free(b->data);
+		b->data = tmp.data;
+		b->len_data = tmp.len_data;
+	}
 
-	const uint32_t crc = htole32(mtbl_crc32c(block_contents, block_contents_size));
-	size_t len_length;
-	uint8_t len[10];
-	len_length = mtbl_varint_encode64(len, block_contents_size);
-
-	_write_all(w->fd, (const uint8_t *) len, len_length);
-	_write_all(w->fd, (const uint8_t *) &crc, sizeof(crc));
-	_write_all(w->fd, block_contents, block_contents_size);
-
-	const size_t bytes_written = (len_length + sizeof(crc) + block_contents_size);
-
-	w->last_offset = w->pending_offset;
-	w->pending_offset += bytes_written;
-
-	block_builder_reset(b);
-	free(raw_contents);
-	if (compression_type != MTBL_COMPRESSION_NONE)
-		free(block_contents);
-
-	return (bytes_written);
+	b->crc = htole32(mtbl_crc32c(b->data, b->len_data));
+	assert(res == mtbl_res_success);
 }
 
 static void
@@ -333,4 +361,58 @@ _write_all(int fd, const uint8_t *buf, size_t size)
 		buf += bytes_written;
 		size -= bytes_written;
 	}
+}
+
+static size_t
+_mtbl_writer_write_block(int fd, struct data_block *b)
+{
+	size_t len_length;
+	uint8_t len[10];
+	len_length = mtbl_varint_encode64(len, b->len_data);
+
+	_write_all(fd, (const uint8_t *) len, len_length);
+	_write_all(fd, (const uint8_t *) &b->crc, sizeof(b->crc));
+	_write_all(fd, b->data, b->len_data);
+
+	size_t bytes_written = len_length + sizeof(b->crc) + b->len_data;
+	return (bytes_written);
+}
+
+static void
+_mtbl_writer_write_data_block(struct mtbl_writer *w, struct data_block *b)
+{
+	size_t bytes_written = _mtbl_writer_write_block(w->fd, b);
+
+	/* Update the writer's metadata about this data block. */
+	w->last_offset = w->pending_offset;
+	w->pending_offset += bytes_written;
+	w->m.bytes_data_blocks += bytes_written;
+	w->m.count_data_blocks += 1;
+
+	/* Add an index entry for this data block (XXX use short successor). */
+	uint8_t enc[10];
+	size_t len_enc;
+	len_enc = mtbl_varint_encode64(enc, w->last_offset);
+	/* fprintf(stderr, "%s: writing index entry, key= '%s' (%zd) val= %" PRIu64 "\n",
+		__func__, ubuf_data(w->last_key), ubuf_size(w->last_key), w->last_offset); */
+	block_builder_add(w->index, b->last_key, b->len_last_key, enc, len_enc);
+
+	free(b->last_key);
+	free(b->data);
+}
+
+static void *
+_compress_block_wrapper(void *block)
+{
+	if (block == NULL) return NULL;
+	_mtbl_writer_compress_block(block);
+	return block;
+}
+
+static void
+_write_data_block_wrapper(void *block, void *writer)
+{
+	if (block == NULL) return;
+	_mtbl_writer_write_data_block(writer, block);
+	free(block);
 }
