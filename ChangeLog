@@ -1,3 +1,14 @@
+mtbl (1.7.0)
+
+  * Add public mtbl_threadpool API, enabling multithreaded functionality for
+    mtbl_writer and mtbl_sorter objects; see mtbl_threadpool manpage for more
+    info.
+  * Add mtbl_writer_options_set_threadpool() to enable multithreaded
+    data block compression.
+  * Add mtbl_sorter_options_set_threadpool() to enable multithreaded sorting.
+  * Add -t option for setting the preferred number of threads to use in an
+    mtbl_threadpool object used for writing in mtbl_merge.
+
 mtbl (1.6.1)
 
   * Add ./configure --with-coverage option to build with code coverage
