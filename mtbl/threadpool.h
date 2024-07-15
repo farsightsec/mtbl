@@ -14,6 +14,12 @@
  * limitations under the License.
  */
 
+/* Public interface */
+
+struct mtbl_threadpool {
+	struct threadpool *pool;
+};
+
 /* External API, through mtbl wrapper */
 struct threadpool;
 

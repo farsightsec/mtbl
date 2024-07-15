@@ -18,8 +18,36 @@
 #include <pthread.h>
 #include <assert.h>
 #include <stdbool.h>
+#include <mtbl.h>
 
 #include "threadpool.h"
+
+/* Public interface */
+
+struct mtbl_threadpool *
+mtbl_threadpool_init(size_t thread_count) {
+
+	struct mtbl_threadpool *pool = calloc(1, sizeof(*pool));
+
+	if (thread_count > 0)
+		pool->pool = threadpool_init(thread_count);
+
+	return pool;
+}
+
+void
+mtbl_threadpool_destroy(struct mtbl_threadpool **poolp) {
+
+	struct mtbl_threadpool *pool = *poolp;
+	if (pool == NULL)
+		return;
+	threadpool_destroy(&pool->pool);
+	free(pool);
+	*poolp = NULL;
+}
+
+
+/* Threadpool */
 
 struct thread {
 	pthread_mutex_t m;
@@ -63,8 +91,11 @@ struct result_handler {
 	void *cbdata;
 };
 
-/* Threadpool */
-
+/*
+ * When worker threads are created, they are passed this function.  This
+ * function will send job data to the worker thread's callback function,
+ * handling shutdown when the signal (a NULL job) is received.
+ */
 static void *
 thread_worker(void *arg)
 {
@@ -160,6 +191,13 @@ threadpool_next(struct threadpool *pool)
 	return thr;
 }
 
+/*
+ * Ordered=false may be faster in a scenario where the first job that is
+ * assigned takes a long time to process. For example: Ordered=false is used in
+ * the sorter (writing temporary files is not order-dependent), while
+ * ordered=true is used in the writer (where writing to a single file is *very*
+ * order-dependent).
+ */
 void
 threadpool_dispatch(struct threadpool *pool,
 		    struct result_handler *rh,
