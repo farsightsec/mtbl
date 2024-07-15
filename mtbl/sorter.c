@@ -15,13 +15,13 @@
  */
 
 #include "mtbl-private.h"
-
+#include "threadpool.h"
 #include "libmy/ubuf.h"
+
 
 VECTOR_GENERATE(reader_vec, struct mtbl_reader *);
 
 struct sorter_iter {
-	reader_vec			*readers;
 	struct mtbl_merger		*m;
 	struct mtbl_iter		*m_iter;
 };
@@ -37,27 +37,38 @@ struct entry {
 
 VECTOR_GENERATE(entry_vec, struct entry *);
 
-struct chunk {
-	int				fd;
-};
-
-VECTOR_GENERATE(chunk_vec, struct chunk *);
-
 struct mtbl_sorter_options {
 	size_t				max_memory;
 	char				*tmp_dname;
 	mtbl_merge_func			merge;
 	void				*merge_clos;
+	struct mtbl_threadpool		*pool;
 };
 
 struct mtbl_sorter {
-	chunk_vec			*chunks;
+	reader_vec			*readers;
 	entry_vec			*vec;
 	size_t				entry_bytes;
 	bool				iterating;
 
 	struct mtbl_sorter_options	opt;
+
+	struct threadpool		*pool;
+	struct result_handler		*rhandler;
 };
+
+struct entry_batch {
+	const struct mtbl_sorter	*s;
+	entry_vec			*entries;
+};
+
+
+static struct entry_batch *_mtbl_sorter_get_entry_batch(struct mtbl_sorter *);
+static struct mtbl_reader * _mtbl_sorter_write_chunk(struct entry_batch *);
+static mtbl_res _mtbl_sorter_flush(struct mtbl_sorter *);
+static void* _write_temp_file_wrapper(void *batch);
+static void _collect_readers_cb(void *result, void *sorter);
+
 
 struct mtbl_sorter_options *
 mtbl_sorter_options_init(void)
@@ -65,6 +76,7 @@ mtbl_sorter_options_init(void)
 	struct mtbl_sorter_options *opt;
 	opt = my_calloc(1, sizeof(*opt));
 	opt->max_memory = DEFAULT_SORTER_MEMORY;
+	opt->pool = NULL;
 	mtbl_sorter_options_set_temp_dir(opt, DEFAULT_SORTER_TEMP_DIR);
 	return (opt);
 }
@@ -74,8 +86,7 @@ mtbl_sorter_options_destroy(struct mtbl_sorter_options **opt)
 {
 	if (*opt) {
 		free((*opt)->tmp_dname);
-		free(*opt);
-		*opt = NULL;
+		my_free(*opt);
 	}
 }
 
@@ -104,6 +115,13 @@ mtbl_sorter_options_set_max_memory(struct mtbl_sorter_options *opt,
 	opt->max_memory = max_memory;
 }
 
+void
+mtbl_sorter_options_set_threadpool(struct mtbl_sorter_options *opt,
+				   struct mtbl_threadpool *pool)
+{
+	opt->pool = pool;
+}
+
 struct mtbl_sorter *
 mtbl_sorter_init(const struct mtbl_sorter_options *opt)
 {
@@ -115,7 +133,12 @@ mtbl_sorter_init(const struct mtbl_sorter_options *opt)
 		s->opt.tmp_dname = strdup(opt->tmp_dname);
 	}
 	s->vec = entry_vec_init(INITIAL_SORTER_VEC_SIZE);
-	s->chunks = chunk_vec_init(1);
+	s->readers = reader_vec_init(1);
+
+	if (s->opt.pool != NULL) {
+		s->pool = s->opt.pool->pool;
+		s->rhandler = result_handler_init(_collect_readers_cb, s);
+	}
 
 	return (s);
 }
@@ -129,15 +152,16 @@ mtbl_sorter_destroy(struct mtbl_sorter **s)
 			free(ent);
 		}
 		entry_vec_destroy(&((*s)->vec));
-		for (unsigned i = 0; i < chunk_vec_size((*s)->chunks); i++) {
-			struct chunk *c = chunk_vec_value((*s)->chunks, i);
-			close(c->fd);
-			free(c);
+
+		for (unsigned i = 0; i < reader_vec_size((*s)->readers); i++) {
+			struct mtbl_reader *r = reader_vec_value((*s)->readers, i);
+			mtbl_reader_destroy(&r);
 		}
-		chunk_vec_destroy(&((*s)->chunks));
+		reader_vec_destroy(&((*s)->readers));
+
+		result_handler_destroy(&(*s)->rhandler);
 		free((*s)->opt.tmp_dname);
-		free(*s);
-		*s = NULL;
+		my_free(*s);
 	}
 }
 
@@ -151,38 +175,39 @@ _mtbl_sorter_compare(const void *va, const void *vb)
 			      entry_key(b), b->len_key));
 }
 
-static mtbl_res
-_mtbl_sorter_write_chunk(struct mtbl_sorter *s)
+static struct mtbl_reader *
+_mtbl_sorter_write_chunk(struct entry_batch *b)
 {
-	mtbl_res res = mtbl_res_success;
-	assert(!s->iterating);
-	struct chunk *c = my_calloc(1, sizeof(*c));
-
+	mtbl_res res;
+	const struct mtbl_sorter *s = b->s;
 	char template[64];
+
+	/* Temporary file creation: */
 	sprintf(template, "/.mtbl.%ld.XXXXXX", (long)getpid());
 	ubuf *tmp_fname = ubuf_init(strlen(s->opt.tmp_dname) + strlen(template) + 1);
 	ubuf_append(tmp_fname, (uint8_t *) s->opt.tmp_dname, strlen(s->opt.tmp_dname));
 	ubuf_append(tmp_fname, (uint8_t *) template, strlen(template));
 	ubuf_append(tmp_fname, (const uint8_t *) "\x00", 1);
 
-	c->fd = mkstemp((char *) ubuf_data(tmp_fname));
-	assert(c->fd >= 0);
+	int fd = mkstemp((char *) ubuf_data(tmp_fname));
+	assert(fd >= 0);
 	int unlink_ret = unlink((char *) ubuf_data(tmp_fname));
 	assert(unlink_ret == 0);
 	ubuf_destroy(&tmp_fname);
 
 	struct mtbl_writer_options *wopt = mtbl_writer_options_init();
 	mtbl_writer_options_set_compression(wopt, MTBL_COMPRESSION_SNAPPY);
-	struct mtbl_writer *w = mtbl_writer_init_fd(c->fd, wopt);
+	struct mtbl_writer *w = mtbl_writer_init_fd(fd, wopt);
 	mtbl_writer_options_destroy(&wopt);
 
-	struct entry **array = entry_vec_data(s->vec);
-	qsort(array, entry_vec_size(s->vec), sizeof(void *), _mtbl_sorter_compare);
-	for (unsigned i = 0; i < entry_vec_size(s->vec); i++) {
-		struct entry *ent = entry_vec_value(s->vec, i);
+	/* Sort and add sorter entries to the temporary file writer. */
+	struct entry **entries = entry_vec_data(b->entries);
+	qsort(entries, entry_vec_size(b->entries), sizeof(void *), _mtbl_sorter_compare);
+	for (unsigned i = 0; i < entry_vec_size(b->entries); i++) {
+		struct entry *ent = entry_vec_value(b->entries, i);
 
-		if (i + 1 < entry_vec_size(s->vec)) {
-			struct entry *next_ent = entry_vec_value(s->vec, i + 1);
+		if (i + 1 < entry_vec_size(b->entries)) {
+			struct entry *next_ent = entry_vec_value(b->entries, i + 1);
 			struct entry *merge_ent = NULL;
 
 			if (_mtbl_sorter_compare(&ent, &next_ent) == 0) {
@@ -195,9 +220,9 @@ _mtbl_sorter_write_chunk(struct mtbl_sorter *s)
 					     entry_val(next_ent), next_ent->len_val,
 					     &merge_val, &len_merge_val);
 				if (merge_val == NULL) {
-					free(c);
+					free(b);
 					mtbl_writer_destroy(&w);
-					return (mtbl_res_failure);
+					return (NULL);
 				}
 				size_t len = sizeof(struct entry) + ent->len_key + len_merge_val;
 				merge_ent = my_malloc(len);
@@ -208,10 +233,13 @@ _mtbl_sorter_write_chunk(struct mtbl_sorter *s)
 				free(merge_val);
 				free(ent);
 				free(next_ent);
-				entry_vec_data(s->vec)[i + 1] = merge_ent;
+
+				entry_vec_data(b->entries)[i + 1] = merge_ent;
+
 				continue;
 			}
 		}
+
 		res = mtbl_writer_add(w,
 				      entry_key(ent), ent->len_key,
 				      entry_val(ent), ent->len_val);
@@ -220,11 +248,14 @@ _mtbl_sorter_write_chunk(struct mtbl_sorter *s)
 			break;
 	}
 	mtbl_writer_destroy(&w);
-	entry_vec_destroy(&s->vec);
-	s->vec = entry_vec_init(INITIAL_SORTER_VEC_SIZE);
-	s->entry_bytes = 0;
-	chunk_vec_add(s->chunks, c);
-	return (res);
+	entry_vec_destroy(&b->entries);
+	free(b);
+
+	if (res != mtbl_res_success)
+		return (NULL);
+
+	struct mtbl_reader *r = mtbl_reader_init_fd(fd, NULL);
+	return (r);
 }
 
 mtbl_res
@@ -232,6 +263,7 @@ mtbl_sorter_write(struct mtbl_sorter *s, struct mtbl_writer *w)
 {
 	if (s->iterating)
 		return (mtbl_res_failure);
+
 	struct mtbl_iter *it = mtbl_sorter_iter(s);
 	const uint8_t *key, *val;
 	size_t len_key, len_val;
@@ -272,8 +304,61 @@ mtbl_sorter_add(struct mtbl_sorter *s,
 	s->entry_bytes += entry_bytes;
 
 	if (s->entry_bytes + entry_vec_bytes(s->vec) >= s->opt.max_memory)
-		res = _mtbl_sorter_write_chunk(s);
+		res = _mtbl_sorter_flush(s);
+
 	return (res);
+}
+
+static mtbl_res
+_mtbl_sorter_flush(struct mtbl_sorter *s)
+{
+	assert(!s->iterating);
+	mtbl_res res = mtbl_res_success;
+	struct entry_batch *b = _mtbl_sorter_get_entry_batch(s);
+
+	if (s->pool != NULL) {
+		threadpool_dispatch(
+			s->pool,
+			s->rhandler,
+			false,
+			_write_temp_file_wrapper,
+			b
+		);
+
+	} else {
+		struct mtbl_reader *r = _mtbl_sorter_write_chunk(b);
+		reader_vec_add(s->readers, r);
+		if (r == NULL) res = mtbl_res_failure;
+	}
+
+	return (res);
+}
+
+static struct entry_batch *
+_mtbl_sorter_get_entry_batch(struct mtbl_sorter *s)
+{
+	assert(!s->iterating);
+
+	struct entry_batch *b = calloc(1, sizeof(*b));
+	b->s = s;
+	b->entries = s->vec;
+
+	s->vec = entry_vec_init(INITIAL_SORTER_VEC_SIZE);
+	s->entry_bytes = 0;
+
+	return b;
+}
+
+static void* _write_temp_file_wrapper(void *batch) {
+
+	struct mtbl_reader *r = _mtbl_sorter_write_chunk(batch);
+	return r;
+}
+
+static void _collect_readers_cb(void *reader, void *sorter) {
+
+	struct mtbl_sorter *s = sorter;
+	reader_vec_add(s->readers, reader);
 }
 
 static mtbl_res
@@ -300,11 +385,6 @@ sorter_iter_free(void *v)
 	if (it) {
 		mtbl_iter_destroy(&it->m_iter);
 		mtbl_merger_destroy(&it->m);
-		for (size_t i = 0; i < reader_vec_size(it->readers); i++) {
-			struct mtbl_reader *r = reader_vec_value(it->readers, i);
-			mtbl_reader_destroy(&r);
-		}
-		reader_vec_destroy(&it->readers);
 		free(it);
 	}
 }
@@ -312,29 +392,26 @@ sorter_iter_free(void *v)
 struct mtbl_iter *
 mtbl_sorter_iter(struct mtbl_sorter *s)
 {
-	mtbl_res res;
 	struct sorter_iter *it = my_calloc(1, sizeof(*it));
-	it->readers = reader_vec_init(0);
-
 	struct mtbl_merger_options *mopt = mtbl_merger_options_init();
-	mtbl_merger_options_set_merge_func(mopt, s->opt.merge, s->opt.merge_clos);
-	it->m = mtbl_merger_init(mopt);
-	mtbl_merger_options_destroy(&mopt);
 
 	if (entry_vec_size(s->vec) > 0) {
-		res = _mtbl_sorter_write_chunk(s);
+		mtbl_res res = _mtbl_sorter_flush(s);
+
 		if (res != mtbl_res_success) {
-			sorter_iter_free(it);
+			free(it);
 			return (NULL);
 		}
 	}
 
-	for (unsigned i = 0; i < chunk_vec_size(s->chunks); i++) {
-		struct chunk *c = chunk_vec_value(s->chunks, i);
-		struct mtbl_reader *r;
-		r = mtbl_reader_init_fd(c->fd, NULL);
+	mtbl_merger_options_set_merge_func(mopt, s->opt.merge, s->opt.merge_clos);
+	it->m = mtbl_merger_init(mopt);
+	mtbl_merger_options_destroy(&mopt);
+	result_handler_destroy(&s->rhandler);
+
+	for (size_t i = 0; i < reader_vec_size(s->readers); i++) {
+		struct mtbl_reader *r = reader_vec_value(s->readers,i);
 		mtbl_merger_add_source(it->m, mtbl_reader_source(r));
-		reader_vec_add(it->readers, r);
 	}
 
 	it->m_iter = mtbl_source_iter(mtbl_merger_source(it->m));

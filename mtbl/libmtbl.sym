@@ -107,6 +107,7 @@ global:
 LIBMTBL_1.5.0 {
 global:
 	mtbl_writer_options_set_threadpool;
+	mtbl_sorter_options_set_threadpool;
 	mtbl_threadpool_init;
 	mtbl_threadpool_destroy;
 } LIBMTBL_1.4.0;

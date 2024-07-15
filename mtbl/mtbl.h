@@ -481,6 +481,11 @@ mtbl_sorter_options_set_max_memory(
 	struct mtbl_sorter_options *,
 	size_t);
 
+void
+mtbl_sorter_options_set_threadpool(
+	struct mtbl_sorter_options *,
+	struct mtbl_threadpool *);
+
 /* crc32c */
 
 uint32_t
