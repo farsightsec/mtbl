@@ -68,6 +68,7 @@ libmtbl.so.1 libmtbl1 #MINVER#
  mtbl_sorter_options_set_max_memory@LIBMTBL_1.0.0 1.0.0
  mtbl_sorter_options_set_merge_func@LIBMTBL_1.0.0 1.0.0
  mtbl_sorter_options_set_temp_dir@LIBMTBL_1.0.0 1.0.0
+ mtbl_sorter_options_set_threadpool@LIBMTBL_1.5.0 1.7.0
  mtbl_sorter_write@LIBMTBL_1.0.0 1.0.0
  mtbl_source_destroy@LIBMTBL_1.0.0 1.0.0
  mtbl_source_get@LIBMTBL_1.0.0 1.0.0
