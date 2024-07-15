@@ -263,6 +263,11 @@ mtbl_writer_options_set_block_restart_interval(
 	struct mtbl_writer_options *,
 	size_t);
 
+void
+mtbl_writer_options_set_threadpool(
+	struct mtbl_writer_options *,
+	struct mtbl_threadpool *);
+
 /* reader */
 
 struct mtbl_reader *
