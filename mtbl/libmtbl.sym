@@ -104,7 +104,7 @@ global:
         mtbl_fileset_options_set_reader_filter_func;
 } LIBMTBL_1.2.0;
 
-LIBMTBL_1.5.0 {
+LIBMTBL_1.7.0 {
 global:
 	mtbl_writer_options_set_threadpool;
 	mtbl_sorter_options_set_threadpool;

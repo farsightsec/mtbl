@@ -58,7 +58,7 @@ fi
 ##
 #
 
-LIBMTBL_VERSION_INFO=3:2:2
+LIBMTBL_VERSION_INFO=4:0:3
 
 include_HEADERS = mtbl/mtbl.h
 lib_LTLIBRARIES = mtbl/libmtbl.la
