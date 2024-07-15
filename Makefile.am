@@ -272,6 +272,7 @@ dist_man_MANS = \
 	man/mtbl_crc32c.3 \
 	man/mtbl_fixed.3 \
 	man/mtbl_varint.3 \
+	man/mtbl_threadpool.3 \
 	man/mtbl.7
 
 EXTRA_DIST += \
@@ -290,4 +291,5 @@ EXTRA_DIST += \
 	man/mtbl_crc32c.3.txt \
 	man/mtbl_fixed.3.txt \
 	man/mtbl_varint.3.txt \
+	man/mtbl_threadpool.3.txt \
 	man/mtbl.7.txt
