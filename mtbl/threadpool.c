@@ -49,14 +49,16 @@ mtbl_threadpool_destroy(struct mtbl_threadpool **poolp) {
 
 /* Threadpool */
 
+/* The worker threads which will be wholly managed by a struct threadpool object. */
 struct thread {
 	pthread_mutex_t m;
 	pthread_cond_t c;
 	pthread_t t;
 
-	void *arg, *res;
+	void *arg;	/* Job data for this thread to work on. */
+	void *res;	/* Result data of this thread's work. */
 
-	thread_cb cb;
+	thread_cb cb;	/* Callback for when this thread receives a job. */
 
 	struct thread *next;
 	struct resultq *rq;
@@ -65,6 +67,7 @@ struct thread {
 	bool running;
 };
 
+/* Queue of worker threads' completed work that is awaiting processing. */
 struct resultq {
 	pthread_mutex_t m;
 	pthread_cond_t c;
@@ -75,6 +78,7 @@ struct resultq {
 	struct thread *head, **ptail;
 };
 
+/* Manages all worker threads. */
 struct threadpool {
 	pthread_mutex_t m;
 	pthread_cond_t c;
@@ -84,11 +88,12 @@ struct threadpool {
 	size_t max;
 };
 
+/* Handles all results received by worker threads. */
 struct result_handler {
 	pthread_t thread;
 	struct resultq *rq;
-	result_cb cb;
-	void *cbdata;
+	result_cb cb;	/* Callback for when completed work is received. */
+	void *cbdata;	/* Argument which will be passed to result_cb cb(). */
 };
 
 /*
