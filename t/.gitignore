@@ -8,3 +8,4 @@ test-metadata
 test-sorted-merge
 test-varint
 test-vector
+test-fileset-filter
