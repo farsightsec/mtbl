@@ -95,4 +95,4 @@ libmtbl.so.1 libmtbl1 #MINVER#
  mtbl_writer_options_set_compression_level@LIBMTBL_1.0.0 1.0.0
  mtbl_writer_options_set_threadpool@LIBMTBL_1.6.0 1.7.0
  mtbl_threadpool_init@LIBMTBL_1.6.0 1.7.0
- mtbl_threadpool_destroy@LIBMTBL_1.5.0 1.7.0
+ mtbl_threadpool_destroy@LIBMTBL_1.6.0 1.7.0
