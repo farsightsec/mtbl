@@ -22,7 +22,7 @@ discretion of the `mtbl` library user.
 `mtbl` SSTable files consist of a sequence of data blocks containing sorted
 key-value pairs, where keys and values are arbitrary byte arrays. Data blocks
 are optionally compressed using the
-[zlib](http://www.zlib.net/), [LZ4](https://github.com/Cyan4973/lz4), 
+[zlib](http://www.zlib.net/), [LZ4](https://github.com/Cyan4973/lz4),
 [zstd](https://github.com/facebook/zstd), or
 [Snappy](http://google.github.io/snappy/) compression algorithms. The data
 blocks are followed by an index block, allowing for fast searches over the
@@ -35,7 +35,7 @@ key in each data block is buffered in memory until the writer object is closed,
 at which point the index is written to the end of the SSTable file. This allows
 SSTable files to be written in a single pass with sequential I/O operations
 only.
-    
+
 Once written, SSTable files can be searched using the `mtbl` reader interface.
 Searches can retrieve key-value pairs based on an exact key match, a key prefix
 match, or a key range. Results are retrieved using a simple iterator interface.
@@ -52,3 +52,7 @@ also make use of sequential I/O operations only.
 
 The `mtbl` file format was changed in version 1.0.0. Older versions cannot read
 the new file format, but newer versions can read both formats.
+
+In version 1.7.0, the threadpool interface was added.  Both the writer and
+sorter can utilize this new functionality for improved performance.  Threadpools
+are only supported in `dnstable-convert` version 0.14.0 and up.
