@@ -1,5 +1,5 @@
 Name:           mtbl
-Version:        1.6.1
+Version:        1.7.0
 Release:        1%{?dist}
 Summary:	immutable sorted string table utilities
 
@@ -9,7 +9,7 @@ Source0:        https://dl.farsightsecurity.com/dist/%{name}/%{name}-%{version}.
 
 
 BuildRequires:  zlib-devel lz4-devel libzstd-devel snappy-devel
-#Requires:       
+#Requires:
 # TODO: will Requires be set automatically?
 
 %description
