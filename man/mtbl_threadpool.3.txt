@@ -2,13 +2,11 @@
 
 == NAME ==
 
-mtbl_threadpool - create a shared threadpool
+mtbl_threadpool - create a shared worker threadpool
 
 == SYNOPSIS ==
 
 ^#include <mtbl.h>^
-
-Threadpool objects:
 
 [verse]
 ^struct mtbl_threadpool *

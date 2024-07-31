@@ -16,6 +16,7 @@
 
 #include "mtbl-private.h"
 #include "threadpool.h"
+
 #include "libmy/ubuf.h"
 
 
@@ -64,7 +65,7 @@ struct entry_batch {
 
 
 static struct entry_batch *_mtbl_sorter_get_entry_batch(struct mtbl_sorter *);
-static struct mtbl_reader * _mtbl_sorter_write_chunk(struct entry_batch *);
+static struct mtbl_reader *_mtbl_sorter_write_chunk(struct entry_batch *);
 static mtbl_res _mtbl_sorter_flush(struct mtbl_sorter *);
 static void* _write_temp_file_wrapper(void *batch);
 static void _collect_readers_cb(void *result, void *sorter);
@@ -254,8 +255,7 @@ _mtbl_sorter_write_chunk(struct entry_batch *b)
 	if (res != mtbl_res_success)
 		return (NULL);
 
-	struct mtbl_reader *r = mtbl_reader_init_fd(fd, NULL);
-	return (r);
+	return (mtbl_reader_init_fd(fd, NULL));
 }
 
 mtbl_res
@@ -312,9 +312,11 @@ mtbl_sorter_add(struct mtbl_sorter *s,
 static mtbl_res
 _mtbl_sorter_flush(struct mtbl_sorter *s)
 {
-	assert(!s->iterating);
 	mtbl_res res = mtbl_res_success;
-	struct entry_batch *b = _mtbl_sorter_get_entry_batch(s);
+	struct entry_batch *b;
+
+	assert(!s->iterating);
+	b = _mtbl_sorter_get_entry_batch(s);
 
 	if (s->pool != NULL) {
 		threadpool_dispatch(
@@ -337,9 +339,11 @@ _mtbl_sorter_flush(struct mtbl_sorter *s)
 static struct entry_batch *
 _mtbl_sorter_get_entry_batch(struct mtbl_sorter *s)
 {
+	struct entry_batch *b;
+
 	assert(!s->iterating);
 
-	struct entry_batch *b = calloc(1, sizeof(*b));
+	b = calloc(1, sizeof(*b));
 	b->s = s;
 	b->entries = s->vec;
 
@@ -349,8 +353,8 @@ _mtbl_sorter_get_entry_batch(struct mtbl_sorter *s)
 	return b;
 }
 
-static void* _write_temp_file_wrapper(void *batch) {
-
+static void *
+_write_temp_file_wrapper(void *batch) {
 	struct mtbl_reader *r = _mtbl_sorter_write_chunk(batch);
 	return r;
 }
