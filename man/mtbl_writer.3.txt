@@ -120,7 +120,7 @@ reasonable default will be used.
 ==== threadpool ====
 A pointer to a user-managed ^mtbl_threadpool^ object which will be used to
 concurrently compress data blocks.  If this pointer is equal to ^NULL^, has not
-been initialized, or has been initialized with a ^thread_count^ of 0, the
+been initialized, or has been initialized with a thread count of 0, the
 threadpool will not be used.
 
 ==== block_size ====

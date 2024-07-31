@@ -28,12 +28,10 @@
 .\" * MAIN CONTENT STARTS HERE *
 .\" -----------------------------------------------------------------
 .SH "NAME"
-mtbl_threadpool \- create a shared threadpool
+mtbl_threadpool \- create a shared worker threadpool
 .SH "SYNOPSIS"
 .sp
 \fB#include <mtbl\&.h>\fR
-.sp
-Threadpool objects:
 .sp
 .nf
 \fBstruct mtbl_threadpool *
@@ -46,7 +44,7 @@ mtbl_threadpool_destroy(struct mtbl_threadpool **\fR\fB\fIpool\fR\fR\fB);\fR
 .fi
 .SH "DESCRIPTION"
 .sp
-Certain MTBL "option" structures accept an \fBmtbl_threadpool\fR option (e\&.g\&. \fBmtbl_writer_options\fR) to enable internal concurrency\&. The user\-provided \fBmtbl_threadpool\fR object must be initialized before use by calling \fBmtbl_threadpool_init()\fR, and must be destroyed after use by calling \fBmtbl_threadpool_destroy()\fR\&.
+Certain MTBL "option" structures accept an \fBmtbl_threadpool\fR option (e\&.g\&. \fBmtbl_writer_options\fR, \fBmtbl_sorter_options\fR) to enable internal concurrency\&. The user\-provided \fBmtbl_threadpool\fR object must be initialized before use by calling \fBmtbl_threadpool_init()\fR, and must be destroyed after use by calling \fBmtbl_threadpool_destroy()\fR\&.
 .sp
 If the \fIthread_count\fR parameter to \fBmtbl_threadpool_init()\fR is 0, multithreading will be disabled\&. Regardless, a non\-NULL \fBmtbl_threadpool\fR object will be returned from \fBmtbl_threadpool_init()\fR\&.
 .SS "Threadpool options"

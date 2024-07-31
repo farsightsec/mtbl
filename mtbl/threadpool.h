@@ -29,10 +29,7 @@ struct threadpool;
  */
 struct threadpool *threadpool_init(size_t max_threads);
 
-/*
- * Destroy a pool of threads, after waiting for all
- * threads to finish.
- */
+/* Destroy a pool of threads, after waiting for all threads to finish. */
 void threadpool_destroy(struct threadpool **poolp);
 
 
