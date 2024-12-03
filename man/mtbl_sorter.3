@@ -1,13 +1,13 @@
 '\" t
 .\"     Title: mtbl_sorter
-.\"    Author: [FIXME: author] [see http://docbook.sf.net/el/author]
-.\" Generator: DocBook XSL Stylesheets v1.78.1 <http://docbook.sf.net/>
-.\"      Date: 01/31/2014
+.\"    Author: [FIXME: author] [see http://www.docbook.org/tdg5/en/html/author]
+.\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
+.\"      Date: 07/29/2024
 .\"    Manual: \ \&
 .\"    Source: \ \&
 .\"  Language: English
 .\"
-.TH "MTBL_SORTER" "3" "01/31/2014" "\ \&" "\ \&"
+.TH "MTBL_SORTER" "3" "07/29/2024" "\ \&" "\ \&"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -95,6 +95,13 @@ mtbl_sorter_options_set_max_memory(
         struct mtbl_sorter_options *\fR\fB\fIsopt\fR\fR\fB,
         size_t \fR\fB\fImax_memory\fR\fR\fB);\fR
 .fi
+.sp
+.nf
+\fBvoid
+mtbl_sorter_options_set_threadpool(
+        struct mtbl_sorter_options *\fR\fB\fIsopt\fR\fR\fB,
+        struct mtbl_threadpool *\fR\fB\fIpool\fR\fR\fB);\fR
+.fi
 .SH "DESCRIPTION"
 .sp
 The \fBmtbl_sorter\fR interface accepts a sequence of key\-value pairs with keys in arbitrary order and provides these entries in sorted order\&. The sorted entries may be consumed via the \fBmtbl_iter\fR interface using the \fBmtbl_sorter_iter\fR() function, or they may be dumped to an \fBmtbl_writer\fR object using the \fBmtbl_sorter_write\fR() function\&. The \fBmtbl_sorter\fR implementation buffers entries in memory up to a configurable limit before sorting them and writing them to disk in chunks\&. When the caller has finishing adding entries and requests the sorted output, entries from these sorted chunks are then read back and merged\&. (Thus, \fBmtbl_sorter\fR(3) is an "external sorting" implementation\&.)
@@ -140,6 +147,9 @@ Specifies the maximum amount of memory to use for in\-memory sorting, in bytes\&
 .sp
 See \fBmtbl_merger\fR(3)\&. An \fBmtbl_merger\fR object is used internally for the external sort\&.
 .RE
+.SS "threadpool"
+.sp
+A pointer to a user\-managed \fBmtbl_threadpool\fR object which will be used to concurrently sort and write batches of entries to temporary MTBL files\&. If this pointer is equal to NULL, has not been initialized, or has been initialized with a thread count of 0, the threadpool will not be used\&.
 .SH "RETURN VALUE"
 .sp
 If the merge function callback is unable to provide a merged value (that is, it fails to return a non\-NULL value in its \fImerged_val\fR argument), the sort process will be aborted, and \fBmtbl_sorter_write\fR() or \fBmtbl_iter_next\fR() will return \fBmtbl_res_failure\fR\&.

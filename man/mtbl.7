@@ -1,13 +1,13 @@
 '\" t
 .\"     Title: mtbl
-.\"    Author: [FIXME: author] [see http://docbook.sf.net/el/author]
-.\" Generator: DocBook XSL Stylesheets v1.78.1 <http://docbook.sf.net/>
-.\"      Date: 01/31/2014
+.\"    Author: [FIXME: author] [see http://www.docbook.org/tdg5/en/html/author]
+.\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
+.\"      Date: 07/16/2024
 .\"    Manual: \ \&
 .\"    Source: \ \&
 .\"  Language: English
 .\"
-.TH "MTBL" "7" "01/31/2014" "\ \&" "\ \&"
+.TH "MTBL" "7" "07/16/2024" "\ \&" "\ \&"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -118,4 +118,15 @@ Functions for fixed\-width encoding and decoding of 32 and 64 bit integers\&.
 \fBmtbl_varint\fR(3)
 .RS 4
 Functions for varint encoding and decoding of 32 and 64 bit integers\&.
+.RE
+.PP
+\fBmtbl_threadpool\fR(3)
+.RS 4
+Provides an interface for enabling multithreading on
+\fBmtbl_writer\fR
+and
+\fBmtbl_sorter\fR
+objects via
+\fBmtbl_threadpool\fR
+objects\&.
 .RE

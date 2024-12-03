@@ -1,0 +1,38 @@
+= mtbl_threadpool(3) =
+
+== NAME ==
+
+mtbl_threadpool - create a shared worker threadpool
+
+== SYNOPSIS ==
+
+^#include <mtbl.h>^
+
+[verse]
+^struct mtbl_threadpool *
+mtbl_threadpool_init(size_t 'thread_count');^
+
+[verse]
+^void
+mtbl_threadpool_destroy(struct mtbl_threadpool **'pool');^
+
+== DESCRIPTION ==
+
+Certain MTBL "option" structures accept an ^mtbl_threadpool^ option (e.g.
+^mtbl_writer_options^, ^mtbl_sorter_options^) to enable internal concurrency.
+The user-provided ^mtbl_threadpool^ object must be initialized before use by
+calling ^mtbl_threadpool_init()^, and must be destroyed after use by calling
+^mtbl_threadpool_destroy()^.
+
+If the _thread_count_ parameter to ^mtbl_threadpool_init()^ is 0,
+multithreading will be disabled.  Regardless, a non-NULL ^mtbl_threadpool^
+object will be returned from ^mtbl_threadpool_init()^.
+
+=== Threadpool options ===
+
+==== thread_count ====
+The maximum number of worker threads that the threadpool will open.
+
+== RETURN VALUE ==
+
+^mtbl_threadpool_init^() returns NULL on failure, and non-NULL on success.

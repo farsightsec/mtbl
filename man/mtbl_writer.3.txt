@@ -52,6 +52,12 @@ mtbl_writer_options_set_compression_level(
 
 [verse]
 ^void
+mtbl_writer_options_set_threadpool(
+	struct mtbl_writer_options *'wopt',
+	struct mtbl_threadpool 'threadpool');^
+
+[verse]
+^void
 mtbl_writer_options_set_block_size(
         struct mtbl_writer_options *'wopt',
         size_t 'block_size');^
@@ -85,7 +91,7 @@ an _fd_ argument specifying an open, writable file descriptor. Prior to the
 call, moving _fd_'s cursor via ^write^(2) or ^lseek^(2) will have the effect
 of reserving the file's initial bytes for non-MTBL use. MTBL will only write
 at, or above the current offset. Thereafter, only ^mtbl_writer^ may access this
-_fd_ (including closing it), and no other writes may be made to the underlying 
+_fd_ (including closing it), and no other writes may be made to the underlying
 file above the first offset of the MTBL data. The MTBL data must be last in the
 file.
 
@@ -110,6 +116,12 @@ algorithms which support different compression levels are
 and compression levels outside the ranges supported by the algorithm will be
 silently clamped to the minimum or maximum supported level. If not specified, a
 reasonable default will be used.
+
+==== threadpool ====
+A pointer to a user-managed ^mtbl_threadpool^ object which will be used to
+concurrently compress data blocks.  If this pointer is equal to ^NULL^, has not
+been initialized, or has been initialized with a thread count of 0, the
+threadpool will not be used.
 
 ==== block_size ====
 The maximum size of uncompressed data blocks, specified in bytes. The default

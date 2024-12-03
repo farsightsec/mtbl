@@ -77,6 +77,8 @@ mtbl_compression_type_from_str(const char *, mtbl_compression_type *);
 
 /* exported types */
 
+struct mtbl_threadpool;
+
 struct mtbl_iter;
 struct mtbl_source;
 
@@ -117,6 +119,14 @@ typedef bool
 
 typedef bool
 (*mtbl_reader_filter_func)(struct mtbl_reader *reader, void *clos);
+
+/* threadpool */
+
+struct mtbl_threadpool *
+mtbl_threadpool_init(size_t thread_count);
+
+void
+mtbl_threadpool_destroy(struct mtbl_threadpool **pool);
 
 /* iter */
 
@@ -252,6 +262,11 @@ void
 mtbl_writer_options_set_block_restart_interval(
 	struct mtbl_writer_options *,
 	size_t);
+
+void
+mtbl_writer_options_set_threadpool(
+	struct mtbl_writer_options *,
+	struct mtbl_threadpool *);
 
 /* reader */
 
@@ -465,6 +480,11 @@ void
 mtbl_sorter_options_set_max_memory(
 	struct mtbl_sorter_options *,
 	size_t);
+
+void
+mtbl_sorter_options_set_threadpool(
+	struct mtbl_sorter_options *,
+	struct mtbl_threadpool *);
 
 /* crc32c */
 

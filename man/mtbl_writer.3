@@ -1,13 +1,13 @@
 '\" t
 .\"     Title: mtbl_writer
-.\"    Author: [FIXME: author] [see http://docbook.sf.net/el/author]
-.\" Generator: DocBook XSL Stylesheets v1.79.1 <http://docbook.sf.net/>
-.\"      Date: 12/11/2016
+.\"    Author: [FIXME: author] [see http://www.docbook.org/tdg5/en/html/author]
+.\" Generator: DocBook XSL Stylesheets vsnapshot <http://docbook.sf.net/>
+.\"      Date: 07/29/2024
 .\"    Manual: \ \&
 .\"    Source: \ \&
 .\"  Language: English
 .\"
-.TH "MTBL_WRITER" "3" "12/11/2016" "\ \&" "\ \&"
+.TH "MTBL_WRITER" "3" "07/29/2024" "\ \&" "\ \&"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -85,6 +85,13 @@ mtbl_writer_options_set_compression_level(
 .sp
 .nf
 \fBvoid
+mtbl_writer_options_set_threadpool(
+        struct mtbl_writer_options *\fR\fB\fIwopt\fR\fR\fB,
+        struct mtbl_threadpool \fR\fB\fIthreadpool\fR\fR\fB);\fR
+.fi
+.sp
+.nf
+\fBvoid
 mtbl_writer_options_set_block_size(
         struct mtbl_writer_options *\fR\fB\fIwopt\fR\fR\fB,
         size_t \fR\fB\fIblock_size\fR\fR\fB);\fR
@@ -129,6 +136,17 @@ Specifies the compression algorithm to use on data blocks\&. Possible values are
 .RS 4
 .sp
 Specifies the compression level to use on data blocks, if the selected compression algorithm supports different compression levels\&. The compression algorithms which support different compression levels are \fBMTBL_COMPRESSION_LZ4HC\fR (0\-16), \fBMTBL_COMPRESSION_ZSTD\fR (1\-22), and \fBMTBL_COMPRESSION_ZLIB\fR (0\-9)\&. Other compression algorithms ignore this option, and compression levels outside the ranges supported by the algorithm will be silently clamped to the minimum or maximum supported level\&. If not specified, a reasonable default will be used\&.
+.RE
+.sp
+.it 1 an-trap
+.nr an-no-space-flag 1
+.nr an-break-flag 1
+.br
+.ps +1
+\fBthreadpool\fR
+.RS 4
+.sp
+A pointer to a user\-managed \fBmtbl_threadpool\fR object which will be used to concurrently compress data blocks\&. If this pointer is equal to \fBNULL\fR, has not been initialized, or has been initialized with a thread count of 0, the threadpool will not be used\&.
 .RE
 .sp
 .it 1 an-trap

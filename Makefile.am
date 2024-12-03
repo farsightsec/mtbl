@@ -58,7 +58,7 @@ fi
 ##
 #
 
-LIBMTBL_VERSION_INFO=3:2:2
+LIBMTBL_VERSION_INFO=4:0:3
 
 include_HEADERS = mtbl/mtbl.h
 lib_LTLIBRARIES = mtbl/libmtbl.la
@@ -86,6 +86,8 @@ mtbl_libmtbl_la_SOURCES = \
 	mtbl/reader.c \
 	mtbl/sorter.c \
 	mtbl/source.c \
+	mtbl/threadpool.c \
+	mtbl/threadpool.h \
 	mtbl/metadata.c \
 	mtbl/varint.c \
 	mtbl/writer.c
@@ -270,6 +272,7 @@ dist_man_MANS = \
 	man/mtbl_crc32c.3 \
 	man/mtbl_fixed.3 \
 	man/mtbl_varint.3 \
+	man/mtbl_threadpool.3 \
 	man/mtbl.7
 
 EXTRA_DIST += \
@@ -288,4 +291,5 @@ EXTRA_DIST += \
 	man/mtbl_crc32c.3.txt \
 	man/mtbl_fixed.3.txt \
 	man/mtbl_varint.3.txt \
+	man/mtbl_threadpool.3.txt \
 	man/mtbl.7.txt

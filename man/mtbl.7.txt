@@ -49,7 +49,7 @@ Sorter objects receive a sequence of key-value entries provided by the caller
 and return them in sorted order. The caller must provide a callback function
 to merge values in the case of entries with duplicate keys. The sorted output
 sequence may be retrieved via the ^mtbl_iter^ interface or be dumped to an
-^mtbl_writer^ object.  
+^mtbl_writer^ object.
 
 link:mtbl_fileset[3]::
 Fileset objects automatically maintain an ^mtbl_source^ built on top of the
@@ -66,3 +66,7 @@ Functions for fixed-width encoding and decoding of 32 and 64 bit integers.
 
 link:mtbl_varint[3]::
 Functions for varint encoding and decoding of 32 and 64 bit integers.
+
+link:mtbl_threadpool[3]::
+Provides an interface for enabling multithreading on ^mtbl_writer^ and
+^mtbl_sorter^ objects via ^mtbl_threadpool^ objects.

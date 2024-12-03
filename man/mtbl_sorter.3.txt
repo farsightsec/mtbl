@@ -61,6 +61,12 @@ mtbl_sorter_options_set_max_memory(
         struct mtbl_sorter_options *'sopt',
         size_t 'max_memory');^
 
+[verse]
+^void
+mtbl_sorter_options_set_threadpool(
+	struct mtbl_sorter_options *'sopt',
+	struct mtbl_threadpool *'pool');^
+
 == DESCRIPTION ==
 
 The ^mtbl_sorter^ interface accepts a sequence of key-value pairs with keys in
@@ -109,6 +115,12 @@ allocated for key-value entries and does not include any allocation overhead.
 ==== merge_func ====
 See ^mtbl_merger^(3). An ^mtbl_merger^ object is used internally for the
 external sort.
+
+=== threadpool ===
+A pointer to a user-managed ^mtbl_threadpool^ object which will be used to
+concurrently sort and write batches of entries to temporary MTBL files. If this
+pointer is equal to NULL, has not been initialized, or has been initialized
+with a thread count of 0, the threadpool will not be used.
 
 == RETURN VALUE ==
 
