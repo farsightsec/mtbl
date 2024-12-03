@@ -1,3 +1,16 @@
+mtbl (1.7.0-1) debian-fsi; urgency=medium
+
+  * Add public mtbl_threadpool API, enabling multithreaded functionality for
+    mtbl_writer and mtbl_sorter objects; see mtbl_threadpool manpage for more
+    info.
+  * Add mtbl_writer_options_set_threadpool() to enable multithreaded
+    data block compression.
+  * Add mtbl_sorter_options_set_threadpool() to enable multithreaded sorting.
+  * Add -t option for setting the preferred number of threads to use in an
+    mtbl_threadpool object used for writing in mtbl_merge.
+
+ -- Farsight Security Inc <software@farsightsecurity.com>  Tue, 03 Dec 2024 15:41:38 -0500
+
 mtbl (1.6.1-1) debian-fsi; urgency=medium
 
   * Add ./configure --with-coverage option to build with code coverage
