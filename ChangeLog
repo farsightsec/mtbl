@@ -1,3 +1,7 @@
+mtbl (1.7.1)
+
+  * Incremented version for new tarball.
+
 mtbl (1.7.0)
 
   * Add public mtbl_threadpool API, enabling multithreaded functionality for
