@@ -359,7 +359,8 @@ _write_temp_file_wrapper(void *batch) {
 	return r;
 }
 
-static void _collect_readers_cb(void *reader, void *sorter) {
+static void
+_collect_readers_cb(void *reader, void *sorter) {
 
 	struct mtbl_sorter *s = sorter;
 	reader_vec_add(s->readers, reader);
