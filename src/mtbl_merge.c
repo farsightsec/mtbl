@@ -309,8 +309,12 @@ parse_arg_block_size(const char *arg)
 		return false;
 	}
 
-	if (!parse_long(arg, &arg_block_size))
+	if (!parse_long(arg, &arg_block_size) || arg_block_size < 1) {
+		fprintf(stderr,
+			"%s: Error: invalid block size '%s'\n",
+			program_name, arg);
 		return false;
+	}
 
 	opt_block_size = arg_block_size;
 	return true;
@@ -322,25 +326,45 @@ parse_arg_compression(const char *arg)
 	mtbl_res res;
 
 	res = mtbl_compression_type_from_str(arg, &opt_compression_type);
-	return res == mtbl_res_success;
+	if (res != mtbl_res_success) {
+		fprintf(stderr,
+			"%s: Error: invalid compression type '%s'\n",
+			program_name, arg);
+		return false;
+	}
+
+	return true;
 }
 
 static bool
 parse_arg_compression_level(const char *arg)
 {
-	char *endp;
-	opt_compression_level = strtol(arg, &endp, 10);
-	return *endp == '\0';
+	long int arg_compression_level;
+
+	if (!parse_long(arg, &arg_compression_level)) {
+		fprintf(stderr,
+			"%s: Error: invalid compression level '%s'\n",
+			program_name, arg);
+		return false;
+	}
+
+	opt_compression_level = arg_compression_level;
+	return true;
 }
 
 static bool
 parse_arg_thread_count(const char *arg)
 {
-	char *endp;
-	int thread_count = strtol(arg, &endp, 10);
-	if (thread_count < 0)
+	long int arg_thread_count;
+
+	if (!parse_long(arg, &arg_thread_count) || arg_thread_count < 0) {
+		fprintf(stderr,
+			"%s: Error: invalid thread count '%s'\n",
+			program_name, arg);
 		return false;
-	opt_threadpool = mtbl_threadpool_init(thread_count);
+	}
+
+	opt_threadpool = mtbl_threadpool_init(arg_thread_count);
 	return true;
 }
 
