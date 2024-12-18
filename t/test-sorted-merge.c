@@ -125,6 +125,7 @@ my_merge_func(void *clos,
 
 int main(int argc, char ** argv) {
 	size_t i, j = 0;
+	struct mtbl_threadpool *pool = mtbl_threadpool_init(4);
 
 	/* Make sure everything is cleaned up afterwards. */
 	atexit(cleanup_func);
@@ -143,6 +144,10 @@ int main(int argc, char ** argv) {
 		sorter_options = mtbl_sorter_options_init();
 		assert(sorter_options != NULL);
 
+		/* For some of the sorts, test the sorter's multithreading. */
+		if (j % 2 == 0) {
+			mtbl_sorter_options_set_threadpool(sorter_options, pool);
+		}
 		mtbl_sorter_options_set_merge_func(sorter_options, my_merge_func, NULL);
 
 		sorter = mtbl_sorter_init(sorter_options);
@@ -266,6 +271,8 @@ int main(int argc, char ** argv) {
 		cleanup_func();
 	}
 
+	mtbl_threadpool_destroy(&pool);
+	return 0;
 }
 
 static void
