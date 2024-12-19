@@ -235,6 +235,22 @@ t_test_compression_SOURCES = t/test-compression.c
 t_test_compression_LDADD = mtbl/libmtbl.la
 t/test-compression.sh: t/test-compression
 
+check_LTLIBRARIES = t/libtest-merge-func.la
+# hack to create shared library
+t_libtest_merge_func_la_LDFLAGS = -rpath /nowhere
+t_libtest_merge_func_la_SOURCES = t/test-merge-func.c
+
+TESTS += t/test-merge.sh
+EXTRA_DIST += t/test-merge.sh.in
+EXTRA_DIST += t/test-merge-half0.data
+EXTRA_DIST += t/test-merge-half1.data
+EXTRA_DIST += t/test-merge-full.data
+CLEANFILES += ./t/test-merge.sh
+t/test-merge.sh: t/test-merge.sh.in src/mtbl_merge t/libtest-merge-func.la
+	@dlname=`sed -n "s/^dlname='\(.*\)'/\1/p" t/libtest-merge-func.la` ; \
+	sed -e "s;@LIBTEST_MERGE_FUNC_DLNAME@;$(abs_top_builddir)/t/.libs/$$dlname;" ${srcdir}/t/test-merge.sh.in >$@ ; \
+	chmod +x $@
+
 #
 ##
 ### documentation
