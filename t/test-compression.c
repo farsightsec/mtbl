@@ -70,6 +70,7 @@ test_compression(mtbl_compression_type c_type, const char *dirname, size_t threa
 	/* Open a writer on the temporary file. */
 	struct mtbl_writer_options *wopt = mtbl_writer_options_init();
 	mtbl_writer_options_set_compression(wopt, c_type);
+	mtbl_writer_options_set_compression_level(wopt, 3);
 	struct mtbl_threadpool *threadpool = mtbl_threadpool_init(thread_count);
 	mtbl_writer_options_set_threadpool(wopt, threadpool);
 	struct mtbl_writer *w = mtbl_writer_init_fd(fd, wopt);
