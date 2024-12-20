@@ -149,6 +149,7 @@ int main(int argc, char ** argv) {
 			mtbl_sorter_options_set_threadpool(sorter_options, pool);
 		}
 		mtbl_sorter_options_set_merge_func(sorter_options, my_merge_func, NULL);
+		mtbl_sorter_options_set_max_memory(sorter_options, 1024);
 
 		sorter = mtbl_sorter_init(sorter_options);
 		assert(sorter != NULL);
