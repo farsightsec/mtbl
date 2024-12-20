@@ -237,9 +237,9 @@ t/test-compression.sh: t/test-compression
 
 TESTS += t/test-merge.sh
 EXTRA_DIST += t/test-merge.sh
-EXTRA_DIST += t/test-merge-half0.mtbl
-EXTRA_DIST += t/test-merge-half1.mtbl
-EXTRA_DIST += t/test-merge-full.mtbl
+EXTRA_DIST += t/test-merge-half0.data
+EXTRA_DIST += t/test-merge-half1.data
+EXTRA_DIST += t/test-merge-full.data
 EXTRA_DIST += t/test-merge-func.so
 t/test-merge.sh: src/mtbl_merge
 
