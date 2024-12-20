@@ -125,6 +125,7 @@ my_merge_func(void *clos,
 
 int main(int argc, char ** argv) {
 	size_t i, j = 0;
+	struct mtbl_threadpool *pool = mtbl_threadpool_init(4);
 
 	/* Make sure everything is cleaned up afterwards. */
 	atexit(cleanup_func);
@@ -143,7 +144,12 @@ int main(int argc, char ** argv) {
 		sorter_options = mtbl_sorter_options_init();
 		assert(sorter_options != NULL);
 
+		/* For some of the sorts, test the sorter's multithreading. */
+		if (j % 2 == 0) {
+			mtbl_sorter_options_set_threadpool(sorter_options, pool);
+		}
 		mtbl_sorter_options_set_merge_func(sorter_options, my_merge_func, NULL);
+		mtbl_sorter_options_set_max_memory(sorter_options, 1024);
 
 		sorter = mtbl_sorter_init(sorter_options);
 		assert(sorter != NULL);
@@ -183,22 +189,16 @@ int main(int argc, char ** argv) {
 		/* Only the second half of the tests calls mtbl_sorter_write(). */
 		if (j) {
 			/* First open up a writer to accept the sorted values. */
-			struct mtbl_writer_options *writer_options = mtbl_writer_options_init();
-			assert(writer_options != NULL);
-
-			mtbl_writer_options_set_block_size(writer_options, 1024);
-
 			tmpfname = quiet_tmpnam();
 			assert(tmpfname != NULL);
 
-			writer = mtbl_writer_init(tmpfname, writer_options);
+			writer = mtbl_writer_init(tmpfname, NULL);
 			assert(writer != NULL);
 
 			/* Then flush the sorted entries out to disk. */
 			assert(mtbl_sorter_write(sorter, writer) == mtbl_res_success);
 
 			mtbl_writer_destroy(&writer);
-			mtbl_writer_options_destroy(&writer_options);
 
 			/* Everything is written. Now create an iterator for it. */
 			struct mtbl_reader *iter_reader = mtbl_reader_init(tmpfname, reader_options);
@@ -266,6 +266,8 @@ int main(int argc, char ** argv) {
 		cleanup_func();
 	}
 
+	mtbl_threadpool_destroy(&pool);
+	return 0;
 }
 
 static void
@@ -312,12 +314,7 @@ my_merge_func(void *clos,
 
 static void
 init_mtbl(const char *filename, size_t idx) {
-	struct mtbl_writer_options *writer_options = mtbl_writer_options_init();
-	assert(writer_options != NULL);
-
-	mtbl_writer_options_set_block_size(writer_options, 1024);
-
-	struct mtbl_writer *writer = mtbl_writer_init(filename, writer_options);
+	struct mtbl_writer *writer = mtbl_writer_init(filename, NULL);
 	assert(writer != NULL);
 
 	/* Populate the mtbl with hex(i)->i */
@@ -327,5 +324,4 @@ init_mtbl(const char *filename, size_t idx) {
 	}
 
 	mtbl_writer_destroy(&writer);
-	mtbl_writer_options_destroy(&writer_options);
 }
