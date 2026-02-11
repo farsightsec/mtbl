@@ -123,11 +123,12 @@ print_stats(void)
 	t_dur = my_timespec_to_double(&dur);
 
 	fprintf(stderr,
-		"%s: wrote %'" PRIu64 " entries (%'" PRIu64 " merged) "
+		"%s: wrote %'" PRIu64 " entries (%'" PRIu64 " merged) into %s "
 		"in %'.2f sec, %'d ent/sec, %'d merge/sec\n",
 		program_name,
 		count,
 		count_merged,
+		mtbl_output_fname,
 		t_dur,
 		(int) (count / t_dur),
 		(int) (count_merged / t_dur)
