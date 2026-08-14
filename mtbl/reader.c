@@ -224,11 +224,17 @@ mtbl_reader_init(const char *fname, const struct mtbl_reader_options *opt)
 	int fd;
 
 	fd = open(fname, O_RDONLY);
-	if (fd < 0)
+	if (fd < 0) {
+		fprintf(stderr, "%s: ERROR: failed to open(2) '%s': %s\n", __func__, fname, strerror(errno));
 		return (NULL);
-	r = mtbl_reader_init_fd(fd, opt);
-	close(fd);
+	}
 
+	r = mtbl_reader_init_fd(fd, opt);
+	if (r == NULL) {
+		fprintf(stderr, "%s: ERROR: failed to init mtbl fd for '%s'\n", __func__, fname);
+	}
+
+	close(fd);
 	return (r);
 }
 

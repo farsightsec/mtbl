@@ -456,8 +456,9 @@ main(int argc, char **argv)
 		fprintf(stderr, "%s: opening input file %s\n", program_name, fname);
 		readers[i] = mtbl_reader_init(fname, NULL);
 		if (readers[i] == NULL) {
-			fprintf(stderr, "Error: mtbl_reader_init() failed.\n\n");
-			usage();
+			fprintf(stderr, "%s: ERROR: mtbl_reader_init() failed to open file %s\n\n",
+				program_name, fname);
+			exit(EXIT_FAILURE);
 		}
 		mtbl_merger_add_source(merger, mtbl_reader_source(readers[i]));
 		total_input_entries += mtbl_metadata_count_entries(mtbl_reader_metadata(readers[i]));
