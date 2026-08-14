@@ -62,6 +62,7 @@ static struct mtbl_writer	*writer;
 static struct timespec		start_time;
 static uint64_t			count;
 static uint64_t			count_merged;
+static uint64_t			total_input_entries;
 
 static void
 usage(void)
@@ -193,6 +194,17 @@ merge(void)
 	mtbl_iter_destroy(&it);
 	mtbl_merger_destroy(&merger);
 	mtbl_writer_destroy(&writer);
+
+	/*
+	 * mtbl_iter_next() returns the same value for end-of-data and error, so we check that the count equals the
+	 * sum of all input entries minus count_merged. Any shortfall means iteration stopped early.
+	 */
+	uint64_t expected = total_input_entries - count_merged;
+	if (count != expected) {
+		fprintf(stderr, "%s: error: wrote %" PRIu64 " of %" PRIu64 " expected entries; input may be truncated or corrupt\n",
+			program_name, count, expected);
+		exit(EXIT_FAILURE);
+	}
 }
 
 static void
@@ -448,6 +460,7 @@ main(int argc, char **argv)
 			usage();
 		}
 		mtbl_merger_add_source(merger, mtbl_reader_source(readers[i]));
+		total_input_entries += mtbl_metadata_count_entries(mtbl_reader_metadata(readers[i]));
 	}
 
 	/* do merge */

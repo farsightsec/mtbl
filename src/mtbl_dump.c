@@ -20,6 +20,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <assert.h>
+#include <inttypes.h>
 #include <mtbl.h>
 
 #include "libmy/print_string.h"
@@ -50,6 +51,7 @@ dump(const char *fname, const bool silent, bool hex,
 {
 	const uint8_t *key, *val;
 	size_t key_len, val_len;
+	uint64_t count = 0, expected;
 	struct mtbl_reader *r;
 	struct mtbl_iter *it;
 
@@ -59,8 +61,10 @@ dump(const char *fname, const bool silent, bool hex,
 		return (false);
 	}
 
+	expected = mtbl_metadata_count_entries(mtbl_reader_metadata(r));
 	it = mtbl_source_iter(mtbl_reader_source(r));
 	while (mtbl_iter_next(it, &key, &key_len, &val, &val_len)) {
+		count++;
 		if (key_prefix != 0
 		    && (key_len < key_prefix_len
 			|| 0 != bcmp(key, key_prefix, key_prefix_len)))
@@ -87,6 +91,14 @@ dump(const char *fname, const bool silent, bool hex,
 	}
 
 	mtbl_iter_destroy(&it);
+
+	if (count != expected) {
+		fprintf(stderr, "%s: error: read %" PRIu64 " of %" PRIu64 " expected entries;"
+			" file may be truncated or corrupt\n", fname, count, expected);
+		mtbl_reader_destroy(&r);
+		return (false);
+	}
+
 	mtbl_reader_destroy(&r);
 
 	return (true);
