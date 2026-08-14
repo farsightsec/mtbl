@@ -1,4 +1,5 @@
 /*
+ * Copyright (c) 2026 DomainTools LLC
  * Copyright (c) 2012, 2014-2016, 2019, 2021 by Farsight Security, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -136,6 +137,13 @@ print_stats(void)
 }
 
 static void
+fprint_hex(FILE *f, const uint8_t *buf, size_t len)
+{
+	for (size_t i = 0; i < len; i++)
+		fprintf(f, "%02x", buf[i]);
+}
+
+static void
 merge_func(void *clos,
 	   const uint8_t *key, size_t len_key,
 	   const uint8_t *val0, size_t len_val0,
@@ -147,6 +155,23 @@ merge_func(void *clos,
 			val0, len_val0,
 			val1, len_val1,
 			merged_val, len_merged_val);
+
+	/*
+	 * A NULL *merged_val indicates a merge failure and causes the merger to return mtbl_res_failure.
+	 * This is indistinguishable from end of data at the call site in merge(), so we have to catch it here.
+	 */
+	if (*merged_val == NULL) {
+		fprintf(stderr, "%s: merge function returned NULL\n", program_name);
+		fprintf(stderr, "  key  (%zu bytes): ", len_key);
+		fprint_hex(stderr, key, len_key);
+		fprintf(stderr, "\n  val0 (%zu bytes): ", len_val0);
+		fprint_hex(stderr, val0, len_val0);
+		fprintf(stderr, "\n  val1 (%zu bytes): ", len_val1);
+		fprint_hex(stderr, val1, len_val1);
+		fputc('\n', stderr);
+		exit(EXIT_FAILURE);
+	}
+
 	count_merged += 1;
 }
 
