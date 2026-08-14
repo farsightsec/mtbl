@@ -184,21 +184,39 @@ _mtbl_sorter_write_chunk(struct entry_batch *b)
 	char template[64];
 
 	/* Temporary file creation: */
-	sprintf(template, "/.mtbl.%ld.XXXXXX", (long)getpid());
+	(void) snprintf(template, sizeof(template), "/.mtbl.%ld.XXXXXX", (long)getpid());
+
 	ubuf *tmp_fname = ubuf_init(strlen(s->opt.tmp_dname) + strlen(template) + 1);
 	ubuf_append(tmp_fname, (uint8_t *) s->opt.tmp_dname, strlen(s->opt.tmp_dname));
 	ubuf_append(tmp_fname, (uint8_t *) template, strlen(template));
 	ubuf_append(tmp_fname, (const uint8_t *) "\x00", 1);
 
 	int fd = mkstemp((char *) ubuf_data(tmp_fname));
-	assert(fd >= 0);
+	if (fd < 0) {
+		ubuf_destroy(&tmp_fname);
+		return (NULL);
+	}
+
 	int unlink_ret = unlink((char *) ubuf_data(tmp_fname));
-	assert(unlink_ret == 0);
+	if (unlink_ret == -1) {
+		ubuf_destroy(&tmp_fname);
+		close(fd);
+		return (NULL);
+	}
+
 	ubuf_destroy(&tmp_fname);
 
 	struct mtbl_writer_options *wopt = mtbl_writer_options_init();
 	mtbl_writer_options_set_compression(wopt, MTBL_COMPRESSION_SNAPPY);
+
 	struct mtbl_writer *w = mtbl_writer_init_fd(fd, wopt);
+	if (w == NULL) {
+		close(fd);
+		entry_vec_destroy(&b->entries);
+		free(b);
+		return (NULL);
+	}
+
 	mtbl_writer_options_destroy(&wopt);
 
 	/* Sort and add sorter entries to the temporary file writer. */
@@ -241,9 +259,7 @@ _mtbl_sorter_write_chunk(struct entry_batch *b)
 			}
 		}
 
-		res = mtbl_writer_add(w,
-				      entry_key(ent), ent->len_key,
-				      entry_val(ent), ent->len_val);
+		res = mtbl_writer_add(w, entry_key(ent), ent->len_key, entry_val(ent), ent->len_val);
 		free(ent);
 		if (res != mtbl_res_success)
 			break;
