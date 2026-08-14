@@ -185,6 +185,11 @@ mtbl_writer_init_fd(int orig_fd, const struct mtbl_writer_options *opt)
 	if (w->opt.pool != NULL) {
 		w->pool = w->opt.pool->pool;
 		w->rhandler = result_handler_init(_write_data_block_wrapper, w);
+		if (w->rhandler == NULL) {
+			close(fd);
+			free(w);
+			return (NULL);
+		}
 	}
 
 	return (w);

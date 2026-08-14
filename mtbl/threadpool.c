@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 DomainTools LLC
+ * Copyright (c) 2024, 2026 DomainTools LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,9 +15,11 @@
  */
 
 #include <stdlib.h>
+#include <stdio.h>
 #include <pthread.h>
 #include <assert.h>
 #include <stdbool.h>
+#include <string.h>
 #include <mtbl.h>
 
 #include "threadpool.h"
@@ -165,6 +167,7 @@ static struct thread *
 threadpool_next(struct threadpool *pool)
 {
 	struct thread *thr = NULL;
+	int ret;
 
 	pthread_mutex_lock(&pool->m);
 
@@ -190,7 +193,18 @@ threadpool_next(struct threadpool *pool)
 		thr->pool = pool;
 		pthread_mutex_init(&thr->m, NULL);
 		pthread_cond_init(&thr->c, NULL);
-		pthread_create(&thr->t, NULL, thread_worker, thr);
+
+		ret = pthread_create(&thr->t, NULL, thread_worker, thr);
+		if (ret != 0) {
+			fprintf(stderr, "%s: pthread_create() failed: %s\n", __func__, strerror(ret));
+			pthread_cond_destroy(&thr->c);
+			pthread_mutex_destroy(&thr->m);
+			free(thr);
+			thr = NULL;
+			pthread_mutex_lock(&pool->m);
+			pool->count--;
+			pthread_mutex_unlock(&pool->m);
+		}
 	}
 
 	return thr;
@@ -213,6 +227,7 @@ threadpool_dispatch(struct threadpool *pool,
 	struct resultq *rq = rh->rq;
 	struct thread *thr = threadpool_next(pool);
 
+	assert(thr != NULL);
 	assert(!thr->running);
 	assert(thr->next == NULL);
 
@@ -378,11 +393,19 @@ struct result_handler *
 result_handler_init(result_cb cb, void *cbdata)
 {
 	struct result_handler *rh = calloc(1, sizeof(*rh));
+	int ret;
 
 	rh->rq = resultq_init();
 	rh->cb = cb;
 	rh->cbdata = cbdata;
-	pthread_create(&rh->thread, NULL, result_worker, rh);
+
+	ret = pthread_create(&rh->thread, NULL, result_worker, rh);
+	if (ret != 0) {
+		fprintf(stderr, "%s: pthread_create() failed: %s\n", __func__, strerror(ret));
+		resultq_destroy(&rh->rq);
+		free(rh);
+		return (NULL);
+	}
 
 	return rh;
 }

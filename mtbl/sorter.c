@@ -140,6 +140,11 @@ mtbl_sorter_init(const struct mtbl_sorter_options *opt)
 	if (s->opt.pool != NULL) {
 		s->pool = s->opt.pool->pool;
 		s->rhandler = result_handler_init(_collect_readers_cb, s);
+		if (s->rhandler == NULL) {
+			entry_vec_destroy(&s->vec);
+			reader_vec_destroy(&s->readers);
+			return (NULL);
+		}
 	}
 
 	return (s);

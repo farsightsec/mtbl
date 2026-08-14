@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 DomainTools LLC
+ * Copyright (c) 2022, 2026 DomainTools LLC
  * Copyright (c) 2012-2018 by Farsight Security, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -515,7 +515,11 @@ reader_iter_next(void *v,
 		block_iter_destroy(&it->bi);
 		if (!block_iter_next(it->index_iter))
 			return (mtbl_res_failure);
+
 		it->b = get_block_at_index(it->r, it->index_iter);
+		if (it->b == NULL)
+			return (mtbl_res_failure);
+
 		it->bi = block_iter_init(it->b);
 		block_iter_seek_to_first(it->bi);
 		it->valid = block_iter_get(it->bi, key, len_key, val, len_val);
