@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 DomainTools LLC
+ * Copyright (c) 2022, 2026 DomainTools LLC
  * Copyright (c) 2015, 2017, 2019 by Farsight Security, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -190,6 +190,14 @@ verify_file(const char *fname)
 	uint64_t count_data_blocks = mtbl_metadata_count_data_blocks(m);
 	uint64_t bytes_data_blocks = mtbl_metadata_bytes_data_blocks(m);
 	uint64_t index_offset = mtbl_metadata_index_block_offset(m);
+
+	if (bytes_data_blocks > index_offset) {
+		fprintf(stderr, "%s: metadata: bytes_data_blocks (%" PRIu64 ") > index_block_offset (%" PRIu64 ")\n",
+			fname, bytes_data_blocks, index_offset);
+		mtbl_reader_destroy(&r);
+		close(fd);
+		return false;
+	}
 
 	uint64_t data_offset = index_offset - bytes_data_blocks;
 

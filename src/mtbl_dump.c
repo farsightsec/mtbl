@@ -1,4 +1,5 @@
 /*
+ * Copyright (c) 2026 DomainTools LLC
  * Copyright (c) 2012, 2014-2015, 2021 by Farsight Security, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -36,7 +37,7 @@ static void print_hex_string(const void *data, size_t len, FILE *out)
 		unsigned c = *(str++);
 		fprintf(out, "%02x", c);
 		if (len > 0)
-			fputc('-', stdout);
+			fputc('-', out);
 	}
 }
 
@@ -142,31 +143,27 @@ main(int argc, char **argv)
 			}
 			break;
 		case 'K':
-			if (strlen(optarg) == 0) {
-				fprintf(stderr, "Need a non-empty argument to -K\n");
+		{
+			char *endptr;
+			long val = strtol(optarg, &endptr, 10);
+			if (endptr == optarg || *endptr != '\0' || val < 1) {
+				fprintf(stderr, "Invalid minimum key length: %s\n", optarg);
 				return (EXIT_FAILURE);
 			}
-
-			key_min_len = atoi(optarg);
-
-			if (key_min_len < 1) {
-				fprintf(stderr, "Bad value of minimum key length: %s\n", optarg);
-				return (EXIT_FAILURE);
-			}
+			key_min_len = (size_t) val;
 			break;
+		}
 		case 'V':
-			if (strlen(optarg) == 0) {
-				fprintf(stderr, "Need a non-empty argument to -K\n");
+		{
+			char *endptr;
+			long val = strtol(optarg, &endptr, 10);
+			if (endptr == optarg || *endptr != '\0' || val < 1) {
+				fprintf(stderr, "Invalid minimum val length: %s\n", optarg);
 				return (EXIT_FAILURE);
 			}
-
-			val_min_len = atoi(optarg);
-
-			if (val_min_len < 1) {
-				fprintf(stderr, "Bad value of minimum val length: %s\n", optarg);
-				return (EXIT_FAILURE);
-			}
+			val_min_len = (size_t) val;
 			break;
+		}
 		default:
 			usage();
 		}
