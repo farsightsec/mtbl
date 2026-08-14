@@ -1,4 +1,5 @@
 /*
+ * Copyright (c) 2026 DomainTools LLC
  * Copyright (c) 2012-2016 by Farsight Security, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -239,6 +240,10 @@ _mtbl_sorter_write_chunk(struct entry_batch *b)
 					     entry_val(next_ent), next_ent->len_val,
 					     &merge_val, &len_merge_val);
 				if (merge_val == NULL) {
+					for (size_t j = i; j < entry_vec_size(b->entries); j++) {
+						free(entry_vec_value(b->entries, j));
+					}
+					entry_vec_destroy(&b->entries);
 					free(b);
 					mtbl_writer_destroy(&w);
 					return (NULL);
