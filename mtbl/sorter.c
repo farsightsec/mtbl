@@ -217,6 +217,7 @@ _mtbl_sorter_write_chunk(struct entry_batch *b)
 
 	struct mtbl_writer *w = mtbl_writer_init_fd(fd, wopt);
 	if (w == NULL) {
+		mtbl_writer_options_destroy(&wopt);
 		close(fd);
 		entry_vec_destroy(&b->entries);
 		free(b);
