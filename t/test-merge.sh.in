@@ -129,4 +129,4 @@ cmp -s $tmp_data $full_data
 print_result_of_last_cmd
 rm -f $tmp_data
 
-return $exitcode
+exit $exitcode
