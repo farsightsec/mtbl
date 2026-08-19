@@ -146,10 +146,7 @@ mtbl_writer_init_fd(int orig_fd, const struct mtbl_writer_options *opt)
 	int fd;
 
 	fd = dup(orig_fd);
-	if (fd < 0) {
-		return (NULL);
-	}
-
+	assert(fd >= 0);
 	w = my_calloc(1, sizeof(*w));
 	if (opt == NULL) {
 		w->opt.compression_type = DEFAULT_COMPRESSION_TYPE;
@@ -166,14 +163,9 @@ mtbl_writer_init_fd(int orig_fd, const struct mtbl_writer_options *opt)
 	 * to reserve some initial bytes in the file.
 	 */
 	off_t offset = lseek(fd, 0, SEEK_CUR);
-	if (offset == (off_t)-1) {
-		close(fd);
-		free(w);
-		return (NULL);
-	}
-	w->last_offset = (uint64_t)offset;
+	assert(offset != (off_t)-1);
 
-	w->pending_offset = w->last_offset;
+	w->pending_offset = (uint64_t)offset;
 	w->last_key = ubuf_init(256);
 	w->m.file_version = MTBL_FORMAT_V2;
 	w->m.compression_algorithm = w->opt.compression_type;
@@ -185,11 +177,7 @@ mtbl_writer_init_fd(int orig_fd, const struct mtbl_writer_options *opt)
 	if (w->opt.pool != NULL) {
 		w->pool = w->opt.pool->pool;
 		w->rhandler = result_handler_init(_write_data_block_wrapper, w);
-		if (w->rhandler == NULL) {
-			close(fd);
-			free(w);
-			return (NULL);
-		}
+		assert(w->rhandler != NULL);
 	}
 
 	return (w);

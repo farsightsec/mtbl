@@ -15,11 +15,9 @@
  */
 
 #include <stdlib.h>
-#include <stdio.h>
 #include <pthread.h>
 #include <assert.h>
 #include <stdbool.h>
-#include <string.h>
 #include <mtbl.h>
 
 #include "threadpool.h"
@@ -195,16 +193,7 @@ threadpool_next(struct threadpool *pool)
 		pthread_cond_init(&thr->c, NULL);
 
 		ret = pthread_create(&thr->t, NULL, thread_worker, thr);
-		if (ret != 0) {
-			fprintf(stderr, "%s: pthread_create() failed: %s\n", __func__, strerror(ret));
-			pthread_cond_destroy(&thr->c);
-			pthread_mutex_destroy(&thr->m);
-			free(thr);
-			thr = NULL;
-			pthread_mutex_lock(&pool->m);
-			pool->count--;
-			pthread_mutex_unlock(&pool->m);
-		}
+		assert(ret == 0);
 	}
 
 	return thr;
@@ -400,12 +389,7 @@ result_handler_init(result_cb cb, void *cbdata)
 	rh->cbdata = cbdata;
 
 	ret = pthread_create(&rh->thread, NULL, result_worker, rh);
-	if (ret != 0) {
-		fprintf(stderr, "%s: pthread_create() failed: %s\n", __func__, strerror(ret));
-		resultq_destroy(&rh->rq);
-		free(rh);
-		return (NULL);
-	}
+	assert(ret == 0);
 
 	return rh;
 }
@@ -414,7 +398,9 @@ void
 result_handler_destroy(struct result_handler **prh)
 {
 	struct result_handler *rh = *prh;
-	if (rh == NULL) return;
+	if (rh == NULL)
+		return;
+
 	resultq_finish(rh->rq);
 	pthread_join(rh->thread, NULL);
 	free(rh);

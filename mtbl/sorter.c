@@ -140,11 +140,7 @@ mtbl_sorter_init(const struct mtbl_sorter_options *opt)
 	if (s->opt.pool != NULL) {
 		s->pool = s->opt.pool->pool;
 		s->rhandler = result_handler_init(_collect_readers_cb, s);
-		if (s->rhandler == NULL) {
-			entry_vec_destroy(&s->vec);
-			reader_vec_destroy(&s->readers);
-			return (NULL);
-		}
+		assert(s->rhandler != NULL);
 	}
 
 	return (s);
@@ -198,31 +194,16 @@ _mtbl_sorter_write_chunk(struct entry_batch *b)
 	ubuf_append(tmp_fname, (const uint8_t *) "\x00", 1);
 
 	int fd = mkstemp((char *) ubuf_data(tmp_fname));
-	if (fd < 0) {
-		ubuf_destroy(&tmp_fname);
-		return (NULL);
-	}
-
+	assert(fd >= 0);
 	int unlink_ret = unlink((char *) ubuf_data(tmp_fname));
-	if (unlink_ret == -1) {
-		ubuf_destroy(&tmp_fname);
-		close(fd);
-		return (NULL);
-	}
-
+	assert(unlink_ret == 0);
 	ubuf_destroy(&tmp_fname);
 
 	struct mtbl_writer_options *wopt = mtbl_writer_options_init();
 	mtbl_writer_options_set_compression(wopt, MTBL_COMPRESSION_SNAPPY);
 
 	struct mtbl_writer *w = mtbl_writer_init_fd(fd, wopt);
-	if (w == NULL) {
-		mtbl_writer_options_destroy(&wopt);
-		close(fd);
-		entry_vec_destroy(&b->entries);
-		free(b);
-		return (NULL);
-	}
+	assert(w != NULL);
 
 	mtbl_writer_options_destroy(&wopt);
 

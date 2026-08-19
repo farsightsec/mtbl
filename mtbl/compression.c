@@ -482,14 +482,8 @@ _mtbl_decompress_zlib(
 
 	do {
 		zret = inflate(&zs, Z_FINISH);
-		if (zret != Z_STREAM_END && zret != Z_BUF_ERROR) {
-			goto fail;
-		}
-
+		assert(zret == Z_STREAM_END || zret == Z_BUF_ERROR);
 		if (zret != Z_STREAM_END) {
-			if (*output_size > SIZE_MAX / 2) {
-				goto fail;
-			}
 			*output = my_realloc(*output, *output_size * 2);
 			zs.next_out = *output + *output_size;
 			zs.avail_out = *output_size;
@@ -499,11 +493,6 @@ _mtbl_decompress_zlib(
 
 	*output_size = zs.total_out;
 	inflateEnd(&zs);
+
 	return (mtbl_res_success);
-fail:
-	free(*output);
-	*output = NULL;
-	*output_size = 0;
-	inflateEnd(&zs);
-	return (mtbl_res_failure);
 }

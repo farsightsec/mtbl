@@ -199,6 +199,11 @@ merge(void)
 	 * mtbl_iter_next() returns the same value for end-of-data and error, so we check that the count equals the
 	 * sum of all input entries minus count_merged. Any shortfall means iteration stopped early.
 	 */
+	if (count_merged > total_input_entries) {
+		fprintf(stderr, "%s: error: count_merged (%" PRIu64 ") exceeds total_input_entries (%" PRIu64 ")\n",
+			program_name, count_merged, total_input_entries);
+		exit(EXIT_FAILURE);
+	}
 	uint64_t expected = total_input_entries - count_merged;
 	if (count != expected) {
 		fprintf(stderr, "%s: error: wrote %" PRIu64 " of %" PRIu64 " expected entries; input may be truncated or corrupt\n",
