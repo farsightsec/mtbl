@@ -1,4 +1,5 @@
 /*
+ * Copyright (c) 2026 DomainTools LLC
  * Copyright (c) 2012, 2014-2016, 2019, 2021 by Farsight Security, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -61,6 +62,7 @@ static struct mtbl_writer	*writer;
 static struct timespec		start_time;
 static uint64_t			count;
 static uint64_t			count_merged;
+static uint64_t			total_input_entries;
 
 static void
 usage(void)
@@ -136,6 +138,13 @@ print_stats(void)
 }
 
 static void
+fprint_hex(FILE *f, const uint8_t *buf, size_t len)
+{
+	for (size_t i = 0; i < len; i++)
+		fprintf(f, "%02x", buf[i]);
+}
+
+static void
 merge_func(void *clos,
 	   const uint8_t *key, size_t len_key,
 	   const uint8_t *val0, size_t len_val0,
@@ -147,6 +156,23 @@ merge_func(void *clos,
 			val0, len_val0,
 			val1, len_val1,
 			merged_val, len_merged_val);
+
+	/*
+	 * A NULL *merged_val indicates a merge failure and causes the merger to return mtbl_res_failure.
+	 * This is indistinguishable from end of data at the call site in merge(), so we have to catch it here.
+	 */
+	if (*merged_val == NULL) {
+		fprintf(stderr, "%s: merge function returned NULL\n", program_name);
+		fprintf(stderr, "  key  (%zu bytes): ", len_key);
+		fprint_hex(stderr, key, len_key);
+		fprintf(stderr, "\n  val0 (%zu bytes): ", len_val0);
+		fprint_hex(stderr, val0, len_val0);
+		fprintf(stderr, "\n  val1 (%zu bytes): ", len_val1);
+		fprint_hex(stderr, val1, len_val1);
+		fputc('\n', stderr);
+		exit(EXIT_FAILURE);
+	}
+
 	count_merged += 1;
 }
 
@@ -168,6 +194,22 @@ merge(void)
 	mtbl_iter_destroy(&it);
 	mtbl_merger_destroy(&merger);
 	mtbl_writer_destroy(&writer);
+
+	/*
+	 * mtbl_iter_next() returns the same value for end-of-data and error, so we check that the count equals the
+	 * sum of all input entries minus count_merged. Any shortfall means iteration stopped early.
+	 */
+	if (count_merged > total_input_entries) {
+		fprintf(stderr, "%s: error: count_merged (%" PRIu64 ") exceeds total_input_entries (%" PRIu64 ")\n",
+			program_name, count_merged, total_input_entries);
+		exit(EXIT_FAILURE);
+	}
+	uint64_t expected = total_input_entries - count_merged;
+	if (count != expected) {
+		fprintf(stderr, "%s: error: wrote %" PRIu64 " of %" PRIu64 " expected entries; input may be truncated or corrupt\n",
+			program_name, count, expected);
+		exit(EXIT_FAILURE);
+	}
 }
 
 static void
@@ -419,10 +461,12 @@ main(int argc, char **argv)
 		fprintf(stderr, "%s: opening input file %s\n", program_name, fname);
 		readers[i] = mtbl_reader_init(fname, NULL);
 		if (readers[i] == NULL) {
-			fprintf(stderr, "Error: mtbl_reader_init() failed.\n\n");
-			usage();
+			fprintf(stderr, "%s: ERROR: mtbl_reader_init() failed to open file %s\n\n",
+				program_name, fname);
+			exit(EXIT_FAILURE);
 		}
 		mtbl_merger_add_source(merger, mtbl_reader_source(readers[i]));
+		total_input_entries += mtbl_metadata_count_entries(mtbl_reader_metadata(readers[i]));
 	}
 
 	/* do merge */

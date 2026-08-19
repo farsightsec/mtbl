@@ -25,3 +25,5 @@ Makefile.in
 report.coverage
 TAGS
 t/test-merge.sh
+cscope.out
+tags

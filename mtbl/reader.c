@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 DomainTools LLC
+ * Copyright (c) 2022, 2026 DomainTools LLC
  * Copyright (c) 2012-2018 by Farsight Security, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -224,11 +224,13 @@ mtbl_reader_init(const char *fname, const struct mtbl_reader_options *opt)
 	int fd;
 
 	fd = open(fname, O_RDONLY);
-	if (fd < 0)
+	if (fd < 0) {
 		return (NULL);
-	r = mtbl_reader_init_fd(fd, opt);
-	close(fd);
+	}
 
+	r = mtbl_reader_init_fd(fd, opt);
+
+	close(fd);
 	return (r);
 }
 
@@ -455,7 +457,7 @@ reader_iter_seek(void *v,
 	       const uint8_t *key, size_t len_key)
 {
 	struct reader_iter *it = (struct reader_iter *) v;
-	
+
 	const uint8_t *ikey, *ival;
 	size_t len_ikey, len_ival;
 	uint64_t new_offset;
@@ -475,7 +477,7 @@ reader_iter_seek(void *v,
 	mtbl_varint_decode64(ival, &new_offset);
 
 	/* We can skip decoding a new block if our new key is within the
-	 * currently-decoded block. */ 
+	 * currently-decoded block. */
 	if (it->b == NULL || it->block_offset != new_offset) {
 		block_destroy(&it->b);
 		block_iter_destroy(&it->bi);
@@ -515,7 +517,10 @@ reader_iter_next(void *v,
 		block_iter_destroy(&it->bi);
 		if (!block_iter_next(it->index_iter))
 			return (mtbl_res_failure);
+
 		it->b = get_block_at_index(it->r, it->index_iter);
+		assert(it->b != NULL);
+
 		it->bi = block_iter_init(it->b);
 		block_iter_seek_to_first(it->bi);
 		it->valid = block_iter_get(it->bi, key, len_key, val, len_val);

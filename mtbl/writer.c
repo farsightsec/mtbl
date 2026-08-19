@@ -162,8 +162,10 @@ mtbl_writer_init_fd(int orig_fd, const struct mtbl_writer_options *opt)
 	 * Start writing from the current offset. This allows mtbl's callers
 	 * to reserve some initial bytes in the file.
 	 */
-	w->last_offset = lseek(fd, 0, SEEK_CUR);
-	w->pending_offset = w->last_offset;
+	off_t offset = lseek(fd, 0, SEEK_CUR);
+	assert(offset != (off_t)-1);
+
+	w->pending_offset = (uint64_t)offset;
 	w->last_key = ubuf_init(256);
 	w->m.file_version = MTBL_FORMAT_V2;
 	w->m.compression_algorithm = w->opt.compression_type;
@@ -175,6 +177,7 @@ mtbl_writer_init_fd(int orig_fd, const struct mtbl_writer_options *opt)
 	if (w->opt.pool != NULL) {
 		w->pool = w->opt.pool->pool;
 		w->rhandler = result_handler_init(_write_data_block_wrapper, w);
+		assert(w->rhandler != NULL);
 	}
 
 	return (w);

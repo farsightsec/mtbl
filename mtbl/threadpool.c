@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 DomainTools LLC
+ * Copyright (c) 2024, 2026 DomainTools LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -165,6 +165,7 @@ static struct thread *
 threadpool_next(struct threadpool *pool)
 {
 	struct thread *thr = NULL;
+	int ret;
 
 	pthread_mutex_lock(&pool->m);
 
@@ -190,7 +191,9 @@ threadpool_next(struct threadpool *pool)
 		thr->pool = pool;
 		pthread_mutex_init(&thr->m, NULL);
 		pthread_cond_init(&thr->c, NULL);
-		pthread_create(&thr->t, NULL, thread_worker, thr);
+
+		ret = pthread_create(&thr->t, NULL, thread_worker, thr);
+		assert(ret == 0);
 	}
 
 	return thr;
@@ -213,6 +216,7 @@ threadpool_dispatch(struct threadpool *pool,
 	struct resultq *rq = rh->rq;
 	struct thread *thr = threadpool_next(pool);
 
+	assert(thr != NULL);
 	assert(!thr->running);
 	assert(thr->next == NULL);
 
@@ -378,11 +382,14 @@ struct result_handler *
 result_handler_init(result_cb cb, void *cbdata)
 {
 	struct result_handler *rh = calloc(1, sizeof(*rh));
+	int ret;
 
 	rh->rq = resultq_init();
 	rh->cb = cb;
 	rh->cbdata = cbdata;
-	pthread_create(&rh->thread, NULL, result_worker, rh);
+
+	ret = pthread_create(&rh->thread, NULL, result_worker, rh);
+	assert(ret == 0);
 
 	return rh;
 }
@@ -391,7 +398,9 @@ void
 result_handler_destroy(struct result_handler **prh)
 {
 	struct result_handler *rh = *prh;
-	if (rh == NULL) return;
+	if (rh == NULL)
+		return;
+
 	resultq_finish(rh->rq);
 	pthread_join(rh->thread, NULL);
 	free(rh);

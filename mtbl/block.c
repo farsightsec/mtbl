@@ -16,11 +16,11 @@
  */
 
 // Copyright (c) 2011 The LevelDB Authors. All rights reserved.
-// 
+//
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are
 // met:
-// 
+//
 //    * Redistributions of source code must retain the above copyright
 // notice, this list of conditions and the following disclaimer.
 //
@@ -32,7 +32,7 @@
 //    * Neither the name of Google Inc. nor the names of its
 // contributors may be used to endorse or promote products derived from
 // this software without specific prior written permission.
-// 
+//
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
 // "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
 // LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
@@ -202,7 +202,9 @@ static bool
 parse_next_key(struct block_iter *bi)
 {
 	bi->current = next_entry_offset(bi);
-	uint8_t *p = bi->data + bi->current; uint8_t *limit = bi->data + bi->restarts;
+	uint8_t *p = bi->data + bi->current;
+	uint8_t *limit = bi->data + bi->restarts;
+
 	if (p >= limit) {
 		/* no more entries to return, mark as invalid */
 		bi->current = bi->restarts;
@@ -214,7 +216,7 @@ parse_next_key(struct block_iter *bi)
 	uint32_t shared, non_shared, value_length;
 	p = decode_entry(p, limit, &shared, &non_shared, &value_length);
 	assert(!(p == NULL || ubuf_size(bi->key) < shared));
-	
+
 	ubuf_clip(bi->key, shared);
 	ubuf_append(bi->key, p, non_shared);
 	bi->next = p + non_shared + value_length;
@@ -241,7 +243,7 @@ block_iter_seek_to_first(struct block_iter *bi)
 	parse_next_key(bi);
 }
 
-void 
+void
 block_iter_seek_to_last(struct block_iter *bi)
 {
 	seek_to_restart_point(bi, bi->num_restarts - 1);
@@ -268,7 +270,7 @@ block_iter_seek(struct block_iter *bi, const uint8_t *target, size_t target_len)
 	uint32_t start_ri = bi->restart_index;	/* Current key is in this restart-block. */
 	bool from_start = true;			/* Search from start of restart-block? */
 
-	/* 
+	/*
 	 * If the restart_index is not zero and not equal to the number of
 	 * restarts, then begin with galloping search in the restart array to find
 	 * the first restart point with a key >= target, otherwise just do binary
@@ -352,7 +354,7 @@ block_iter_next(struct block_iter *bi)
 	return (block_iter_valid(bi));
 }
 
-void 
+void
 block_iter_prev(struct block_iter *bi)
 {
 	assert(block_iter_valid(bi));

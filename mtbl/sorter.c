@@ -1,4 +1,5 @@
 /*
+ * Copyright (c) 2026 DomainTools LLC
  * Copyright (c) 2012-2016 by Farsight Security, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -139,6 +140,7 @@ mtbl_sorter_init(const struct mtbl_sorter_options *opt)
 	if (s->opt.pool != NULL) {
 		s->pool = s->opt.pool->pool;
 		s->rhandler = result_handler_init(_collect_readers_cb, s);
+		assert(s->rhandler != NULL);
 	}
 
 	return (s);
@@ -184,7 +186,8 @@ _mtbl_sorter_write_chunk(struct entry_batch *b)
 	char template[64];
 
 	/* Temporary file creation: */
-	sprintf(template, "/.mtbl.%ld.XXXXXX", (long)getpid());
+	(void) snprintf(template, sizeof(template), "/.mtbl.%ld.XXXXXX", (long)getpid());
+
 	ubuf *tmp_fname = ubuf_init(strlen(s->opt.tmp_dname) + strlen(template) + 1);
 	ubuf_append(tmp_fname, (uint8_t *) s->opt.tmp_dname, strlen(s->opt.tmp_dname));
 	ubuf_append(tmp_fname, (uint8_t *) template, strlen(template));
@@ -198,7 +201,10 @@ _mtbl_sorter_write_chunk(struct entry_batch *b)
 
 	struct mtbl_writer_options *wopt = mtbl_writer_options_init();
 	mtbl_writer_options_set_compression(wopt, MTBL_COMPRESSION_SNAPPY);
+
 	struct mtbl_writer *w = mtbl_writer_init_fd(fd, wopt);
+	assert(w != NULL);
+
 	mtbl_writer_options_destroy(&wopt);
 
 	/* Sort and add sorter entries to the temporary file writer. */
@@ -221,6 +227,10 @@ _mtbl_sorter_write_chunk(struct entry_batch *b)
 					     entry_val(next_ent), next_ent->len_val,
 					     &merge_val, &len_merge_val);
 				if (merge_val == NULL) {
+					for (size_t j = i; j < entry_vec_size(b->entries); j++) {
+						free(entry_vec_value(b->entries, j));
+					}
+					entry_vec_destroy(&b->entries);
 					free(b);
 					mtbl_writer_destroy(&w);
 					return (NULL);
@@ -241,9 +251,7 @@ _mtbl_sorter_write_chunk(struct entry_batch *b)
 			}
 		}
 
-		res = mtbl_writer_add(w,
-				      entry_key(ent), ent->len_key,
-				      entry_val(ent), ent->len_val);
+		res = mtbl_writer_add(w, entry_key(ent), ent->len_key, entry_val(ent), ent->len_val);
 		free(ent);
 		if (res != mtbl_res_success)
 			break;

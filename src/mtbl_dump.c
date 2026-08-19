@@ -1,4 +1,5 @@
 /*
+ * Copyright (c) 2026 DomainTools LLC
  * Copyright (c) 2012, 2014-2015, 2021 by Farsight Security, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,6 +20,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <assert.h>
+#include <inttypes.h>
 #include <mtbl.h>
 
 #include "libmy/print_string.h"
@@ -36,7 +38,7 @@ static void print_hex_string(const void *data, size_t len, FILE *out)
 		unsigned c = *(str++);
 		fprintf(out, "%02x", c);
 		if (len > 0)
-			fputc('-', stdout);
+			fputc('-', out);
 	}
 }
 
@@ -49,6 +51,7 @@ dump(const char *fname, const bool silent, bool hex,
 {
 	const uint8_t *key, *val;
 	size_t key_len, val_len;
+	uint64_t count = 0, expected;
 	struct mtbl_reader *r;
 	struct mtbl_iter *it;
 
@@ -58,8 +61,10 @@ dump(const char *fname, const bool silent, bool hex,
 		return (false);
 	}
 
+	expected = mtbl_metadata_count_entries(mtbl_reader_metadata(r));
 	it = mtbl_source_iter(mtbl_reader_source(r));
 	while (mtbl_iter_next(it, &key, &key_len, &val, &val_len)) {
+		count++;
 		if (key_prefix != 0
 		    && (key_len < key_prefix_len
 			|| 0 != bcmp(key, key_prefix, key_prefix_len)))
@@ -86,6 +91,14 @@ dump(const char *fname, const bool silent, bool hex,
 	}
 
 	mtbl_iter_destroy(&it);
+
+	if (count != expected) {
+		fprintf(stderr, "%s: error: read %" PRIu64 " of %" PRIu64 " expected entries;"
+			" file may be truncated or corrupt\n", fname, count, expected);
+		mtbl_reader_destroy(&r);
+		return (false);
+	}
+
 	mtbl_reader_destroy(&r);
 
 	return (true);
@@ -142,31 +155,27 @@ main(int argc, char **argv)
 			}
 			break;
 		case 'K':
-			if (strlen(optarg) == 0) {
-				fprintf(stderr, "Need a non-empty argument to -K\n");
+		{
+			char *endptr;
+			long val = strtol(optarg, &endptr, 10);
+			if (endptr == optarg || *endptr != '\0' || val < 1) {
+				fprintf(stderr, "Invalid minimum key length: %s\n", optarg);
 				return (EXIT_FAILURE);
 			}
-
-			key_min_len = atoi(optarg);
-
-			if (key_min_len < 1) {
-				fprintf(stderr, "Bad value of minimum key length: %s\n", optarg);
-				return (EXIT_FAILURE);
-			}
+			key_min_len = (size_t) val;
 			break;
+		}
 		case 'V':
-			if (strlen(optarg) == 0) {
-				fprintf(stderr, "Need a non-empty argument to -K\n");
+		{
+			char *endptr;
+			long val = strtol(optarg, &endptr, 10);
+			if (endptr == optarg || *endptr != '\0' || val < 1) {
+				fprintf(stderr, "Invalid minimum val length: %s\n", optarg);
 				return (EXIT_FAILURE);
 			}
-
-			val_min_len = atoi(optarg);
-
-			if (val_min_len < 1) {
-				fprintf(stderr, "Bad value of minimum val length: %s\n", optarg);
-				return (EXIT_FAILURE);
-			}
+			val_min_len = (size_t) val;
 			break;
+		}
 		default:
 			usage();
 		}

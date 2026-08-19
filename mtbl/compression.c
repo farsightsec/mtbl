@@ -1,4 +1,5 @@
 /*
+ * Copyright (c) 2026 DomainTools LLC
  * Copyright (c) 2012, 2014-2017, 2021 by Farsight Security, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -258,7 +259,7 @@ _mtbl_compress_zstd(
 		compression_level = ZSTD_maxCLevel();
 
 	zstd_size = ZSTD_compressBound(input_size);
-	if (zstd_size < INT_MAX/2) {
+	if (zstd_size < SIZE_MAX/2) {
 		/**
 		 * "Compression runs faster if `dstCapacity` >=
 		 * `ZSTD_compressBound(srcSize)`."
@@ -390,13 +391,14 @@ _mtbl_decompress_zstd(
 {
 	size_t ret = 0;
 
-	if (input_size > INT_MAX)
+	unsigned long long decompressed_size = ZSTD_getFrameContentSize(input, input_size);
+	if (decompressed_size == ZSTD_CONTENTSIZE_UNKNOWN || decompressed_size == ZSTD_CONTENTSIZE_ERROR) {
 		return (mtbl_res_failure);
-
-	*output_size = (size_t) ZSTD_getFrameContentSize(input, input_size);
-	if (*output_size <= 0)
+	} else if (decompressed_size > SIZE_MAX) {
 		return (mtbl_res_failure);
+	}
 
+	*output_size = (size_t) decompressed_size;
 	*output = my_malloc(*output_size);
 
 	ret = ZSTD_decompress(
@@ -446,6 +448,7 @@ _mtbl_decompress_zlib(
 	size_t *output_size)
 {
 	int zret;
+
 	z_stream zs = {
 		.avail_in	= 0,
 		.next_in	= Z_NULL,
