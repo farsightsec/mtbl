@@ -8,6 +8,7 @@ URL:            https://github.com/farsightsec/%{name}
 Source0:        https://dl.farsightsecurity.com/dist/%{name}/%{name}-%{version}.tar.gz
 
 
+BuildRequires:  autoconf automake libtool pkgconfig
 BuildRequires:  zlib-devel lz4-devel libzstd-devel snappy-devel
 #Requires:
 # TODO: will Requires be set automatically?
