@@ -204,8 +204,13 @@ static void *
 fs_load(struct my_fileset *fs, const char *fname)
 {
 	struct shared_fileset *f = (struct shared_fileset *) my_fileset_user(fs);
+
 	f->n_loaded++;
-	return (mtbl_reader_init(fname, NULL));
+	errno = 0;
+	struct mtbl_reader *r = mtbl_reader_init(fname, NULL);
+	if (r == NULL && errno == 0)
+		errno = EINVAL; /* opened, but not a valid mtbl */
+	return (r);
 }
 
 static void
@@ -238,6 +243,9 @@ mtbl_fileset_set_options(struct mtbl_fileset *f, const struct mtbl_fileset_optio
 				     NULL, f);
 }
 
+/* defined below, alongside mtbl_fileset_reload_now(); it depends on fs_reinit_merger() */
+static bool fileset_reload_now(struct mtbl_fileset *);
+
 struct mtbl_fileset *
 mtbl_fileset_init(const char *fname, const struct mtbl_fileset_options *opt)
 {
@@ -250,6 +258,13 @@ mtbl_fileset_init(const char *fname, const struct mtbl_fileset_options *opt)
 	assert(f->shared_fs->my_fs != NULL);
 
 	mtbl_fileset_set_options(f, opt);
+
+	if (!fileset_reload_now(f)) {
+		int saved_errno = errno;
+		mtbl_fileset_destroy(&f);
+		errno = saved_errno;
+		return (NULL);
+	}
 
 	return (f);
 }
@@ -367,11 +382,12 @@ mtbl_fileset_reload(struct mtbl_fileset *f)
 	}
 }
 
-void
-mtbl_fileset_reload_now(struct mtbl_fileset *f)
+/*
+ * Returns false if the setfile could not be parsed
+ */
+static bool
+fileset_reload_now(struct mtbl_fileset *f)
 {
-	assert(f != NULL);
-
 	struct timespec now;
 
 	/*
@@ -380,7 +396,7 @@ mtbl_fileset_reload_now(struct mtbl_fileset *f)
 	 */
 	if (f->shared_fs->n_iters > 0) {
 		f->shared_fs->reload_needed = true;
-		return;
+		return (true);
 	}
 
 #if HAVE_CLOCK_GETTIME
@@ -393,12 +409,21 @@ mtbl_fileset_reload_now(struct mtbl_fileset *f)
 	f->shared_fs->n_loaded = 0;
 	f->shared_fs->n_unloaded = 0;
 	assert(f->shared_fs->my_fs != NULL);
-	my_fileset_reload(f->shared_fs->my_fs);
+	if (!my_fileset_reload(f->shared_fs->my_fs))
+		return (false);
 	if (f->shared_fs->n_loaded > 0 || f->shared_fs->n_unloaded > 0)
 		fs_reinit_merger(f);
 	f->shared_fs->fs_last = now;
 	f->fs_last = now;
 	f->shared_fs->reload_needed = false;
+	return (true);
+}
+
+void
+mtbl_fileset_reload_now(struct mtbl_fileset *f)
+{
+	assert(f != NULL);
+	(void) fileset_reload_now(f);
 }
 
 void
