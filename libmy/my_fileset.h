@@ -15,7 +15,7 @@ struct my_fileset *my_fileset_init(
 	void *user);
 void my_fileset_destroy(struct my_fileset **);
 void *my_fileset_user(struct my_fileset *);
-void my_fileset_reload(struct my_fileset *);
+bool my_fileset_reload(struct my_fileset *);
 bool my_fileset_get(struct my_fileset *, size_t, const char **, void **);
 
 #endif /* MY_FILESET_H */

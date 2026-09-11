@@ -30,6 +30,7 @@
 
 struct fileset_entry {
 	bool			keep;
+	bool 			owned;
 	char			*fname;
 	void			*ptr;
 };
@@ -152,7 +153,7 @@ my_fileset_user(struct my_fileset *fs)
 	return (fs->user);
 }
 
-void
+bool
 my_fileset_reload(struct my_fileset *fs)
 {
 	assert(fs != NULL);
@@ -163,22 +164,30 @@ my_fileset_reload(struct my_fileset *fs)
 	size_t len = 0;
 	ubuf *u;
 
+	bool success = false;
+	int saved_errno = 0;
+
 	if (!setfile_updated(fs))
-		return;
+		return (true);
 
 	fp = fopen(fs->setfile, "r");
 	if (fp == NULL)
-		return;
+		return (false);
 
 	u = ubuf_init(64);
 	new_entries = entry_vec_init(1);
 
+	/* a keep flag left set by an aborted reload would suppress a later unload */
+	for (size_t i = 0; i < entry_vec_size(fs->entries); i++)
+		entry_vec_value(fs->entries, i)->keep = false;
+
 	while (getline(&line, &len, fp) != -1) {
 		ubuf_clip(u, 0);
-                if (line[0] != '/') { /* if not absolute path, prepend fileset file's path */
-                        ubuf_add_cstr(u, fs->setdir);
-                        ubuf_add(u, '/');
-                }
+		if (line[0] != '/') { /* if not absolute path, prepend fileset file's path */
+			ubuf_add_cstr(u, fs->setdir);
+			ubuf_add(u, '/');
+		}
+
 		ubuf_add_cstr(u, line);
 		ubuf_rstrip(u, '\n');
 		fname = ubuf_cstr(u);
@@ -187,9 +196,15 @@ my_fileset_reload(struct my_fileset *fs)
 			if (entptr == NULL) {
 				ent = my_calloc(1, sizeof(*ent));
 				ent->fname = my_strdup(fname);
-				if (fs->load)
-					ent->ptr = fs->load(fs, fname);
 				entry_vec_add(new_entries, ent);
+				if (fs->load) {
+					ent->owned = true;
+					ent->ptr = fs->load(fs, fname);
+					if (ent->ptr == NULL) {
+						saved_errno = errno;
+						goto out;
+					}
+				}
 			} else {
 				ent = my_calloc(1, sizeof(*ent));
 				ent->fname = my_strdup(fname);
@@ -197,15 +212,20 @@ my_fileset_reload(struct my_fileset *fs)
 				(*entptr)->keep = true;
 				entry_vec_add(new_entries, ent);
 			}
+		} else {
+			saved_errno = errno;  /* stat() failed inside path_exists */
+			goto out;
 		}
 	}
-	free(line);
-	fclose(fp);
+	if (ferror(fp)) {
+		saved_errno = errno;
+		goto out;
+	}
 
 	qsort(entry_vec_data(new_entries),
-	      entry_vec_size(new_entries),
-	      sizeof(void *),
-	      cmp_fileset_entry);
+		entry_vec_size(new_entries),
+		sizeof(void *),
+		cmp_fileset_entry);
 
 	for (size_t i = 0; i < entry_vec_size(fs->entries); i++) {
 		ent = entry_vec_value(fs->entries, i);
@@ -217,7 +237,26 @@ my_fileset_reload(struct my_fileset *fs)
 	}
 	entry_vec_destroy(&fs->entries);
 	fs->entries = new_entries;
+	new_entries = NULL;
+	success = true;
+
+out:
+	if (new_entries != NULL) {
+		for (size_t i = 0; i < entry_vec_size(new_entries); i++) {
+			ent = entry_vec_value(new_entries, i);
+			if (ent->owned && ent->ptr != NULL && fs->unload)
+				fs->unload(fs, ent->fname, ent->ptr);
+			free(ent->fname);
+			free(ent);
+		}
+		entry_vec_destroy(&new_entries);
+	}
+	free(line);
+	(void) fclose(fp);
 	ubuf_destroy(&u);
+	if (saved_errno != 0)
+		errno = saved_errno;
+	return (success);
 }
 
 bool
