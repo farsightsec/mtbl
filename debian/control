@@ -1,7 +1,7 @@
 Source: mtbl
 Section: libs
 Priority: optional
-Maintainer: Farsight Security, Inc. <software@farsightsecurity.com>
+Maintainer: DomainTools LLC <software@domaintools.com>
 Build-Depends:
  debhelper (>= 10~),
  dpkg-dev (>= 1.16.0~),
